@@ -36,8 +36,14 @@ function AudioEmbed({ url }: { url: string }) {
   );
 }
 
+function getYouTubeVideoId(url: string): string | null {
+    const regex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+  }
+
 function YouTubeEmbed({ url }: { url: string }) {
-  const videoId = url.split("v=")[1];
+  const videoId = getYouTubeVideoId(url);
   return (
     <iframe
       width="100%"
