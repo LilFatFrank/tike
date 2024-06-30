@@ -130,12 +130,12 @@ const Profile: FC<Profile> = ({ fid }) => {
     const data = await res.json();
     if (data.success) {
       setUserPro({
-        ...userPro as IUser,
-        ['viewer_context']: {
+        ...(userPro as IUser),
+        ["viewer_context"]: {
           ...userPro?.viewer_context,
-          following: !userPro?.viewer_context?.following
-        } as IUser['viewer_context']
-      })
+          following: !userPro?.viewer_context?.following,
+        } as IUser["viewer_context"],
+      });
     }
   };
 
@@ -147,12 +147,12 @@ const Profile: FC<Profile> = ({ fid }) => {
     const data = await res.json();
     if (data.success) {
       setUserPro({
-        ...userPro as IUser,
-        ['viewer_context']: {
+        ...(userPro as IUser),
+        ["viewer_context"]: {
           ...userPro?.viewer_context,
-          following: !userPro?.viewer_context?.following
-        } as IUser['viewer_context']
-      })
+          following: !userPro?.viewer_context?.following,
+        } as IUser["viewer_context"],
+      });
     }
   };
 
@@ -185,14 +185,14 @@ const Profile: FC<Profile> = ({ fid }) => {
                 className="w-[82px] h-[82px] rounded-[41px] absolute top-[-41px] left-[16px] object-cover border-4 border-white"
               />
               <div className="flex justify-end">
-                {userPro?.viewer_context?.following ? (
+                {userPro?.fid === fid ? (
+                  <Button onClick={logoutUser}>Log out</Button>
+                ) : userPro?.viewer_context?.following ? (
                   <Button onClick={unfollowUser}>Unfollow</Button>
                 ) : !userPro?.viewer_context?.following ? (
                   <Button buttonType="alternate" onClick={followUser}>
                     Follow
                   </Button>
-                ) : userPro?.fid === user?.fid ? (
-                  <Button onClick={logoutUser}>Log out</Button>
                 ) : null}
               </div>
               <div className="flex flex-col items-start justify-start gap-3 mt-[12px]">

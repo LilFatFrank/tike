@@ -79,6 +79,13 @@ interface Cast {
 }
 
 const Cast: FC<Cast> = ({ cast }) => {
+  console.log(
+    cast.embeds[0].url ===
+      "https://imagedelivery.net/BXluQx4ige9GuW0Ia56BHw/c6f68733-a670-4f0d-1335-aaed4ce92800/original"
+      ? cast
+      : undefined
+  );
+
   const { user } = useNeynarContext();
 
   const [castDet, setCastDet] = useState<any>();
@@ -153,7 +160,7 @@ const Cast: FC<Cast> = ({ cast }) => {
 
   useEffect(() => {
     setCastDet(cast);
-  }, []);
+  }, [cast]);
 
   return (
     <>
@@ -199,7 +206,9 @@ const Cast: FC<Cast> = ({ cast }) => {
             <div
               className="flex items-center gap-[2px] cursor-pointer"
               onClick={() =>
-                likeOperation(castDet?.viewer_context?.liked ? "delete" : "post")
+                likeOperation(
+                  castDet?.viewer_context?.liked ? "delete" : "post"
+                )
               }
             >
               <img

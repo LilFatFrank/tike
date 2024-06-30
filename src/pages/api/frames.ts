@@ -11,7 +11,7 @@ export default async function handler(
       const fid = JSON.parse(req.body).fid as string;
 
       const resp = await axios.get(
-        `https://api.neynar.com/v2/farcaster/feed/frames?fid=${fid}&limit=25cursor=${cursor}`,
+        `https://api.neynar.com/v2/farcaster/feed/frames?limit=25&viewer_fid=${fid}&cursor=${cursor}`,
         {
           headers: {
             accept: "application/json",
