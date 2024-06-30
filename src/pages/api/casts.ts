@@ -1,6 +1,6 @@
 import axios from "axios";
 import { NextApiRequest, NextApiResponse } from "next";
-import processCasts from "../utils/processCasts";
+import processCasts from "../../utils/processCasts";
 
 export default async function handler(
   req: NextApiRequest,
