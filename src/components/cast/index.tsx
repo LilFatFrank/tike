@@ -1,4 +1,5 @@
 "use client";
+import formatNumber from "@/utils/formatNumber";
 import timeAgo from "@/utils/timeAgo";
 import Link from "next/link";
 import { FC } from "react";
@@ -37,10 +38,11 @@ function AudioEmbed({ url }: { url: string }) {
 }
 
 function getYouTubeVideoId(url: string): string | null {
-    const regex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-    const match = url.match(regex);
-    return match ? match[1] : null;
-  }
+  const regex =
+    /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+}
 
 function YouTubeEmbed({ url }: { url: string }) {
   const videoId = getYouTubeVideoId(url);
@@ -51,7 +53,7 @@ function YouTubeEmbed({ url }: { url: string }) {
       frameBorder="0"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       allowFullScreen
-      className="w-full max-h-[100dvw] object-contain rounded-[10px]"
+      className="w-full max-h-[100dvw] min-h-[300px] object-contain rounded-[10px]"
     ></iframe>
   );
 }
@@ -80,11 +82,13 @@ const Cast: FC<Cast> = ({ cast }) => {
     <>
       <div className="w-full px-[16px] py-[20px]">
         <div className="flex items-center justify-start gap-[10px] mb-[10px]">
-          <img
-            className="w-[40px] h-[40px] rounded-[20px] object-cover"
-            src={cast.author.pfp_url}
-            alt={cast.author.username}
-          />
+          <Link href={`/profile/${cast.author.fid}`}>
+            <img
+              className="w-[40px] h-[40px] rounded-[20px] object-cover"
+              src={cast.author.pfp_url}
+              alt={cast.author.username}
+            />
+          </Link>
           <div className="flex flex-col items-start gap-[2px]">
             <p className="font-bold text-[18px] leading-auto">
               {cast.author.display_name}&nbsp;
@@ -94,7 +98,7 @@ const Cast: FC<Cast> = ({ cast }) => {
                 <span className="font-normal text-[12px] leading-auto text-gray-text-1">
                   posted in&nbsp;
                   <Link
-                    href={""}
+                    href={`/channel/${cast.channel.id}`}
                     className="font-normal text-[12px] leading-auto text-black"
                   >
                     /{cast.channel.id}
@@ -115,13 +119,13 @@ const Cast: FC<Cast> = ({ cast }) => {
         <EmbedRenderer type={cast.embedType} url={cast.embeds[0].url} />
         <div className="w-full flex items-center justify-between mt-[16px]">
           <div className="flex items-center justify-start gap-[14px]">
-            <div className="flex items-center gap-[2px]">
+            <div className="flex items-center gap-[2px] cursor-pointer">
               <img src="/icons/like.svg" alt="like" width={24} height={24} />
               <p className="text-[14px] leading-auto font-normal">
-                {cast.reactions.likes_count}
+                {formatNumber(cast.reactions.likes_count)}
               </p>
             </div>
-            <div className="flex items-center gap-[2px]">
+            <div className="flex items-center gap-[2px] opacity-[0.4] cursor-not-allowed">
               <img
                 src="/icons/comment.svg"
                 alt="comment"
@@ -129,10 +133,10 @@ const Cast: FC<Cast> = ({ cast }) => {
                 height={24}
               />
               <p className="text-[14px] leading-auto font-normal">
-                {cast.replies.count}
+                {formatNumber(cast.replies.count)}
               </p>
             </div>
-            <div className="flex items-center gap-[2px]">
+            <div className="flex items-center gap-[2px] cursor-pointer">
               <img
                 src="/icons/recast.svg"
                 alt="recast"
@@ -140,11 +144,20 @@ const Cast: FC<Cast> = ({ cast }) => {
                 height={24}
               />
               <p className="text-[14px] leading-auto font-normal">
-                {cast.reactions.recasts_count}
+                {formatNumber(cast.reactions.recasts_count)}
               </p>
             </div>
           </div>
-          <img src="/icons/share.svg" alt="share" width={24} height={24} />
+          <button
+            className="bg-none border-none m-0 p-0"
+            onClick={() =>
+              window.navigator.clipboard.writeText(
+                `https://warpcast.com/${cast.author.username}/${cast.hash}`
+              )
+            }
+          >
+            <img src="/icons/share.svg" alt="share" width={24} height={24} />
+          </button>
         </div>
       </div>
     </>

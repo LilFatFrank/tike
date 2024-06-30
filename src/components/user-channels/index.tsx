@@ -1,0 +1,89 @@
+"use client";
+import { useNeynarContext } from "@neynar/react";
+import { FC, useEffect } from "react";
+import { useInView } from "react-intersection-observer";
+import { useInfiniteQuery } from "react-query";
+import Spinner from "../spinner";
+import Link from "next/link";
+
+interface ApiResponse {
+  channels: any;
+  next: { cursor: string };
+}
+
+const fetchChannels = async ({
+  pageParam = "",
+  queryKey,
+}: {
+  pageParam?: string;
+  queryKey: any;
+}): Promise<ApiResponse> => {
+  const [_key, { fid }] = queryKey;
+  const response = await fetch(`/api/user-channels`, {
+    method: "POST",
+    body: JSON.stringify({ cursor: pageParam, fid }),
+  });
+  if (!response.ok) {
+    throw new Error("Network response was not ok");
+  }
+  const data = await response.json();
+  return data;
+};
+
+const UserChannels: FC = () => {
+  const { user } = useNeynarContext();
+
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery(
+      ["user-channels", { fid: user?.fid || 3 }],
+      fetchChannels,
+      {
+        getNextPageParam: (lastPage) => {
+          return lastPage.next?.cursor ?? false;
+        },
+        refetchOnWindowFocus: false,
+      }
+    );
+
+  const { ref, inView } = useInView({
+    threshold: 0.3,
+  });
+
+  useEffect(() => {
+    if (inView && hasNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, fetchNextPage]);
+
+  const allChannels = data?.pages.flatMap((page) => page.channels) ?? [];
+
+  return (
+    <div className="pt-[10px] pb-[20px] pl-[16px] flex items-center justify-start gap-4 overflow-x-auto whitespace-nowrap border-b-[1px] border-b-divider">
+      {allChannels.map((channel) => (
+        <Link href={`/channel/${channel.id}`} className="flex-shrink-0">
+          <div
+            className="flex flex-col items-center justify-center gap-1 cursor-pointer"
+            key={channel.id}
+          >
+            <img
+              src={channel.image_url}
+              alt={channel.name}
+              className="w-[60px] h-[60px] rounded-[16px] object-cover"
+            />
+            <p className="text-[11px] font-normal leading-[9px]">{channel.name}</p>
+          </div>
+        </Link>
+      ))}
+
+      {isFetchingNextPage ? (
+        <div className="p-2">
+          <Spinner />
+        </div>
+      ) : null}
+
+      <div ref={ref} style={{ width: "20px", height: "20px" }}></div>
+    </div>
+  );
+};
+
+export default UserChannels;

@@ -1,5 +1,5 @@
 "use client";
-import { Cast, Spinner } from "@/components";
+import { Cast, Spinner, UserChannels } from "@/components";
 import { useNeynarContext } from "@neynar/react";
 import { useEffect } from "react";
 import { useInView } from "react-intersection-observer";
@@ -56,17 +56,30 @@ export default function Home() {
     }
   }, [inView, hasNextPage, fetchNextPage]);
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>An error occurred: {(error as Error).message}</div>;
-
   const allCasts = data?.pages.flatMap((page) => page.casts) ?? [];
 
+  if (isLoading) {
+    return (
+      <div className="p-2">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (error) {
+    <p className="w-full items-center justify-center py-2 text-center">
+      Error fetching casts!
+    </p>;
+  }
+
   return (
-    <>
+    <div className="flex-1">
+      <UserChannels />
+
       {allCasts.map((cast, castIndex, arr) =>
         cast.embeds[0].url ? (
           <>
-            <Cast cast={cast} key={castIndex} />
+            <Cast cast={cast} key={`cast-${cast.hash}`} />
             {castIndex === arr.length - 1 ? null : (
               <hr className="border border-t-divider" />
             )}
@@ -74,13 +87,19 @@ export default function Home() {
         ) : null
       )}
 
-      {isFetchingNextPage && <Spinner />}
+      {isFetchingNextPage ? (
+        <div className="p-2">
+          <Spinner />
+        </div>
+      ) : null}
 
       <div ref={ref} style={{ height: "20px" }}></div>
 
-      {!hasNextPage && (
-        <div className="w-full items-center">End of the line!</div>
-      )}
-    </>
+      {allCasts && allCasts.length && !hasNextPage ? (
+        <p className="w-full items-center justify-center py-2 text-center">
+          End of the line!
+        </p>
+      ) : null}
+    </div>
   );
 }

@@ -5,7 +5,8 @@ import { FC } from "react";
 const SignIn: FC = () => {
   return (
     <>
-      <div className="w-full h-full relative flex flex-col items-center justify-end bg-sign-in-bg">
+      <div className="w-full h-full relative flex flex-col items-center justify-end">
+        <div className="fixed w-full h-full bg-sign-in-bg z-[-2]" />
         <img
           src="/images/signin-background.png"
           alt="signin"

@@ -34,4 +34,8 @@
   .login-btn span {
     @apply text-white;
   }
+
+  .frame-btn {
+    @apply bg-frame-btn-bg rounded-[12px] py-[8px] px-[16px] w-full flex flex-row items-center w-full gap-[6px] justify-center;
+  }
 }
