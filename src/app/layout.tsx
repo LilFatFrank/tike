@@ -19,6 +19,17 @@ export const metadata: Metadata = {
       },
     ],
   },
+  openGraph: {
+    images: [
+      {
+        url: "/images/opengraph-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Broadcast your fun",
+      },
+    ],
+  },
+  metadataBase: new URL("https://app.tike.social/"),
 };
 
 export default function RootLayout({
