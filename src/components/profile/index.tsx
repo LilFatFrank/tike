@@ -14,6 +14,29 @@ import { useInView } from "react-intersection-observer";
 import Cast from "../cast";
 import formatNumber from "@/utils/formatNumber";
 
+interface Button
+  extends DetailedHTMLProps<
+    ButtonHTMLAttributes<HTMLButtonElement>,
+    HTMLButtonElement
+  > {
+  buttonType?: "default" | "alternate";
+}
+
+const Button: FC<Button> = ({ buttonType = "default", ...props }) => {
+  return (
+    <button
+      className={`py-2 px-4 text-[20px] leading-[22px] font-medium rounded-[16px] ${
+        buttonType === "alternate"
+          ? "bg-black text-white"
+          : "bg-white text-black ring-1 ring-inset ring-black"
+      }`}
+      onClick={props.onClick}
+    >
+      {props.children}
+    </button>
+  );
+};
+
 interface ApiResponse {
   casts: any;
   next: { cursor: string };
@@ -43,7 +66,7 @@ interface Profile {
 }
 
 const Profile: FC<Profile> = ({ fid }) => {
-  const { user } = useNeynarContext();
+  const { user, logoutUser } = useNeynarContext();
 
   const {
     data,
@@ -99,6 +122,40 @@ const Profile: FC<Profile> = ({ fid }) => {
     }
   };
 
+  const followUser = async () => {
+    const res = await fetch("/api/post-follow", {
+      method: "POST",
+      body: JSON.stringify({ fid: userPro?.fid, uuid: user?.signer_uuid }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setUserPro({
+        ...userPro as IUser,
+        ['viewer_context']: {
+          ...userPro?.viewer_context,
+          following: !userPro?.viewer_context?.following
+        } as IUser['viewer_context']
+      })
+    }
+  };
+
+  const unfollowUser = async () => {
+    const res = await fetch("/api/delete-follow", {
+      method: "POST",
+      body: JSON.stringify({ fid: userPro?.fid, uuid: user?.signer_uuid }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setUserPro({
+        ...userPro as IUser,
+        ['viewer_context']: {
+          ...userPro?.viewer_context,
+          following: !userPro?.viewer_context?.following
+        } as IUser['viewer_context']
+      })
+    }
+  };
+
   useEffect(() => {
     if (user) fetchUserProfile();
   }, [user]);
@@ -127,7 +184,18 @@ const Profile: FC<Profile> = ({ fid }) => {
                 alt={userPro?.username}
                 className="w-[82px] h-[82px] rounded-[41px] absolute top-[-41px] left-[16px] object-cover border-4 border-white"
               />
-              <div className="flex flex-col items-start justify-start gap-3 mt-[40px]">
+              <div className="flex justify-end">
+                {userPro?.viewer_context?.following ? (
+                  <Button onClick={unfollowUser}>Unfollow</Button>
+                ) : !userPro?.viewer_context?.following ? (
+                  <Button buttonType="alternate" onClick={followUser}>
+                    Follow
+                  </Button>
+                ) : userPro?.fid === user?.fid ? (
+                  <Button onClick={logoutUser}>Log out</Button>
+                ) : null}
+              </div>
+              <div className="flex flex-col items-start justify-start gap-3 mt-[12px]">
                 <div className="flex flex-col items-start gap-[2px]">
                   <p className="font-bold text-[18px] leading-[auto] text-black">
                     {userPro?.display_name}
@@ -169,7 +237,7 @@ const Profile: FC<Profile> = ({ fid }) => {
                 </div>
               ) : null}
 
-              <div ref={ref} style={{ height: "20px" }}></div>
+              <div ref={ref} style={{ height: "80px" }}></div>
 
               {allProfileCasts && allProfileCasts.length && !hasNextPage ? (
                 <p className="w-full items-center justify-center py-2 text-center">

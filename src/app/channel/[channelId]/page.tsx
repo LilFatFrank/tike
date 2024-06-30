@@ -160,7 +160,7 @@ export default function Page({ params }: { params: { channelId: number } }) {
               </div>
             ) : null}
 
-            <div ref={ref} style={{ height: "20px" }}></div>
+            <div ref={ref} style={{ height: "80px" }}></div>
 
             {allChannelCasts && allChannelCasts.length && !hasNextPage ? (
               <p className="w-full items-center justify-center py-2 text-center">

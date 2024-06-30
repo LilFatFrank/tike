@@ -58,7 +58,7 @@ const Footer: FC = () => {
               width={24}
               height={24}
             />
-            <p className="font-bold text-[12px] leading-[16px]">{l.label}</p>
+            <p className="font-bold text-[12px] leading-[16px] text-black">{l.label}</p>
           </Link>
         ))}
       </footer>

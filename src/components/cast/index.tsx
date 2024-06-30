@@ -1,8 +1,9 @@
 "use client";
 import formatNumber from "@/utils/formatNumber";
 import timeAgo from "@/utils/timeAgo";
+import { useNeynarContext } from "@neynar/react";
 import Link from "next/link";
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 
 function ImageEmbed({ url }: { url: string }) {
   return (
@@ -78,73 +79,174 @@ interface Cast {
 }
 
 const Cast: FC<Cast> = ({ cast }) => {
+  const { user } = useNeynarContext();
+
+  const [castDet, setCastDet] = useState<any>();
+
+  const postReaction = async (type: "like" | "recast") => {
+    const res = await fetch(`/api/post-reaction`, {
+      method: "POST",
+      body: JSON.stringify({
+        reactionType: type,
+        uuid: user?.signer_uuid as string,
+        hash: castDet.hash as string,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setCastDet({
+        ...castDet,
+        viewer_context: {
+          ...castDet?.viewer_context,
+          [type === "like" ? "liked" : "recasted"]:
+            !castDet?.viewer_context[type === "like" ? "liked" : "recasted"],
+        },
+        reactions: {
+          ...castDet?.reactions,
+          [type === "like" ? "likes_count" : "recasts_count"]:
+            castDet?.reactions[
+              type === "like" ? "likes_count" : "recasts_count"
+            ] + 1,
+        },
+      });
+    }
+  };
+
+  const deleteReaction = async (type: "like" | "recast") => {
+    const res = await fetch(`/api/delete-reaction`, {
+      method: "POST",
+      body: JSON.stringify({
+        reactionType: type,
+        uuid: user?.signer_uuid as string,
+        hash: castDet.hash as string,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setCastDet({
+        ...cast,
+        viewer_context: {
+          ...cast.viewer_context,
+          [type === "like" ? "liked" : "recasted"]:
+            !cast.viewer_context[type === "like" ? "liked" : "recasted"],
+        },
+        reactions: {
+          ...castDet?.reactions,
+          [type === "like" ? "likes_count" : "recasts_count"]:
+            castDet?.reactions[
+              type === "like" ? "likes_count" : "recasts_count"
+            ] - 1,
+        },
+      });
+    }
+  };
+
+  const recastOperation = (type: "post" | "delete") => {
+    if (type === "post") postReaction("recast");
+    else deleteReaction("recast");
+  };
+
+  const likeOperation = (type: "post" | "delete") => {
+    if (type === "post") postReaction("like");
+    else deleteReaction("like");
+  };
+
+  useEffect(() => {
+    setCastDet(cast);
+  }, []);
+
   return (
     <>
       <div className="w-full px-[16px] py-[20px]">
         <div className="flex items-center justify-start gap-[10px] mb-[10px]">
-          <Link href={`/profile/${cast.author.fid}`}>
+          <Link href={`/profile/${castDet?.author?.fid}`}>
             <img
               className="w-[40px] h-[40px] rounded-[20px] object-cover"
-              src={cast.author.pfp_url}
-              alt={cast.author.username}
+              src={castDet?.author?.pfp_url}
+              alt={castDet?.author?.username}
             />
           </Link>
           <div className="flex flex-col items-start gap-[2px]">
             <p className="font-bold text-[18px] leading-auto">
-              {cast.author.display_name}&nbsp;
+              {castDet?.author?.display_name}&nbsp;
             </p>
             <div className="flex items-center justify-start gap-1">
-              {cast.channel ? (
+              {castDet?.channel ? (
                 <span className="font-normal text-[12px] leading-auto text-gray-text-1">
                   posted in&nbsp;
                   <Link
-                    href={`/channel/${cast.channel.id}`}
+                    href={`/channel/${castDet?.channel.id}`}
                     className="font-normal text-[12px] leading-auto text-black"
                   >
-                    /{cast.channel.id}
+                    /{castDet?.channel.id}
                   </Link>
                 </span>
               ) : null}
               <span className="font-normal text-[12px] leading-auto text-gray-text-1">
-                {timeAgo(cast.timestamp)}
+                {timeAgo(castDet?.timestamp)}
               </span>
             </div>
           </div>
         </div>
-        {cast.text ? (
+        {castDet?.text ? (
           <p className="text-[18px] font-medium text-black w-full mb-[4px] break-words">
-            {cast.text}
+            {castDet?.text}
           </p>
         ) : null}
-        <EmbedRenderer type={cast.embedType} url={cast.embeds[0].url} />
+        <EmbedRenderer type={castDet?.embedType} url={castDet?.embeds[0].url} />
         <div className="w-full flex items-center justify-between mt-[16px]">
           <div className="flex items-center justify-start gap-[14px]">
-            <div className="flex items-center gap-[2px] cursor-pointer">
-              <img src="/icons/like.svg" alt="like" width={24} height={24} />
+            <div
+              className="flex items-center gap-[2px] cursor-pointer"
+              onClick={() =>
+                likeOperation(castDet?.viewer_context?.liked ? "delete" : "post")
+              }
+            >
+              <img
+                src={
+                  castDet?.viewer_context?.liked
+                    ? `/icons/like-filled-icon.svg`
+                    : `/icons/like-icon.svg`
+                }
+                alt="like"
+                width={24}
+                height={24}
+              />
               <p className="text-[14px] leading-auto font-normal">
-                {formatNumber(cast.reactions.likes_count)}
+                {formatNumber(castDet?.reactions?.likes_count)}
               </p>
             </div>
             <div className="flex items-center gap-[2px] opacity-[0.4] cursor-not-allowed">
               <img
-                src="/icons/comment.svg"
+                src="/icons/comment-icon.svg"
                 alt="comment"
                 width={24}
                 height={24}
               />
               <p className="text-[14px] leading-auto font-normal">
-                {formatNumber(cast.replies.count)}
+                {formatNumber(castDet?.replies?.count)}
               </p>
             </div>
-            <div className="flex items-center gap-[2px] cursor-pointer">
+            <div
+              className="flex items-center gap-[2px] cursor-pointer"
+              onClick={() =>
+                recastOperation(
+                  castDet?.viewer_context?.recasted ? "delete" : "post"
+                )
+              }
+            >
               <img
-                src="/icons/recast.svg"
+                src={
+                  castDet?.viewer_context?.recasted
+                    ? `/icons/recast-filled-icon.svg`
+                    : `/icons/recast-icon.svg`
+                }
                 alt="recast"
                 width={24}
                 height={24}
               />
               <p className="text-[14px] leading-auto font-normal">
-                {formatNumber(cast.reactions.recasts_count)}
+                {formatNumber(castDet?.reactions?.recasts_count)}
               </p>
             </div>
           </div>
@@ -152,7 +254,7 @@ const Cast: FC<Cast> = ({ cast }) => {
             className="bg-none border-none m-0 p-0"
             onClick={() =>
               window.navigator.clipboard.writeText(
-                `https://warpcast.com/${cast.author.username}/${cast.hash}`
+                `https://warpcast.com/${castDet?.author?.username}/${castDet?.hash}`
               )
             }
           >

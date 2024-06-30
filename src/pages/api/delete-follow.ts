@@ -7,23 +7,21 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     try {
-      const cursor = JSON.parse(req.body).cursor as string;
-      const fid = JSON.parse(req.body).fid as string;
+      const target_fids = JSON.parse(req.body).fid as string;
+      const signer_uuid = JSON.parse(req.body).uuid as string;
 
-      const resp = await axios.get(
-        `https://api.neynar.com/v2/farcaster/user/channels?fid=${fid}&limit=25&cursor=${cursor}`,
+      const resp = await axios.delete(
+        `https://api.neynar.com/v2/farcaster/user/follow`,
         {
           headers: {
             accept: "application/json",
             api_key: process.env.NEYNAR_API_KEY,
           },
+          data: { target_fids: [target_fids], signer_uuid },
         }
       );
 
-      res.status(200).json({
-        channels: resp.data.channels,
-        next: { cursor: resp.data.next.cursor },
-      });
+      res.status(200).json(resp.data);
     } catch (error: any) {
       console.error("Error processing request:", error);
       res.status(500).json({ error: error.message });

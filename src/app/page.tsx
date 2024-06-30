@@ -67,9 +67,11 @@ export default function Home() {
   }
 
   if (error) {
-    <p className="w-full items-center justify-center py-2 text-center">
-      Error fetching casts!
-    </p>;
+    return (
+      <p className="w-full items-center justify-center py-2 text-center">
+        Error fetching casts!
+      </p>
+    );
   }
 
   return (

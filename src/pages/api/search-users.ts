@@ -8,10 +8,11 @@ export default async function handler(
   if (req.method === "POST") {
     try {
       const cursor = JSON.parse(req.body).cursor as string;
-      const fid = JSON.parse(req.body).fid as string;
+      const viewerFid = JSON.parse(req.body).viewerFid as string;
+      const q = JSON.parse(req.body).q as string;
 
       const resp = await axios.get(
-        `https://api.neynar.com/v2/farcaster/user/channels?fid=${fid}&limit=25&cursor=${cursor}`,
+        `https://api.neynar.com/v2/farcaster/user/search?q=${q}&viewer_fid=${viewerFid}&limit=5&cursor=${cursor}`,
         {
           headers: {
             accept: "application/json",
@@ -21,8 +22,8 @@ export default async function handler(
       );
 
       res.status(200).json({
-        channels: resp.data.channels,
-        next: { cursor: resp.data.next.cursor },
+        users: resp.data.result.users,
+        next: { cursor: resp.data.result.next.cursor },
       });
     } catch (error: any) {
       console.error("Error processing request:", error);
