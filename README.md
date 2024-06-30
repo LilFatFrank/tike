@@ -2,13 +2,11 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## About
 
-Tike bridges the gap between traditional social media and the decentralized web3 world. It empowers users with real ownership, makes discovering web3 easier, incentivizes engagement, and ensures secure access to content. This makes everything easier, safer, and more rewarding for both creators and consumers. We aim to reward creators truly based on merit (mints).
+Tike bridges the gap between traditional social media and the decentralized web3 world. It empowers users with true ownership, makes discovering web3 easier, incentivizes engagement, and ensures secure access to content. This makes everything easier, safer, and more rewarding for both creators and consumers.
 
-Built as a client on top of [https://farcaster.xyz](Farcaster) protocol, Tike aims to become the number 1 social app for consumers and creators alike.
+Built as a client on top of the [https://farcaster.xyz](Farcaster) protocol, Tike aims to become the number one social app for both consumers and creators. We focus on rewarding creators based on merit through mints and providing users with a seamless and enriching experience.
 
-Learn more:
-[https://tike.social](Tike)
-[https://app.tike.social](Tike)
+Learn more: [https://tike.social](Tike Social) | [https://app.tike.social](App)
 
 ## Getting Started
 
