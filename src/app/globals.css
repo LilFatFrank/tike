@@ -1,7 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Satisfy&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Satisfy&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+  font-family: "ClashGrotesk";
+  src: url("/fonts/ClashGrotesk-Medium.ttf") format("truetype");
+}
 
 @layer components {
   .login-btn {
@@ -9,7 +14,7 @@
     background-clip: padding-box;
   }
   .login-btn::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
@@ -17,13 +22,14 @@
     bottom: 0;
     border-radius: inherit;
     padding: 1px;
-    background: radial-gradient(27.58% 112.5% at 104.19% 61.46%, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
-    -webkit-mask: 
-      linear-gradient(#fff 0 0) content-box, 
+    background: radial-gradient(
+      27.58% 112.5% at 104.19% 61.46%,
+      rgba(255, 255, 255, 0.7) 0%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box,
       linear-gradient(#fff 0 0);
-    mask: 
-      linear-gradient(#fff 0 0) content-box, 
-      linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;

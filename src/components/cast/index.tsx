@@ -4,6 +4,7 @@ import timeAgo from "@/utils/timeAgo";
 import { useNeynarContext } from "@neynar/react";
 import Link from "next/link";
 import { FC, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 function ImageEmbed({ url }: { url: string }) {
   return (
@@ -261,11 +262,12 @@ const Cast: FC<Cast> = ({ cast }) => {
           </div>
           <button
             className="bg-none border-none m-0 p-0"
-            onClick={() =>
+            onClick={() => {
               window.navigator.clipboard.writeText(
                 `https://warpcast.com/${castDet?.author?.username}/${castDet?.hash}`
-              )
-            }
+              );
+              toast.success("Link copied!");
+            }}
           >
             <img src="/icons/share.svg" alt="share" width={24} height={24} />
           </button>

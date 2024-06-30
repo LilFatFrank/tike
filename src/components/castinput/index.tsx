@@ -12,6 +12,7 @@ import axios from "axios";
 import Modal from "../modal";
 import { useNeynarContext } from "@neynar/react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface Media {
   type: "image" | "video";
@@ -23,7 +24,6 @@ const CastInput: FC = () => {
   const [text, setText] = useState("");
   const [media, setMedia] = useState<Media | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState("");
   const [openChannelModal, setOpenChannelModal] = useState(false);
   const [channelSearch, setChannelSearch] = useState("");
   const [debouncedChannelSearch, setDebouncedChannelSearch] = useState("");
@@ -111,7 +111,7 @@ const CastInput: FC = () => {
       }
     } catch (error) {
       console.error("Error uploading media", error);
-      setUploadError("Error uploading media");
+      toast.error("Error uploading media");
     } finally {
       setIsUploading(false);
       setText("");

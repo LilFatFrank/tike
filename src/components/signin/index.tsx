@@ -17,7 +17,7 @@ const SignIn: FC = () => {
         </p>
         <NeynarAuthButton
           variant={SIWN_variant.FARCASTER}
-          className="login-btn bg-auth-btn-bg mb-[40px] w-[90%]"
+          className="login-btn bg-auth-btn-bg mb-[40px] w-[90%] font-grotesk"
         />
       </div>
     </>

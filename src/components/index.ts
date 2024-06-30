@@ -8,3 +8,4 @@ export { default as UserChannels } from "./user-channels";
 export { default as Frame } from "./frame";
 export { default as Profile } from "./profile";
 export { default as CastInput } from "./castinput";
+export { default as Desktop } from "./desktop";
