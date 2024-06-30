@@ -9,13 +9,12 @@ export const metadata: Metadata = {
   title: "Tike",
   description: "Broadcast your Fun",
   icons: {
-    icon: "/logo/favicon.png",
-    other: [
+    icon: [
       {
         rel: "icon",
-        url: "/logo/favicon.png",
+        url: "/logo/favicon.svg",
         sizes: "any",
-        type: "image/png",
+        type: "image/svg+xml",
       },
     ],
   },
@@ -28,6 +27,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/logo/favicon.svg" type="image/svg+xml" />
+      </head>
       <body className={`${inter.className} w-dvw h-dvh mx-auto md:hidden`}>
         <Wrapper>{children}</Wrapper>
       </body>
