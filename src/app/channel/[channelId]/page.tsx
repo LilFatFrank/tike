@@ -1,5 +1,5 @@
 "use client";
-import { Cast, Spinner } from "@/components";
+import { Cast, Frame, Spinner } from "@/components";
 import formatNumber from "@/utils/formatNumber";
 import { useNeynarContext } from "@neynar/react";
 import { useEffect, useState } from "react";
@@ -104,7 +104,7 @@ export default function Page({ params }: { params: { channelId: number } }) {
   return (
     <div className="w-full h-full">
       <img
-        className="fixed w-full h-full object-cover z-[-1] fixed"
+        className="w-full h-full object-cover z-[-1] fixed"
         src="/images/profile-background.png"
         alt="background"
       />
@@ -122,7 +122,7 @@ export default function Page({ params }: { params: { channelId: number } }) {
             <img
               src={channelPro?.image_url}
               alt={channelPro?.id}
-              className="w-[82px] h-[82px] rounded-[41px] absolute top-[-41px] left-[16px] object-cover border-4 border-white"
+              className="w-[82px] h-[82px] rounded-[18px] absolute top-[-41px] left-[16px] object-cover border-4 border-white"
             />
             <div className="flex flex-col items-start justify-start gap-3 mt-[40px]">
               <div className="flex flex-col items-start gap-[2px]">
@@ -146,7 +146,19 @@ export default function Page({ params }: { params: { channelId: number } }) {
             {allChannelCasts.map((cast, castIndex, arr) =>
               cast.embeds[0].url ? (
                 <>
-                  <Cast cast={cast} key={`channel-cast-${cast.hash}`} />
+                  {cast.embedType === "frame" ? (
+                    <Frame
+                      frame={cast}
+                      key={`channel-cast-${cast.hash}`}
+                      style={{ paddingRight: 0, paddingLeft: 0 }}
+                    />
+                  ) : (
+                    <Cast
+                      cast={cast}
+                      key={`channel-cast-${cast.hash}`}
+                      style={{ paddingRight: 0, paddingLeft: 0 }}
+                    />
+                  )}
                   {castIndex === arr.length - 1 ? null : (
                     <hr className="border border-t-divider" />
                   )}

@@ -8,6 +8,10 @@
   src: url("/fonts/ClashGrotesk-Medium.ttf") format("truetype");
 }
 
+html, body {
+  @apply no-scrollbar;
+}
+
 @layer components {
   .login-btn {
     @apply relative flex flex-row items-center justify-center gap-2 text-[20px] leading-[24px] py-4 px-[30px] w-full rounded-[100px] border border-transparent;

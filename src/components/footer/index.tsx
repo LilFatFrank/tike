@@ -45,12 +45,12 @@ const Footer: FC = () => {
 
   return (
     <>
-      <footer className="w-dvw fixed bottom-0 py-2 border-t-[1px] border-t-divider bg-white flex items-center justify-around">
+      <footer className="w-dvw fixed bottom-0 py-2 border-t-[1px] border-t-divider bg-white flex items-center">
         {links.map((l) => (
           <Link
             key={l.label}
             href={l.path}
-            className={"flex flex-col items-center justify-center gap-2 p-2"}
+            className={"flex-grow flex flex-col items-center justify-center gap-2 p-2"}
           >
             <img
               src={pathname === l.path ? l.selected : l.icon}

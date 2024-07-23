@@ -1,11 +1,10 @@
 import axios from "axios";
-import { URL } from "url";
 
-interface SDKObject {
+interface NotificationObject {
   [key: string]: any;
 }
 
-interface ProcessedObject extends SDKObject {
+interface ProcessedObject extends NotificationObject {
   embedType: "video" | "audio" | "image" | "youtube" | "frame" | "other";
 }
 
@@ -58,29 +57,44 @@ async function determineUrlType(
   }
 }
 
-export async function processCasts(
-  objects: SDKObject[]
-): Promise<ProcessedObject[]> {
+export async function processNotifications(objects: NotificationObject[]) {
   const results = await Promise.allSettled(
     objects.map(async (obj) => {
-      if (
-        obj.embeds &&
-        obj.embeds.length &&
-        obj.embeds.some((e: { [key: string]: any }) => e.url)
-      ) {
-        if (obj.frames) {
-          return { ...obj, embedType: "frame" } as ProcessedObject;
+      if (obj.type !== "mention")
+        if (obj.type !== "follows") {
+          if (
+            obj.cast &&
+            obj.cast.embeds &&
+            obj.cast.embeds.length &&
+            obj.cast.embeds.some((e: { [key: string]: any }) => e.url)
+          ) {
+            const urlType = await determineUrlType(
+              obj.cast.embeds.find((e: { [key: string]: any }) => e.url).url,
+              true
+            );
+            return {
+              cast: {
+                hash: obj.cast.hash,
+                text: obj.cast.text,
+              },
+              user: {
+                pfp: obj.author.pfp_url,
+                displayName: obj.author.display_name,
+              },
+              type: obj.type,
+              timestamp: obj.most_recent_timestamp,
+              embedType: urlType,
+            } as ProcessedObject;
+          }
+        } else {
+          return {
+            follows: obj.follows,
+            type: obj.type,
+            timestamp: obj.most_recent_timestamp,
+          };
         }
-        const urlType = await determineUrlType(
-          obj.embeds.find((e: { [key: string]: any }) => e.url).url,
-          true
-        );
-        return { ...obj, embedType: urlType } as ProcessedObject;
-      }
-      throw new Error("Object has no URL");
     })
   );
-
   const filteredResults = results
     .filter(
       (result): result is PromiseFulfilledResult<ProcessedObject> =>
@@ -89,23 +103,4 @@ export async function processCasts(
     .map((result) => result.value);
 
   return filteredResults;
-}
-
-export async function processSingleCast(
-  obj: SDKObject
-): Promise<ProcessedObject> {
-  if (
-    obj.embeds &&
-    obj.embeds.length &&
-    obj.embeds.some((e: { [key: string]: any }) => e.url)
-  ) {
-    if (obj.frames) {
-      return { ...obj, embedType: "frame" } as ProcessedObject;
-    }
-    const urlType = await determineUrlType(
-      obj.embeds.find((e: { [key: string]: any }) => e.url).url
-    );
-    return { ...obj, embedType: urlType } as ProcessedObject;
-  }
-  return { ...obj, embedType: "other" } as ProcessedObject;
 }

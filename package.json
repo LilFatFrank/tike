@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@neynar/react": "^0.4.6",
+    "@tailwindcss/line-clamp": "^0.4.4",
     "axios": "^1.7.2",
     "clsx": "^2.1.1",
     "form-data": "^4.0.0",

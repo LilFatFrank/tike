@@ -1,7 +1,9 @@
 "use client";
-import { Cast, Spinner, UserChannels } from "@/components";
+import { ActivityBar, Cast, Frame, Spinner, UserChannels } from "@/components";
 import { useNeynarContext } from "@neynar/react";
-import { useEffect } from "react";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import { useInfiniteQuery } from "react-query";
 
@@ -17,10 +19,10 @@ const fetchCasts = async ({
   pageParam?: string;
   queryKey: any;
 }): Promise<ApiResponse> => {
-  const [_key, { fid }] = queryKey;
+  const [_key, { fid, filter }] = queryKey;
   const response = await fetch(`/api/casts`, {
     method: "POST",
-    body: JSON.stringify({ cursor: pageParam, fid }),
+    body: JSON.stringify({ cursor: pageParam, fid, filter }),
   });
   if (!response.ok) {
     throw new Error("Network response was not ok");
@@ -31,6 +33,9 @@ const fetchCasts = async ({
 
 export default function Home() {
   const { user } = useNeynarContext();
+  const [filter, setFilter] = useState<null | "video" | "image" | "frame">(
+    null
+  );
 
   const {
     data,
@@ -39,7 +44,7 @@ export default function Home() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteQuery(["casts", { fid: user?.fid || 3 }], fetchCasts, {
+  } = useInfiniteQuery(["casts", { fid: user?.fid || 3, filter }], fetchCasts, {
     getNextPageParam: (lastPage) => {
       return lastPage.next?.cursor ?? false;
     },
@@ -49,12 +54,20 @@ export default function Home() {
   const { ref, inView } = useInView({
     threshold: 0.3,
   });
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (inView && hasNextPage) {
       fetchNextPage();
     }
   }, [inView, hasNextPage, fetchNextPage]);
+
+  useEffect(() => {
+    if (pathname === "/") {
+      setFilter(searchParams?.get("filter") as typeof filter);
+    }
+  }, [searchParams, pathname]);
 
   const allCasts = data?.pages.flatMap((page) => page.casts) ?? [];
 
@@ -75,33 +88,41 @@ export default function Home() {
   }
 
   return (
-    <div className="flex-1">
-      <UserChannels />
+    <>
+      <div className="flex-1">
+        <ActivityBar />
 
-      {allCasts.map((cast, castIndex, arr) =>
-        cast.embeds[0].url ? (
-          <>
-            <Cast cast={cast} key={`cast-${cast.hash}`} />
-            {castIndex === arr.length - 1 ? null : (
-              <hr className="border border-t-divider" />
-            )}
-          </>
-        ) : null
-      )}
+        <UserChannels />
 
-      {isFetchingNextPage ? (
-        <div className="p-2">
-          <Spinner />
-        </div>
-      ) : null}
+        {allCasts.map((cast, castIndex, arr) =>
+          cast.embeds[0].url ? (
+            <Link href={`/cast/${cast.hash}`}>
+              {cast.embedType === "frame" ? (
+                <Frame frame={cast} key={`cast-${cast.hash}`} />
+              ) : (
+                <Cast cast={cast} key={`cast-${cast.hash}`} />
+              )}
+              {castIndex === arr.length - 1 ? null : (
+                <hr className="border border-t-divider" />
+              )}
+            </Link>
+          ) : null
+        )}
 
-      <div ref={ref} style={{ height: "20px" }}></div>
+        {isFetchingNextPage ? (
+          <div className="p-2">
+            <Spinner />
+          </div>
+        ) : null}
 
-      {allCasts && allCasts.length && !hasNextPage ? (
-        <p className="w-full items-center justify-center py-2 text-center">
-          End of the line!
-        </p>
-      ) : null}
-    </div>
+        <div ref={ref} style={{ height: "20px" }}></div>
+
+        {allCasts && allCasts.length && !hasNextPage ? (
+          <p className="w-full items-center justify-center py-2 text-center">
+            End of the line!
+          </p>
+        ) : null}
+      </div>
+    </>
   );
 }

@@ -3,6 +3,7 @@ import { NeynarContextProvider, Theme } from "@neynar/react";
 import { FC, ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { Footer, Platform } from "@/components";
+import { AppContextProvider } from "@/context";
 
 const queryClient = new QueryClient();
 
@@ -19,8 +20,10 @@ const Wrapper: FC<Wrapper> = ({ children }) => {
       }}
     >
       <QueryClientProvider client={queryClient}>
-        <Platform>{children}</Platform>
-        <Footer />
+        <AppContextProvider>
+          <Platform>{children}</Platform>
+          <Footer />
+        </AppContextProvider>
       </QueryClientProvider>
     </NeynarContextProvider>
   );

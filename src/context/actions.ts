@@ -1,0 +1,1 @@
+export const SET_USER_CHANNELS = 'SET_USER_CHANNELS';

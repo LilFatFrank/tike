@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import { PluginAPI } from "tailwindcss/types/config";
 const { fontFamily } = require("tailwindcss/defaultTheme");
 
 const config: Config = {
@@ -32,10 +33,24 @@ const config: Config = {
         "frame-btn-bg": "#EFF1F5",
         "tab-unselected-color": "#A1A1A1",
         purple: "#7C65C1",
-        "signup-button-text-color": "#EAE9E9"
+        "signup-button-text-color": "#EAE9E9",
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }: { addUtilities: PluginAPI["addUtilities"] }) {
+      const newUtilities = {
+        ".no-scrollbar::-webkit-scrollbar": {
+          display: "none",
+        },
+        ".no-scrollbar": {
+          "-ms-overflow-style": "none",
+          "scrollbar-width": "none"
+        },
+      };
+      addUtilities(newUtilities);
+    },
+    require("@tailwindcss/line-clamp"),
+  ],
 };
 export default config;

@@ -3,7 +3,7 @@ import formatNumber from "@/utils/formatNumber";
 import timeAgo from "@/utils/timeAgo";
 import { useNeynarContext } from "@neynar/react";
 import Link from "next/link";
-import { FC, useEffect, useState } from "react";
+import { CSSProperties, FC, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 function ImageEmbed({ url }: { url: string }) {
@@ -77,16 +77,10 @@ function EmbedRenderer({ type, url }: { type: string; url: string }) {
 
 interface Cast {
   cast: any;
+  style?: CSSProperties;
 }
 
-const Cast: FC<Cast> = ({ cast }) => {
-  console.log(
-    cast.embeds[0].url ===
-      "https://imagedelivery.net/BXluQx4ige9GuW0Ia56BHw/c6f68733-a670-4f0d-1335-aaed4ce92800/original"
-      ? cast
-      : undefined
-  );
-
+const Cast: FC<Cast> = ({ cast, style }) => {
   const { user } = useNeynarContext();
 
   const [castDet, setCastDet] = useState<any>();
@@ -165,9 +159,12 @@ const Cast: FC<Cast> = ({ cast }) => {
 
   return (
     <>
-      <div className="w-full px-[16px] py-[20px]">
+      <div className="w-full px-[16px] py-[20px]" style={{ ...style }}>
         <div className="flex items-center justify-start gap-[10px] mb-[10px]">
-          <Link href={`/profile/${castDet?.author?.fid}`}>
+          <Link
+            href={`/profile/${castDet?.author?.fid}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <img
               className="w-[40px] h-[40px] rounded-[20px] object-cover"
               src={castDet?.author?.pfp_url}
@@ -185,6 +182,7 @@ const Cast: FC<Cast> = ({ cast }) => {
                   <Link
                     href={`/channel/${castDet?.channel.id}`}
                     className="font-normal text-[12px] leading-auto text-black"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     /{castDet?.channel.id}
                   </Link>
@@ -201,17 +199,13 @@ const Cast: FC<Cast> = ({ cast }) => {
             {castDet?.text}
           </p>
         ) : null}
-        <EmbedRenderer type={castDet?.embedType} url={castDet?.embeds[0].url} />
+        <EmbedRenderer
+          type={castDet?.embedType}
+          url={castDet?.embeds[0]?.url}
+        />
         <div className="w-full flex items-center justify-between mt-[16px]">
           <div className="flex items-center justify-start gap-[14px]">
-            <div
-              className="flex items-center gap-[2px] cursor-pointer"
-              onClick={() =>
-                likeOperation(
-                  castDet?.viewer_context?.liked ? "delete" : "post"
-                )
-              }
-            >
+            <div className="flex items-center gap-[2px] cursor-pointer">
               <img
                 src={
                   castDet?.viewer_context?.liked
@@ -221,6 +215,12 @@ const Cast: FC<Cast> = ({ cast }) => {
                 alt="like"
                 width={24}
                 height={24}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  likeOperation(
+                    castDet?.viewer_context?.liked ? "delete" : "post"
+                  );
+                }}
               />
               <p className="text-[14px] leading-auto font-normal">
                 {formatNumber(castDet?.reactions?.likes_count)}
@@ -237,14 +237,7 @@ const Cast: FC<Cast> = ({ cast }) => {
                 {formatNumber(castDet?.replies?.count)}
               </p>
             </div>
-            <div
-              className="flex items-center gap-[2px] cursor-pointer"
-              onClick={() =>
-                recastOperation(
-                  castDet?.viewer_context?.recasted ? "delete" : "post"
-                )
-              }
-            >
+            <div className="flex items-center gap-[2px] cursor-pointer">
               <img
                 src={
                   castDet?.viewer_context?.recasted
@@ -254,6 +247,12 @@ const Cast: FC<Cast> = ({ cast }) => {
                 alt="recast"
                 width={24}
                 height={24}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  recastOperation(
+                    castDet?.viewer_context?.recasted ? "delete" : "post"
+                  );
+                }}
               />
               <p className="text-[14px] leading-auto font-normal">
                 {formatNumber(castDet?.reactions?.recasts_count)}
@@ -262,7 +261,8 @@ const Cast: FC<Cast> = ({ cast }) => {
           </div>
           <button
             className="bg-none border-none m-0 p-0"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               window.navigator.clipboard.writeText(
                 `https://warpcast.com/${castDet?.author?.username}/${castDet?.hash}`
               );

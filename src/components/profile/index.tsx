@@ -13,6 +13,7 @@ import { useInfiniteQuery } from "react-query";
 import { useInView } from "react-intersection-observer";
 import Cast from "../cast";
 import formatNumber from "@/utils/formatNumber";
+import Frame from "../frame";
 
 interface Button
   extends DetailedHTMLProps<
@@ -164,7 +165,7 @@ const Profile: FC<Profile> = ({ fid }) => {
     <>
       <div className="w-full h-full">
         <img
-          className="fixed w-full h-full object-cover z-[-1] fixed"
+          className="w-full h-full object-cover z-[-1] fixed"
           src="/images/profile-background.png"
           alt="background"
         />
@@ -185,7 +186,7 @@ const Profile: FC<Profile> = ({ fid }) => {
                 className="w-[82px] h-[82px] rounded-[41px] absolute top-[-41px] left-[16px] object-cover border-4 border-white"
               />
               <div className="flex justify-end">
-                {userPro?.fid === fid ? (
+                {user?.fid === Number(fid) ? (
                   <Button onClick={logoutUser}>Log out</Button>
                 ) : userPro?.viewer_context?.following ? (
                   <Button onClick={unfollowUser}>Unfollow</Button>
@@ -223,7 +224,19 @@ const Profile: FC<Profile> = ({ fid }) => {
               {allProfileCasts.map((cast, castIndex, arr) =>
                 cast.embeds[0].url ? (
                   <>
-                    <Cast cast={cast} key={`profile-cast-${cast.hash}`} />
+                    {cast.embedType === "frame" ? (
+                      <Frame
+                        frame={cast}
+                        key={`profile-cast-${cast.hash}`}
+                        style={{ paddingRight: 0, paddingLeft: 0 }}
+                      />
+                    ) : (
+                      <Cast
+                        cast={cast}
+                        key={`profile-cast-${cast.hash}`}
+                        style={{ paddingRight: 0, paddingLeft: 0 }}
+                      />
+                    )}
                     {castIndex === arr.length - 1 ? null : (
                       <hr className="border border-t-divider" />
                     )}

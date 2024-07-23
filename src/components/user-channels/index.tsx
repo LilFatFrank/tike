@@ -1,10 +1,12 @@
 "use client";
 import { useNeynarContext } from "@neynar/react";
-import { FC, useEffect } from "react";
+import { FC, useContext, useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 import { useInfiniteQuery } from "react-query";
 import Spinner from "../spinner";
 import Link from "next/link";
+import { AppContext } from "@/context";
+import { SET_USER_CHANNELS } from "@/context/actions";
 
 interface ApiResponse {
   channels: any;
@@ -32,6 +34,7 @@ const fetchChannels = async ({
 
 const UserChannels: FC = () => {
   const { user } = useNeynarContext();
+  const [state, dispatch] = useContext(AppContext);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery(
@@ -55,22 +58,31 @@ const UserChannels: FC = () => {
     }
   }, [inView, hasNextPage, fetchNextPage]);
 
-  const allChannels = data?.pages.flatMap((page) => page.channels) ?? [];
+  useEffect(() => {
+    dispatch({
+      type: SET_USER_CHANNELS,
+      payload: data?.pages.flatMap((page) => page.channels) ?? [],
+    });
+  }, [data]);
 
   return (
-    <div className="pt-[10px] pb-[20px] pl-[16px] flex items-center justify-start gap-4 overflow-x-auto whitespace-nowrap border-b-[1px] border-b-divider">
-      {allChannels.map((channel) => (
+    <div className="pt-[10px] pb-[20px] pl-[16px] flex items-center justify-start gap-4 overflow-x-auto whitespace-nowrap">
+      {state.userChannels.map((channel) => (
         <Link href={`/channel/${channel.id}`} className="flex-shrink-0">
           <div
             className="flex flex-col items-center justify-center gap-1 cursor-pointer"
             key={channel.id}
           >
-            <img
-              src={channel.image_url}
-              alt={channel.name}
-              className="w-[60px] h-[60px] rounded-[16px] object-cover"
-            />
-            <p className="text-[11px] font-normal leading-[9px]">{channel.name}</p>
+            <div className="w-[60px] h-[60px] rounded-[16px] border border-black-20 bg-frame-btn-bg">
+              <img
+                src={channel.image_url}
+                alt={channel.name}
+                className="w-full h-full rounded-[16px] object-cover"
+              />
+            </div>
+            <p className="text-[11px] font-normal w-[9ch] text-center text-ellipsis overflow-hidden whitespace-nowrap">
+              {channel.name}
+            </p>
           </div>
         </Link>
       ))}
