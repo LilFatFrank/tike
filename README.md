@@ -1,5 +1,3 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
-
 ## About
 
 Tike bridges the gap between traditional social media and the decentralized web3 world. It empowers users with true ownership, makes discovering web3 easier, incentivizes engagement, and ensures secure access to content. This makes everything easier, safer, and more rewarding for both creators and consumers.
@@ -9,6 +7,8 @@ Built as a client on top of the [Farcaster](https://farcaster.xyz) protocol, Tik
 Learn more: [Tike Social](https://tike.social) | [App](https://app.tike.social)
 
 ## Getting Started
+
+This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 First, run the development server:
 
