@@ -163,7 +163,10 @@ const Cast: FC<Cast> = ({ cast, style }) => {
         <div className="flex items-center justify-start gap-[10px] mb-[10px]">
           <Link
             href={`/profile/${castDet?.author?.fid}`}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
           >
             <img
               className="w-[40px] h-[40px] rounded-[20px] object-cover"
@@ -182,7 +185,10 @@ const Cast: FC<Cast> = ({ cast, style }) => {
                   <Link
                     href={`/channel/${castDet?.channel.id}`}
                     className="font-normal text-[12px] leading-auto text-black"
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
                   >
                     /{castDet?.channel.id}
                   </Link>
@@ -216,6 +222,7 @@ const Cast: FC<Cast> = ({ cast, style }) => {
                 width={24}
                 height={24}
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   likeOperation(
                     castDet?.viewer_context?.liked ? "delete" : "post"
@@ -248,6 +255,7 @@ const Cast: FC<Cast> = ({ cast, style }) => {
                 width={24}
                 height={24}
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   recastOperation(
                     castDet?.viewer_context?.recasted ? "delete" : "post"

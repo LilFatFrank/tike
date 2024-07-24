@@ -1,6 +1,7 @@
 "use client";
 import { Frame, Spinner } from "@/components";
 import { useNeynarContext } from "@neynar/react";
+import Link from "next/link";
 import { useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 import { useInfiniteQuery } from "react-query";
@@ -75,12 +76,12 @@ export default function Frames() {
 
       {allFrames.map((frame, frameIndex, arr) =>
         frame.embeds[0].url ? (
-          <>
+          <Link href={`/cast/${frame.hash}`}>
             <Frame frame={frame} key={`frame-${frame.hash}`} />
             {frameIndex === arr.length - 1 ? null : (
               <hr className="border border-t-divider" />
             )}
-          </>
+          </Link>
         ) : null
       )}
 

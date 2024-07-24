@@ -14,6 +14,7 @@ import { useInView } from "react-intersection-observer";
 import Cast from "../cast";
 import formatNumber from "@/utils/formatNumber";
 import Frame from "../frame";
+import Link from "next/link";
 
 interface Button
   extends DetailedHTMLProps<
@@ -223,7 +224,7 @@ const Profile: FC<Profile> = ({ fid }) => {
               </div>
               {allProfileCasts.map((cast, castIndex, arr) =>
                 cast.embeds[0].url ? (
-                  <>
+                  <Link href={`/cast/${cast.hash}`}>
                     {cast.embedType === "frame" ? (
                       <Frame
                         frame={cast}
@@ -240,7 +241,7 @@ const Profile: FC<Profile> = ({ fid }) => {
                     {castIndex === arr.length - 1 ? null : (
                       <hr className="border border-t-divider" />
                     )}
-                  </>
+                  </Link>
                 ) : null
               )}
 
