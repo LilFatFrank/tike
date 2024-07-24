@@ -270,9 +270,10 @@ const Cast: FC<Cast> = ({ cast, style }) => {
           <button
             className="bg-none border-none m-0 p-0"
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               window.navigator.clipboard.writeText(
-                `https://warpcast.com/${castDet?.author?.username}/${castDet?.hash}`
+                `https://app.tike.social/cast/${castDet?.hash}`
               );
               toast.success("Link copied!");
             }}
