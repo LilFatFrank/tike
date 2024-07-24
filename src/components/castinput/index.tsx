@@ -98,10 +98,8 @@ const CastInput: FC = () => {
       if (media) {
         const formData = new FormData();
         formData.append("file", media.file);
-        formData.append("fileName", media.file.name);
         formData.append("text", text);
         formData.append("uuid", user?.signer_uuid as string);
-        formData.append("fid", ((user?.fid as number) || 0).toString());
         formData.append("channelId", selectedChannel);
 
         const response = await axios.post("/api/create", formData, {

@@ -66,13 +66,14 @@ export default async function handler(
 
     const url = "https://api.neynar.com/v2/farcaster/cast";
     const body = {
-      parent_author_fid: Number(req.body.fid),
-      signer_uuid: req.body.uuid,
-      text: req.body.text,
-      channelId: req.body.channelId,
       embeds: [
-        { url: `${process.env.PINATA_GATEWAY_URL}/ipfs/${response.data.IpfsHash}` },
+        {
+          url: `${process.env.PINATA_GATEWAY_URL}/ipfs/${response.data.IpfsHash}`,
+        },
       ],
+      text: req.body.text,
+      signer_uuid: req.body.uuid,
+      channel_id: req.body.channelId,
     };
 
     const castResponse = await axios.post(url, body, {
