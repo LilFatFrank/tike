@@ -202,8 +202,17 @@ const Profile: FC<Profile> = ({ fid }) => {
                   <p className="font-bold text-[18px] leading-[auto] text-black">
                     {userPro?.display_name}
                   </p>
-                  <p className="font-medium text-[15px] leading-[auto] text-black-50">
+                  <p className="font-medium text-[15px] leading-[auto] text-black-50 flex items-center gap-1">
                     @{userPro?.username}
+                    {userPro?.viewer_context?.followed_by ? (
+                      <>
+                        <div className="py-[2px] px-1 rounded-md bg-frame-btn-bg">
+                          <p className="text-black-60 text-[10px]">
+                            Follows you
+                          </p>
+                        </div>
+                      </>
+                    ) : null}
                   </p>
                 </div>
                 <p className="font-normal">{userPro?.profile.bio.text}</p>

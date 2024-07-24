@@ -43,6 +43,8 @@ const Footer: FC = () => {
 
   if (!user) return null;
 
+  if (pathname === "/create") return null;
+
   return (
     <>
       <footer className="w-dvw fixed bottom-0 py-2 border-t-[1px] border-t-divider bg-white flex items-center">

@@ -66,7 +66,7 @@ const UserChannels: FC = () => {
   }, [data]);
 
   return (
-    <div className="pt-[10px] pb-[20px] pl-[16px] flex items-center justify-start gap-4 overflow-x-auto whitespace-nowrap">
+    <div className="pt-[10px] pb-[20px] pl-[16px] flex items-center justify-start gap-4 overflow-x-auto whitespace-nowrap no-scrollbar">
       {state.userChannels.map((channel) => (
         <Link href={`/channel/${channel.id}`} className="flex-shrink-0">
           <div

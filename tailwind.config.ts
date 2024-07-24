@@ -35,6 +35,9 @@ const config: Config = {
         purple: "#7C65C1",
         "signup-button-text-color": "#EAE9E9",
       },
+      boxShadow: {
+        "cast-upload": "0px -2px 6.89px 0px #0000001A",
+      },
     },
   },
   plugins: [
@@ -45,7 +48,7 @@ const config: Config = {
         },
         ".no-scrollbar": {
           "-ms-overflow-style": "none",
-          "scrollbar-width": "none"
+          "scrollbar-width": "none",
         },
       };
       addUtilities(newUtilities);

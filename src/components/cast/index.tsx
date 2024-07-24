@@ -164,7 +164,6 @@ const Cast: FC<Cast> = ({ cast, style }) => {
           <Link
             href={`/profile/${castDet?.author?.fid}`}
             onClick={(e) => {
-              e.preventDefault();
               e.stopPropagation();
             }}
           >
@@ -186,7 +185,6 @@ const Cast: FC<Cast> = ({ cast, style }) => {
                     href={`/channel/${castDet?.channel.id}`}
                     className="font-normal text-[12px] leading-auto text-black"
                     onClick={(e) => {
-                      e.preventDefault();
                       e.stopPropagation();
                     }}
                   >

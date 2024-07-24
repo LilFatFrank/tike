@@ -5,6 +5,7 @@ import {
   ChangeEvent,
   FC,
   ClipboardEvent as ReactClipboardEvent,
+  useContext,
 } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { FiImage, FiVideo } from "react-icons/fi";
@@ -13,6 +14,7 @@ import Modal from "../modal";
 import { useNeynarContext } from "@neynar/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { AppContext } from "@/context";
 
 interface Media {
   type: "image" | "video";
@@ -21,6 +23,7 @@ interface Media {
 }
 
 const CastInput: FC = () => {
+  const [state] = useContext(AppContext);
   const [text, setText] = useState("");
   const [media, setMedia] = useState<Media | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -154,107 +157,140 @@ const CastInput: FC = () => {
 
   return (
     <>
-      <div className="p-4">
-        <div className="w-full flex justify-end mb-[12px]">
-          <button
-            className="border-none outline-none rounded-[22px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
-            disabled={!media || isUploading}
-            onClick={handlePost}
-          >
-            Post
-          </button>
-        </div>
-        <textarea
-          className="w-full outline-none resize-none"
-          placeholder="What's happening?"
-          value={text}
-          onChange={handleTextChange}
-          rows={4}
-        />
-        <div className="flex items-center gap-2 mt-2">
-          <label
-            className={`cursor-pointer ${
-              isUploading ? "cursor-not-allowed opacity-[0.4]" : ""
-            }`}
-          >
-            <FiImage className="text-xl" />
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={isUploading ? undefined : (e) => handleMediaChange(e)}
-            />
-          </label>
-          <label
-            className={`cursor-pointer ${
-              isUploading ? "cursor-not-allowed opacity-[0.4]" : ""
-            }`}
-          >
-            <FiVideo className="text-xl" />
-            <input
-              type="file"
-              accept="video/*"
-              multiple
-              className="hidden"
-              onChange={isUploading ? undefined : (e) => handleMediaChange(e)}
-            />
-          </label>
-        </div>
-        <div className="mt-2 flex items-center gap-2">
-          <span
-            className="text-purple font-bold text-[14px] leading-[120%] cursor-pointer"
-            onClick={() => setOpenChannelModal(true)}
-          >
-            {selectedChannel ? `/${selectedChannel}` : "Select Channel"}
-          </span>
-          {selectedChannel ? (
+      <div className="bg-[#F0EEEF] w-dvw min-h-dvh flex flex-col">
+        <div className="grow p-2 bg-white rounded-[20px] shadow-cast-upload">
+          <div className="w-full flex items-center justify-between mb-[40px]">
             <button
-              className="text-black-50 outline-none border-none rounded-lg"
-              onClick={() => {
-                setSelectedChannel("");
-                setChannelSearch("");
-              }}
+              className="border-none outline-none rounded-[18px] px-2 py-1 bg-frame-btn-bg"
+              onClick={() => router.back()}
             >
-              x
+              <img
+                src="/icons/close-upload-view-icon.svg"
+                alt="close"
+                className="w-8 h-8"
+              />
             </button>
-          ) : null}
-        </div>
-        <div className="flex flex-wrap gap-2 mt-1">
-          {media ? (
-            <div className="flex flex-wrap gap-2 mt-2">
-              <div key={media.url} className="relative w-full">
-                {media.type === "image" ? (
-                  <img
-                    src={media.url}
-                    alt="media"
-                    className="w-full object-cover rounded-lg"
-                  />
-                ) : (
-                  <video
-                    src={media.url}
-                    controls
-                    className="w-full object-cover rounded-lg"
-                  />
-                )}
-                <button
-                  className="absolute top-1 right-1 bg-black text-white rounded-full p-1"
-                  onClick={removeMedia}
-                >
-                  <AiOutlineClose />
-                </button>
+            <button
+              className="border-none outline-none rounded-[22px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
+              disabled={!media || isUploading}
+              onClick={handlePost}
+            >
+              {isUploading ? "Uploading..." : "Post"}
+            </button>
+          </div>
+          <div className={`flex items-center justify-start gap-2 mb-[12px]`}>
+            <img
+              src={user?.pfp_url}
+              alt={user?.display_name}
+              className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+            />
+            <div>
+              <p className="font-[800] text-black text-[18px] leading-[21.6px]">
+                {user?.display_name}
+              </p>
+              <div
+                className="flex items-center gap-[2px] cursor-pointer"
+                onClick={() => setOpenChannelModal(true)}
+              >
+                <span className="text-purple font-bold text-[14px] leading-[120%]">
+                  {selectedChannel ? `/${selectedChannel}` : "Select Channel"}
+                </span>
+                <img
+                  src="/icons/channel-chevron-down-icon.svg"
+                  alt="channel-down"
+                  className="w-[14px] h-[14px]"
+                />
               </div>
             </div>
-          ) : null}
+          </div>
+          <textarea
+            className="w-full outline-none resize-none"
+            placeholder="What's happening?"
+            value={text}
+            onChange={handleTextChange}
+            rows={3}
+          />
+          <div className="flex flex-wrap gap-2 mt-1">
+            {media ? (
+              <div className="flex flex-wrap gap-2 mt-2">
+                <div key={media.url} className="relative w-full">
+                  {media.type === "image" ? (
+                    <img
+                      src={media.url}
+                      alt="media"
+                      className="w-full object-cover rounded-lg"
+                    />
+                  ) : (
+                    <video
+                      src={media.url}
+                      controls
+                      className="w-full object-cover rounded-lg"
+                    />
+                  )}
+                  <button
+                    className="absolute top-1 right-1 bg-black text-white rounded-full p-1"
+                    onClick={removeMedia}
+                  >
+                    <AiOutlineClose />
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+        <div className="py-1 px-2 flex items-center justify-start gap-1">
+          <label
+            className={`cursor-pointer ${
+              isUploading ? "cursor-not-allowed opacity-[0.4]" : ""
+            }`}
+          >
+            <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
+              <img
+                src="/icons/image-upload-icon.svg"
+                alt="image"
+                className="w-8 h-8"
+              />
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={isUploading ? undefined : (e) => handleMediaChange(e)}
+              />
+            </div>
+          </label>
+          <label
+            className={`cursor-pointer ${
+              isUploading ? "cursor-not-allowed opacity-[0.4]" : ""
+            }`}
+          >
+            <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
+              <img
+                src="/icons/video-upload-icon.svg"
+                alt="video"
+                className="w-8 h-8"
+              />
+              <input
+                type="file"
+                accept="video/*"
+                multiple
+                className="hidden"
+                onChange={isUploading ? undefined : (e) => handleMediaChange(e)}
+              />
+            </div>
+          </label>
         </div>
       </div>
       <Modal
         isOpen={openChannelModal}
         closeModal={() => setOpenChannelModal(false)}
-        style={{ height: "100%" }}
+        style={{ borderRadius: "20px 20px 0 0", padding: 0, minHeight: "40%" }}
       >
-        <div className="flex-1 p-4">
-          <div className="w-full items-center bg-frame-btn-bg relative rounded-[12px] py-2 pl-[42px] pr-4 mb-4">
+        <div className="flex-1 pt-8 pb-2 px-2">
+          <p className="mb-2 text-center text-[18px] font-semibold leading-[22px]">
+            Select Channel
+          </p>
+          <div className="w-full items-center bg-frame-btn-bg relative rounded-[12px] py-2 pl-[42px] pr-4 mb-1">
             <img
               src="/icons/input-search-icon.svg"
               alt="input-search"
@@ -264,39 +300,84 @@ const CastInput: FC = () => {
             />
             <input
               className="p-0 outline-none border-none w-full bg-inherit placeholder:text-black-40"
-              placeholder="Search users, channels"
-              value={debouncedChannelSearch}
+              placeholder="Search channels"
+              value={channelSearch}
               onChange={(e) => setChannelSearch(e.target.value)}
             />
           </div>
-          {allChannels?.map((channel, channelIndex, arr) => (
-            <>
-              <div
-                className="w-full px-[16px] py-[20px] flex items-center justify-start gap-[10px] cursor-pointer"
-                onClick={() => {
-                  setSelectedChannel(channel.id);
-                  setOpenChannelModal(false);
-                }}
-              >
-                <img
-                  className="w-[40px] h-[40px] rounded-[20px] object-cover"
-                  src={channel.image_url}
-                  alt={channel.id}
-                />
-                <div className="flex flex-col items-start gap-[2px]">
-                  <p className="font-bold text-[18px] leading-auto">
-                    {channel.id}&nbsp;
-                  </p>
-                  <p className="font-normal text-[12px] leading-auto text-gray-text-1">
-                    /{channel.id}
-                  </p>
-                </div>
-              </div>
-              {channelIndex === arr.length - 1 ? null : (
-                <hr className="border border-t-divider" />
-              )}
-            </>
-          ))}
+          <div
+            className={`w-full px-2 py-[10px] flex items-center justify-start gap-2 cursor-pointer mb-1 rounded-[12px] ${
+              selectedChannel === ""
+                ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
+                : ""
+            } hover:bg-frame-btn-bg`}
+            onClick={() => {
+              setSelectedChannel("");
+              setOpenChannelModal(false);
+            }}
+          >
+            <img
+              className="w-[24px] h-[24px] rounded-[20px] object-cover"
+              src={"/icons/home-icon.svg"}
+              alt={"none"}
+            />
+            <p className="font-medium leading-[22px]">None</p>
+          </div>
+          {allChannels && allChannels.length
+            ? allChannels?.map((channel, channelIndex, arr) => (
+                <>
+                  <div
+                    className={`w-full px-2 py-[10px] flex items-center justify-start gap-2 cursor-pointer ${
+                      channelIndex === arr.length - 1 ? "" : "mb-1"
+                    } rounded-[12px] ${
+                      selectedChannel === channel.id
+                        ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
+                        : ""
+                    } hover:bg-frame-btn-bg`}
+                    onClick={() => {
+                      setSelectedChannel(channel.id);
+                      setOpenChannelModal(false);
+                    }}
+                  >
+                    <img
+                      className="w-[24px] h-[24px] rounded-[20px] object-cover"
+                      src={channel.image_url}
+                      alt={channel.id}
+                    />
+                    <p className="font-medium leading-[22px]">
+                      {channel.id}&nbsp;
+                    </p>
+                  </div>
+                </>
+              ))
+            : state.userChannels.length
+            ? state.userChannels.map((channel, channelIndex, arr) => (
+                <>
+                  <div
+                    className={`w-full px-2 py-[10px] flex items-center justify-start gap-2 cursor-pointer ${
+                      channelIndex === arr.length - 1 ? "" : "mb-1"
+                    } rounded-[12px] ${
+                      selectedChannel === channel.id
+                        ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
+                        : ""
+                    } hover:bg-frame-btn-bg`}
+                    onClick={() => {
+                      setSelectedChannel(channel.id);
+                      setOpenChannelModal(false);
+                    }}
+                  >
+                    <img
+                      className="w-[24px] h-[24px] rounded-[20px] object-cover"
+                      src={channel.image_url}
+                      alt={channel.id}
+                    />
+                    <p className="font-medium leading-[22px]">
+                      {channel.id}&nbsp;
+                    </p>
+                  </div>
+                </>
+              ))
+            : null}
         </div>
       </Modal>
     </>

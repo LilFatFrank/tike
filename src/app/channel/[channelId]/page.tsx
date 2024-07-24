@@ -2,6 +2,7 @@
 import { Cast, Frame, Spinner } from "@/components";
 import formatNumber from "@/utils/formatNumber";
 import { useNeynarContext } from "@neynar/react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import { useInfiniteQuery } from "react-query";
@@ -145,7 +146,7 @@ export default function Page({ params }: { params: { channelId: number } }) {
             </div>
             {allChannelCasts.map((cast, castIndex, arr) =>
               cast.embeds[0].url ? (
-                <>
+                <Link href={`/cast/${cast.hash}`}>
                   {cast.embedType === "frame" ? (
                     <Frame
                       frame={cast}
@@ -162,7 +163,7 @@ export default function Page({ params }: { params: { channelId: number } }) {
                   {castIndex === arr.length - 1 ? null : (
                     <hr className="border border-t-divider" />
                   )}
-                </>
+                </Link>
               ) : null
             )}
 

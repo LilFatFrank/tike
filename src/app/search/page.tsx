@@ -192,7 +192,7 @@ const Search: FC = () => {
           </>
         ) : (
           <>
-            <div className="flex w-full flex-col gap-5 items-start justify-start">
+            <div className="flex w-full flex-col gap-6 items-start justify-start">
               {trendingChannels.length ? (
                 <div className="w-full flex flex-col items-start justify-start gap-2">
                   <div className="flex items-center gap-[6px]">
@@ -206,8 +206,8 @@ const Search: FC = () => {
                       Trending Channels
                     </p>
                   </div>
-                  <div className="w-full overflow-x-auto">
-                    <div className="grid grid-rows-3 grid-flow-col gap-4">
+                  <div className="w-full overflow-x-auto no-scrollbar">
+                    <div className="grid grid-rows-3 grid-flow-col gap-5">
                       {trendingChannels.map((tc) => (
                         <Link
                           href={`/channel/${tc.channel.id}`}
@@ -253,7 +253,7 @@ const Search: FC = () => {
                       People to follow
                     </p>
                   </div>
-                  <div className="w-full overflow-x-auto">
+                  <div className="w-full overflow-x-auto no-scrollbar">
                     <div className="grid grid-rows-3 grid-flow-col gap-4">
                       {powerUsers.map((pu) => (
                         <Link href={`/profile/${pu.fid}`} key={pu.fid}>
