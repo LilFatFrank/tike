@@ -23,7 +23,7 @@ const Modal: React.FC<ModalProps> = ({ children, isOpen, closeModal, direction =
 
   return (
     <div
-      className={`fixed inset-0 bg-black bg-black-50 z-[999] transition-opacity ${
+      className={`fixed inset-0 bg-black-50 z-[999] transition-opacity ${
         isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
       onClick={closeModal}

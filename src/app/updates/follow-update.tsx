@@ -37,7 +37,7 @@ const FollowUpdate: FC<FollowUpdate> = ({ icon, follows }) => {
                   {f.display_name}
                 </Link>
                 <span className="font-normal text-[#A1A1A1] text-[12px] leading-[auto] relative bottom-[2px]">
-                  &nbsp;followed
+                  &nbsp;followed you
                 </span>
               </p>
             </div>

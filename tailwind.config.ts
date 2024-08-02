@@ -34,9 +34,13 @@ const config: Config = {
         "tab-unselected-color": "#A1A1A1",
         purple: "#7C65C1",
         "signup-button-text-color": "#EAE9E9",
+        "music-upload-color": "#018A08",
+        "music-progress-bg": "#3D7F41",
       },
       boxShadow: {
         "cast-upload": "0px -2px 6.89px 0px #0000001A",
+        "comment-upload-media-modal":
+          "0px 24px 24px -12px #0E3F7E0A, 0px 12px 12px -6px #0E3F7E0A, 0px 6px 6px -3px #2A33460A, 0px 3px 3px -1.5px #2A33460A, 0px 1px 1px -0.5px #2A33450A, 0px 0px 4px 1px #0E3F7E0A",
       },
     },
   },

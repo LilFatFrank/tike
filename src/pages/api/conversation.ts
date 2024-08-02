@@ -1,4 +1,3 @@
-import { processSingleCast } from "@/utils/processCasts";
 import axios from "axios";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -9,10 +8,11 @@ export default async function handler(
   if (req.method === "POST") {
     try {
       const hash = JSON.parse(req.body).hash as string;
+      const cursor = JSON.parse(req.body).cursor as string;
       const fid = JSON.parse(req.body).fid as string;
 
       const resp = await axios.get(
-        `https://api.neynar.com/v2/farcaster/cast?identifier=${hash}&type=hash&viewer_fid=${fid}`,
+        `https://api.neynar.com/v2/farcaster/cast/conversation?identifier=${hash}&type=hash&reply_depth=0&include_chronological_parent_casts=false&viewer_fid=${fid}&limit=20&cursor=${cursor}`,
         {
           headers: {
             accept: "application/json",
@@ -21,9 +21,7 @@ export default async function handler(
         }
       );
 
-      const processedObject = await processSingleCast(resp.data.cast);
-
-      res.status(200).json(processedObject);
+      res.status(200).json(resp.data);
     } catch (error: any) {
       console.error("Error processing request:", error);
       res.status(500).json({ error: error.message });

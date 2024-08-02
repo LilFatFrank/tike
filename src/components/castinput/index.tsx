@@ -8,16 +8,16 @@ import {
   useContext,
 } from "react";
 import { AiOutlineClose } from "react-icons/ai";
-import { FiImage, FiVideo } from "react-icons/fi";
 import axios from "axios";
 import Modal from "../modal";
 import { useNeynarContext } from "@neynar/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AppContext } from "@/context";
+import formatTime from "@/utils/formatTime";
 
 interface Media {
-  type: "image" | "video";
+  type: "image" | "video" | "audio";
   url: string;
   file: File;
 }
@@ -26,6 +26,10 @@ const CastInput: FC = () => {
   const [state] = useContext(AppContext);
   const [text, setText] = useState("");
   const [media, setMedia] = useState<Media | null>(null);
+  const [audioThumbnailMedia, setAudioThumbnailMedia] = useState<{
+    url: string;
+    file: File;
+  } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [openChannelModal, setOpenChannelModal] = useState(false);
   const [channelSearch, setChannelSearch] = useState("");
@@ -34,6 +38,11 @@ const CastInput: FC = () => {
   const [allChannels, setAllChannels] = useState<
     { id: string; image_url: string }[]
   >([]);
+  const [openMusicUploadModal, setOpenMusicUploadModal] = useState(false);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const [currentAudioTime, setCurrentAudioTime] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
+  const [musicTitle, setMusicTitle] = useState("");
 
   const { user } = useNeynarContext();
   const router = useRouter();
@@ -47,8 +56,24 @@ const CastInput: FC = () => {
     if (files && files.length > 0) {
       const file = files[0];
       const url = URL.createObjectURL(file);
-      const type = file.type.startsWith("video") ? "video" : "image";
+      let type: "video" | "audio" | "image" = "image";
+      if (file.type.startsWith("video")) {
+        type = "video";
+      } else if (file.type.startsWith("audio")) {
+        type = "audio";
+        setOpenMusicUploadModal(true);
+      }
       setMedia({ type, url, file });
+    }
+  };
+
+  const handleAudioThumbnailMedia = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      setAudioThumbnailMedia({
+        url: URL.createObjectURL(files[0]),
+        file: files[0],
+      });
     }
   };
 
@@ -63,7 +88,12 @@ const CastInput: FC = () => {
             const file = item.getAsFile();
             if (file) {
               const url = URL.createObjectURL(file);
-              const type = item.type.startsWith("video") ? "video" : "image";
+              let type: "video" | "audio" | "image" = "image";
+              if (file.type.startsWith("video")) {
+                type = "video";
+              } else if (file.type.startsWith("audio")) {
+                type = "audio";
+              }
               return { type, url, file };
             }
           }
@@ -91,22 +121,55 @@ const CastInput: FC = () => {
     setMedia(null);
   };
 
+  const handleUploadToPinata = async (file: File) => {
+    try {
+      const url = "https://api.pinata.cloud/pinning/pinFileToIPFS";
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("pinataOptions", '{"cidVersion": 1}');
+      formData.append("pinataMetadata", `{"name": "${file.name}"}`);
+
+      const response = await axios.post(url, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT_KEY}`,
+        },
+      });
+
+      return `${process.env.NEXT_PUBLIC_PINATA_GATEWAY_URL}/ipfs/${response.data.IpfsHash}`;
+    } catch (error) {
+      console.log("Error uploading to pinata", error);
+      toast.error("Error uploading media");
+      return "";
+    }
+  };
+
   const handlePost = async () => {
     setIsUploading(true);
 
     try {
       if (media) {
-        const formData = new FormData();
-        formData.append("file", media.file);
-        formData.append("text", text);
-        formData.append("uuid", user?.signer_uuid as string);
-        formData.append("channelId", selectedChannel);
+        const fileUrl = await handleUploadToPinata(media.file);
+        let thumbnailUrl: string | null = null;
+        if (audioThumbnailMedia) {
+          thumbnailUrl = await handleUploadToPinata(audioThumbnailMedia.file);
+        }
 
-        const response = await axios.post("/api/create", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
+        const response = await axios.post(
+          "/api/create",
+          {
+            uuid: user?.signer_uuid,
+            channelId: selectedChannel,
+            text: media.type === "audio" ? musicTitle : text,
+            fileUrl,
+            thumbnailUrl,
           },
-        });
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         if (response.data.success) router.push("/profile");
       }
@@ -122,12 +185,44 @@ const CastInput: FC = () => {
   };
 
   const fetchAllChannels = async () => {
-    const res = await fetch("/api/search-channels", {
-      method: "POST",
-      body: JSON.stringify({ q: debouncedChannelSearch }),
-    });
-    const data = await res.json();
-    setAllChannels(data.channels);
+    try {
+      const res = await fetch("/api/search-channels", {
+        method: "POST",
+        body: JSON.stringify({ q: debouncedChannelSearch }),
+      });
+      const data = await res.json();
+      setAllChannels(data.channels);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const togglePlayPause = () => {
+    const audio = document.getElementById("audio-element") as HTMLAudioElement;
+    if (audio.paused) {
+      audio.play();
+      setIsAudioPlaying(true);
+    } else {
+      audio.pause();
+      setIsAudioPlaying(false);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    const audio = document.getElementById("audio-element") as HTMLAudioElement;
+    setCurrentAudioTime(audio.currentTime);
+    setAudioDuration(audio.duration);
+  };
+
+  const handleSeek = (e: ChangeEvent<HTMLInputElement>) => {
+    const audio = document.getElementById("audio-element") as HTMLAudioElement;
+    audio.currentTime = parseFloat(e.target.value);
+    setCurrentAudioTime(audio.currentTime);
+
+    const min = parseFloat(e.target.min);
+    const max = parseFloat(e.target.max);
+    const value = ((parseFloat(e.target.value) - min) / (max - min)) * 100;
+    e.target.style.background = `linear-gradient(to right, white ${value}%, #3D7F41 ${value}%)`;
   };
 
   useEffect(() => {
@@ -202,15 +297,15 @@ const CastInput: FC = () => {
             </div>
           </div>
           <textarea
-            className="w-full outline-none resize-none"
+            className="w-full outline-none resize-none placeholder:text-black-40"
             placeholder="What's happening?"
             value={text}
             onChange={handleTextChange}
             rows={3}
           />
-          <div className="flex flex-wrap gap-2 mt-1">
-            {media ? (
-              <div className="flex flex-wrap gap-2 mt-2">
+          <div className="flex flex-wrap gap-2 mt-1 w-full">
+            {media && media.type !== "audio" ? (
+              <div className="flex flex-wrap gap-2 mt-2 w-full">
                 <div key={media.url} className="relative w-full">
                   {media.type === "image" ? (
                     <img
@@ -218,13 +313,13 @@ const CastInput: FC = () => {
                       alt="media"
                       className="w-full object-cover rounded-lg"
                     />
-                  ) : (
+                  ) : media.type === "video" ? (
                     <video
                       src={media.url}
                       controls
                       className="w-full object-cover rounded-lg"
                     />
-                  )}
+                  ) : null}
                   <button
                     className="absolute top-1 right-1 bg-black text-white rounded-full p-1"
                     onClick={removeMedia}
@@ -236,10 +331,10 @@ const CastInput: FC = () => {
             ) : null}
           </div>
         </div>
-        <div className="py-1 px-2 flex items-center justify-start gap-1">
+        <div className="pt-1 pb-6 px-2 flex items-center justify-start gap-1">
           <label
             className={`cursor-pointer ${
-              isUploading ? "cursor-not-allowed opacity-[0.4]" : ""
+              isUploading || media ? "cursor-not-allowed opacity-[0.4]" : ""
             }`}
           >
             <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
@@ -253,13 +348,15 @@ const CastInput: FC = () => {
                 accept="image/*"
                 multiple
                 className="hidden"
-                onChange={isUploading ? undefined : (e) => handleMediaChange(e)}
+                onChange={
+                  isUploading || media ? undefined : (e) => handleMediaChange(e)
+                }
               />
             </div>
           </label>
           <label
             className={`cursor-pointer ${
-              isUploading ? "cursor-not-allowed opacity-[0.4]" : ""
+              isUploading || media ? "cursor-not-allowed opacity-[0.4]" : ""
             }`}
           >
             <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
@@ -273,12 +370,200 @@ const CastInput: FC = () => {
                 accept="video/*"
                 multiple
                 className="hidden"
-                onChange={isUploading ? undefined : (e) => handleMediaChange(e)}
+                onChange={
+                  isUploading || media ? undefined : (e) => handleMediaChange(e)
+                }
+              />
+            </div>
+          </label>
+          <label
+            className={`cursor-pointer ${
+              isUploading || media ? "cursor-not-allowed opacity-[0.4]" : ""
+            }`}
+          >
+            <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
+              <img
+                src="/icons/music-upload-icon.svg"
+                alt="music"
+                className="w-8 h-8"
+              />
+              <input
+                type="file"
+                accept="audio/*"
+                className="hidden"
+                onChange={
+                  isUploading || media ? undefined : (e) => handleMediaChange(e)
+                }
               />
             </div>
           </label>
         </div>
       </div>
+      <Modal
+        isOpen={openMusicUploadModal}
+        closeModal={() => {
+          setOpenMusicUploadModal(false);
+          setMedia(null);
+          setAudioThumbnailMedia(null);
+        }}
+      >
+        <div className="pt-2 px-2 pb-8">
+          <p className="text-center text-[18px] leading-[22px] font-semibold mb-2">
+            Music Upload
+          </p>
+          <div className="flex flex-col w-full gap-5">
+            {media ? (
+              <div className="p-2 rounded-[12px] bg-music-upload-color/60 flex items-center gap-2">
+                <label className={`cursor-pointer`}>
+                  <div className="rounded-[11px] w-[70px] h-[70px]">
+                    <img
+                      src={
+                        audioThumbnailMedia
+                          ? audioThumbnailMedia.url
+                          : "/icons/thumbnail-upload-icon.svg"
+                      }
+                      alt="image"
+                      className="flex-shrink-0 rounded-[11px] object-cover"
+                    />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={handleAudioThumbnailMedia}
+                    />
+                  </div>
+                </label>
+                <div className="grow flex flex-col items-start justify-between">
+                  <div className="mb-1">
+                    <p className="text-[12px] leading-[120%] tracking-[0.3px] font-semibold text-white">
+                      {musicTitle || "Song Name"}
+                    </p>
+                    <p className="text-[10px] leading-[120%] tracking-[0.3px] font-semibold text-white/60">
+                      @{user?.username}
+                    </p>
+                    <div
+                      className={`py-[2px] px-1 rounded-[2px] bg-white/20 ${
+                        currentAudioTime ? "visible" : "invisible"
+                      } w-fit`}
+                    >
+                      <p className="text-[10px] leading-[120%] tracking-[0.3px] font-semibold text-white">
+                        {formatTime(currentAudioTime)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 w-full">
+                    <audio
+                      id="audio-element"
+                      src={media.url}
+                      className="hidden"
+                      onTimeUpdate={handleTimeUpdate}
+                    />
+                    <input
+                      type="range"
+                      min="0"
+                      max={audioDuration}
+                      value={currentAudioTime}
+                      onChange={handleSeek}
+                      className="hidden"
+                    />
+                    <div className="bg-music-progress-bg w-full h-[4px] rounded-[2px]">
+                      <div
+                        className={`bg-white rounded-[2px] h-[4px]`}
+                        style={{
+                          width: `${
+                            audioDuration
+                              ? Math.floor(
+                                  (currentAudioTime / audioDuration) * 100
+                                )
+                              : 0
+                          }%`,
+                        }}
+                      />
+                    </div>
+                    <img
+                      src={`/icons/music-${
+                        isAudioPlaying ? "pause" : "play"
+                      }-icon.svg`}
+                      alt={isAudioPlaying ? "pause" : "play"}
+                      className="w-[18px] h-[18px] cursor-pointer"
+                      onClick={togglePlayPause}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : null}
+            <div className="flex flex-col items-start gap-1 w-full">
+              <label
+                className="text-[18px] leading-[22px] font-semibold"
+                htmlFor="songname"
+              >
+                Title
+              </label>
+              <input
+                id="songname"
+                name="songname"
+                type="text"
+                placeholder="Heartless"
+                className="w-full border outline-none py-[10px] px-4 rounded-[12px] border-black/10 placeholder:text-black-20 text-black"
+                value={musicTitle}
+                onChange={(e) => setMusicTitle(e.target.value)}
+              />
+            </div>
+            <label className="flex flex-col items-start gap-1 w-full">
+              <label
+                className="text-[18px] leading-[22px] font-semibold"
+                htmlFor="artist"
+              >
+                Cover Image
+              </label>
+              <div className="p-[6px] rounded-[12px] border border-black/10 flex w-full gap-1 items-center justify-start cursor-pointer">
+                <div
+                  className={`rounded-[12px] border border-black/10 ${
+                    audioThumbnailMedia ? "w-14 h-14" : "p-3"
+                  } bg-frame-btn-bg`}
+                >
+                  <img
+                    src={
+                      audioThumbnailMedia
+                        ? audioThumbnailMedia.url
+                        : "/icons/upload-music-thumbnail-icon.svg"
+                    }
+                    alt="thumbnail"
+                    className={
+                      audioThumbnailMedia
+                        ? "w-full h-full object-cover rounded-[12px]"
+                        : "w-8 h-8"
+                    }
+                  />
+                </div>
+                <div className="grow">
+                  <p className="leading-[22px] mv-1">Select File</p>
+                  <span className="text-[14px] text-black-50 leading-[22px]">
+                    PNG,JPG and GIF supported. Max size 5MB.
+                  </span>
+                </div>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleAudioThumbnailMedia}
+              />
+            </label>
+            <button
+              className="w-full border-none outline-none rounded-[12px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
+              disabled={
+                !audioThumbnailMedia || !media || isUploading || !musicTitle
+              }
+              onClick={handlePost}
+            >
+              {isUploading ? "Uploading..." : "Post"}
+            </button>
+          </div>
+        </div>
+      </Modal>
       <Modal
         isOpen={openChannelModal}
         closeModal={() => setOpenChannelModal(false)}

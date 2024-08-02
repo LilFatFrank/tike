@@ -1,14 +1,34 @@
 "use client";
 import timeAgo from "@/utils/timeAgo";
+import { useNeynarContext } from "@neynar/react";
 import Link from "next/link";
-import { CSSProperties, FC } from "react";
+import { CSSProperties, FC, useState } from "react";
+import { toast } from "sonner";
 
 interface Frame {
   frame: any;
   style?: CSSProperties;
+  type?: "default" | "reply";
 }
 
-const Frame: FC<Frame> = ({ frame, style }) => {
+const Frame: FC<Frame> = ({ frame, style, type }) => {
+  const { user } = useNeynarContext();
+
+  const [frameInput, setFrameInput] = useState<string>("");
+
+  const postFrameAction = async (req: any) => {
+    try {
+      const resp = await fetch(`/api/post-frame`, {
+        method: "POST",
+        body: JSON.stringify(req),
+      });
+      console.log(resp);
+    } catch (error) {
+      console.log(error);
+      toast.error("Error interacting with frame!");
+    }
+  };
+
   return (
     <>
       <div className="w-full px-[16px] py-[20px]" style={{ ...style }}>
@@ -28,7 +48,7 @@ const Frame: FC<Frame> = ({ frame, style }) => {
               {frame?.author.display_name}&nbsp;
             </p>
             <div className="flex items-center justify-start gap-1">
-              {frame?.channel ? (
+              {type !== "reply" && frame?.channel ? (
                 <span className="font-normal text-[12px] leading-auto text-gray-text-1">
                   posted in&nbsp;
                   <Link
@@ -39,7 +59,11 @@ const Frame: FC<Frame> = ({ frame, style }) => {
                     /{frame?.channel.id}
                   </Link>
                 </span>
-              ) : null}
+              ) : (
+                <span className="font-normal text-[12px] leading-auto text-gray-text-1">
+                  @{frame?.author?.username}
+                </span>
+              )}
               <span className="font-normal text-[12px] leading-auto text-gray-text-1">
                 {timeAgo(frame?.timestamp)}
               </span>
@@ -56,6 +80,25 @@ const Frame: FC<Frame> = ({ frame, style }) => {
           alt="Cast image"
           className="w-full object-contain rounded-[10px] mb-[12px]"
         />
+        {/* {frame?.frames[0]?.input &&
+        Object.keys(frame?.frames[0]?.input)?.length ? (
+          <input
+            className="border border-frame-btn-bg rounded-[12px] py-2 px-4 outline-none w-full bg-inherit placeholder:text-black-40 mb-1"
+            placeholder={frame?.frames[0]?.input.text}
+          />
+        ) : null}
+        {frame?.frames[0]?.buttons?.map((b: any, i: number, arr: []) => (
+          <button
+            className={`frame-btn ${i === arr.length - 1 ? "" : "mb-1"}`}
+            key={b.index}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          >
+            <p className="font-medium">{b.title}</p>
+          </button>
+        ))} */}
         <Link
           className="w-full"
           href={`https://warpcast.com/${frame?.author.username}/${frame?.hash}`}
