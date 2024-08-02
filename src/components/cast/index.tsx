@@ -364,8 +364,7 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
           },
         }
       );
-      console.log(response);
-      // if (response.data.success) window.location.reload();
+      if (response.data.success) window.location.reload();
     } catch (error) {
       console.error("Error uploading media", error);
       toast.error("Error uploading media");
