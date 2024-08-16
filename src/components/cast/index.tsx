@@ -4,7 +4,14 @@ import formatTime from "@/utils/formatTime";
 import timeAgo from "@/utils/timeAgo";
 import { useNeynarContext } from "@neynar/react";
 import Link from "next/link";
-import { ChangeEvent, CSSProperties, FC, useEffect, useState } from "react";
+import {
+  ChangeEvent,
+  CSSProperties,
+  FC,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import Modal from "../modal";
 import { AiOutlineClose } from "react-icons/ai";
@@ -341,14 +348,6 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
         thumbnailUrl = await handleUploadToPinata(audioThumbnailMedia.file);
       }
 
-      console.log({
-        uuid: user?.signer_uuid,
-        text: media?.type === "audio" ? musicTitle : commentText,
-        fileUrl,
-        thumbnailUrl,
-        parent: castDet.hash,
-      });
-
       const response = await axios.post(
         "/api/create",
         {
@@ -406,6 +405,8 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
   useEffect(() => {
     setCastDet(cast);
   }, [cast]);
+
+  console.log(cast);
 
   return (
     <>
@@ -555,13 +556,7 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
         closeModal={() => setOpenCommentModal(false)}
         style={{ padding: 8, height: "100%" }}
       >
-        <div
-          className="pt-[24px] h-full"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
+        <div className="pt-[24px] h-full">
           <div className="flex flex-col flex-1 h-full">
             <div className="grow mb-2">
               <textarea
@@ -570,6 +565,10 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 rows={3}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
               />
               <div className="flex flex-wrap gap-2 mt-1 w-full">
                 {media && media.type !== "audio" ? (
@@ -590,7 +589,11 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
                       ) : null}
                       <button
                         className="absolute top-1 right-1 bg-black text-white rounded-full p-1"
-                        onClick={() => setMedia(null)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setMedia(null);
+                        }}
                       >
                         <AiOutlineClose />
                       </button>
@@ -611,7 +614,11 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
                 onClick={
                   media
                     ? undefined
-                    : () => setOpenCommentMediaModal(!openCommentMediaModal)
+                    : (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        setOpenCommentMediaModal(!openCommentMediaModal);
+                      }
                 }
               />
               <div
@@ -621,39 +628,109 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
                     : "opacity-0 invisible"
                 }`}
               >
-                {["video", "image", "music"].map((t, i, arr) => (
-                  <label
-                    className={`w-full px-2 py-[10px] flex items-center justify-start gap-[2px] cursor-pointer rounded-[12px] hover:bg-frame-btn-bg ${
-                      selectedCommentMediaType === t
+                <label
+                  className="cursor-pointer"
+                  htmlFor="video"
+                  onClick={() => setSelectedCommentMediaType("video")}
+                >
+                  <div
+                    className={`w-full px-2 py-[10px] flex items-center justify-start gap-[2px] rounded-[12px] hover:bg-frame-btn-bg ${
+                      selectedCommentMediaType === "video"
                         ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
                         : ""
-                    } ${i === arr.length - 1 ? "" : "mb-1"}`}
-                    key={t}
-                    onClick={() =>
-                      setSelectedCommentMediaType(
-                        t as typeof selectedCommentMediaType
-                      )
-                    }
+                    } mb-1`}
                   >
-                    <input
-                      type="file"
-                      accept={`${t === "music" ? "audio" : t}/*`}
-                      className="hidden"
-                      onChange={(e) => handleMediaChange(e)}
-                    />
                     <img
-                      src={`/icons/${t}-icon.svg`}
-                      alt={t}
+                      src="/icons/video-icon.svg"
+                      alt="video"
                       className="w-6 h-6"
                     />
-                    <p className="leading-[22px] capitalize">{t}</p>
-                  </label>
-                ))}
+                    <p className="leading-[22px] capitalize">Video</p>
+                  </div>
+                  <input
+                    id="video"
+                    type="file"
+                    accept="video/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      handleMediaChange(e);
+                    }}
+                  />
+                </label>
+                <label
+                  className="cursor-pointer"
+                  htmlFor="music"
+                  onClick={() => setSelectedCommentMediaType("music")}
+                >
+                  <div
+                    className={`w-full px-2 py-[10px] flex items-center justify-start gap-[2px] rounded-[12px] hover:bg-frame-btn-bg ${
+                      selectedCommentMediaType === "music"
+                        ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
+                        : ""
+                    } mb-1`}
+                  >
+                    <input
+                      id="music"
+                      type="file"
+                      accept="audio/*"
+                      multiple
+                      className="hidden"
+                      onChange={
+                        isUploading || media
+                          ? undefined
+                          : (e) => handleMediaChange(e)
+                      }
+                    />
+                    <img
+                      src="/icons/music-icon.svg"
+                      alt="music"
+                      className="w-6 h-6"
+                    />
+                    <p className="leading-[22px] capitalize">Music</p>
+                  </div>
+                </label>
+                <label
+                  className="cursor-pointer"
+                  htmlFor="image"
+                  onClick={() => setSelectedCommentMediaType("image")}
+                >
+                  <div
+                    className={`w-full px-2 py-[10px] flex items-center justify-start gap-[2px] rounded-[12px] hover:bg-frame-btn-bg ${
+                      selectedCommentMediaType === "image"
+                        ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
+                        : ""
+                    } mb-1`}
+                  >
+                    <input
+                      id="image"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={
+                        isUploading || media
+                          ? undefined
+                          : (e) => handleMediaChange(e)
+                      }
+                    />
+                    <img
+                      src="/icons/image-icon.svg"
+                      alt="image"
+                      className="w-6 h-6"
+                    />
+                    <p className="leading-[22px] capitalize">Image</p>
+                  </div>
+                </label>
               </div>
               <button
                 className="border-none outline-none rounded-[22px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
                 disabled={!(media || commentText) || isUploading}
-                onClick={handlePost}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handlePost();
+                }}
               >
                 {isUploading ? "Uploading..." : "Post"}
               </button>
@@ -677,7 +754,13 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
             {media ? (
               <div className="p-2 rounded-[12px] bg-music-upload-color/60 flex items-center gap-2">
                 <label className={`cursor-pointer`}>
-                  <div className="rounded-[11px] w-[70px] h-[70px]">
+                  <div
+                    className="rounded-[11px] w-[70px] h-[70px]"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  >
                     <img
                       src={
                         audioThumbnailMedia
@@ -714,7 +797,13 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 w-full">
+                  <div
+                    className="flex items-center gap-2 w-full"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  >
                     <audio
                       id="audio-element"
                       src={media.url}
@@ -770,9 +859,19 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
                 className="w-full border outline-none py-[10px] px-4 rounded-[12px] border-black/10 placeholder:text-black-20 text-black"
                 value={musicTitle}
                 onChange={(e) => setMusicTitle(e.target.value)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
               />
             </div>
-            <label className="flex flex-col items-start gap-1 w-full">
+            <label
+              className="flex flex-col items-start gap-1 w-full"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
               <label
                 className="text-[18px] leading-[22px] font-semibold"
                 htmlFor="artist"
@@ -819,7 +918,11 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
               disabled={
                 !audioThumbnailMedia || !media || isUploading || !musicTitle
               }
-              onClick={handlePost}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handlePost();
+              }}
             >
               {isUploading ? "Uploading..." : "Post"}
             </button>

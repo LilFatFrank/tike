@@ -141,13 +141,13 @@ export default function Page({ params }: { params: { hash: string } }) {
         <>
           {allReplies.map((cast, castIndex, arr) => (
             <Link href={`/cast/${cast.hash}`}>
-              {castIndex === arr.length - 1 ? null : (
-                <hr className="border border-t-divider" />
-              )}
               {cast.embedType === "frame" ? (
                 <Frame frame={cast} key={`cast-${cast.hash}`} type="reply" />
               ) : (
                 <Cast cast={cast} key={`cast-${cast.hash}`} type="reply" />
+              )}
+              {castIndex === arr.length - 1 ? null : (
+                <hr className="border border-t-divider" />
               )}
             </Link>
           ))}
@@ -159,12 +159,6 @@ export default function Page({ params }: { params: { hash: string } }) {
           ) : null}
 
           <div ref={ref} style={{ height: "20px" }}></div>
-
-          {allReplies && allReplies.length && !hasNextPage ? (
-            <p className="w-full items-center justify-center py-2 text-center">
-              End of the line!
-            </p>
-          ) : null}
         </>
       )}
     </>

@@ -59,7 +59,8 @@ async function determineUrlType(
 }
 
 export async function processCasts(
-  objects: SDKObject[]
+  objects: SDKObject[],
+  type?: "normal" | "comment"
 ): Promise<ProcessedObject[]> {
   const results = await Promise.allSettled(
     objects.map(async (obj) => {
@@ -76,6 +77,8 @@ export async function processCasts(
           true
         );
         return { ...obj, embedType: urlType } as ProcessedObject;
+      } else if (type === "comment") {
+        return { ...obj, embedType: "other" } as ProcessedObject;
       }
       throw new Error("Object has no URL");
     })
@@ -103,7 +106,8 @@ export async function processSingleCast(
       return { ...obj, embedType: "frame" } as ProcessedObject;
     }
     const urlType = await determineUrlType(
-      obj.embeds.find((e: { [key: string]: any }) => e.url).url
+      obj.embeds.find((e: { [key: string]: any }) => e.url).url,
+      false
     );
     return { ...obj, embedType: urlType } as ProcessedObject;
   }

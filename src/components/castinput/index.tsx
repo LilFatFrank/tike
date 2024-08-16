@@ -140,7 +140,7 @@ const CastInput: FC = () => {
     } catch (error) {
       console.log("Error uploading to pinata", error);
       toast.error("Error uploading media");
-      return "";
+      throw error;
     }
   };
 
@@ -155,23 +155,27 @@ const CastInput: FC = () => {
           thumbnailUrl = await handleUploadToPinata(audioThumbnailMedia.file);
         }
 
-        const response = await axios.post(
-          "/api/create",
-          {
-            uuid: user?.signer_uuid,
-            channelId: selectedChannel,
-            text: media.type === "audio" ? musicTitle : text,
-            fileUrl,
-            thumbnailUrl,
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
+        if (fileUrl) {
+          const response = await axios.post(
+            "/api/create",
+            {
+              uuid: user?.signer_uuid,
+              channelId: selectedChannel,
+              text: media.type === "audio" ? musicTitle : text,
+              fileUrl,
+              thumbnailUrl,
             },
-          }
-        );
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
 
-        if (response.data.success) router.push("/profile");
+          if (response.data.success) router.push("/profile");
+        } else {
+          toast.error("Error uploading media");
+        }
       }
     } catch (error) {
       console.error("Error uploading media", error);

@@ -10,7 +10,14 @@ export default async function handler(
   }
 
   try {
-    const { text, uuid, channelId, fileUrl, thumbnailUrl, parent } = req.body;
+    const {
+      text,
+      uuid,
+      channelId,
+      fileUrl,
+      thumbnailUrl,
+      parent,
+    } = req.body;
 
     let embeds = [];
     if (fileUrl) {
@@ -21,7 +28,9 @@ export default async function handler(
     }
 
     const url = "https://api.neynar.com/v2/farcaster/cast";
-    const body = {
+    let body: {
+      [key: string]: any;
+    } = {
       embeds,
       text,
       signer_uuid: uuid,
@@ -29,9 +38,12 @@ export default async function handler(
     };
 
     if (parent)
-      Object.defineProperty(body, "parent", {
-        value: parent,
-      });
+      body = {
+        ...body,
+        parent,
+      };
+
+    console.log({ body });
 
     const castResponse = await axios.post(url, body, {
       headers: {
