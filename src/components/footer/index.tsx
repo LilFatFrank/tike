@@ -47,7 +47,7 @@ const Footer: FC = () => {
 
   return (
     <>
-      <footer className="w-dvw fixed bottom-0 py-2 border-t-[1px] border-t-divider bg-white flex items-center">
+      <footer className="w-dvw md:w-[550px] fixed bottom-0 py-2 border-t-[1px] border-t-divider bg-white flex items-center">
         {links.map((l) => (
           <Link
             key={l.label}

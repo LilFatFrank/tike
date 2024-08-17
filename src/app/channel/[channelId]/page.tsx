@@ -105,7 +105,7 @@ export default function Page({ params }: { params: { channelId: number } }) {
   return (
     <div className="w-full h-full">
       <img
-        className="w-full h-full object-cover z-[-1] fixed"
+        className="w-full h-full object-cover z-[-1] fixed md:w-[550px] md:rounded-[20px]"
         src="/images/profile-background.png"
         alt="background"
       />

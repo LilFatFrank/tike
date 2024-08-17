@@ -254,7 +254,7 @@ const CastInput: FC = () => {
 
   return (
     <>
-      <div className="bg-[#F0EEEF] w-dvw min-h-dvh flex flex-col">
+      <div className="bg-[#F0EEEF] w-dvw md:w-auto min-h-dvh flex flex-col">
         <div className="grow p-2 bg-white rounded-[20px] shadow-cast-upload">
           <div className="w-full flex items-center justify-between mb-[40px]">
             <button

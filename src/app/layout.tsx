@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Desktop, Wrapper } from "@/components";
+import { Wrapper } from "@/components";
 import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -43,11 +43,12 @@ export default function RootLayout({
         <link rel="icon" href="/logo/favicon.svg" type="image/svg+xml" />
       </head>
       <body className={`${inter.className}`}>
+        <img src="/images/desktop-bg.png" alt="desktop-bg" className="fixed z-[-3] top-0 left-0 right-0 bottom-0 object-cover h-dvh w-dvw" />
         <Toaster />
-        <main className="w-dvw h-dvh mx-auto md:hidden">
+        <main className="w-dvw h-dvh md:h-[calc(100dvh-60px)] mx-auto md:w-[552px] md:border md:border-black-20 md:rounded-t-[20px] md:overflow-auto md:no-scrollbar bg-white opacity-90">
           <Wrapper>{children}</Wrapper>
         </main>
-        <Desktop />
+        {/* <Desktop /> */}
       </body>
     </html>
   );

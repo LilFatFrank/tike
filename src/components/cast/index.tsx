@@ -553,10 +553,29 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
       </div>
       <Modal
         isOpen={openCommentModal}
-        closeModal={() => setOpenCommentModal(false)}
-        style={{ padding: 8, height: "100%" }}
+        closeModal={(e) => {
+          setOpenCommentModal(false);
+          e?.stopPropagation();
+        }}
+        style={{ padding: 8, height: "100%", maxHeight: "85vh" }}
       >
-        <div className="pt-[24px] h-full">
+        <div className="flex justify-end">
+          <button
+            className="border-none outline-none rounded-[18px] px-2 py-1 bg-frame-btn-bg"
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              setOpenCommentModal(false);
+            }}
+          >
+            <img
+              src="/icons/close-upload-view-icon.svg"
+              alt="close"
+              className="w-8 h-8"
+            />
+          </button>
+        </div>
+        <div className="pt-[8px] h-full relative">
           <div className="flex flex-col flex-1 h-full">
             <div className="grow mb-2">
               <textarea
@@ -740,13 +759,33 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
       </Modal>
       <Modal
         isOpen={openMusicUploadModal}
-        closeModal={() => {
+        closeModal={(e) => {
           setOpenMusicUploadModal(false);
           setMedia(null);
           setAudioThumbnailMedia(null);
+          e?.stopPropagation();
         }}
       >
-        <div className="pt-2 px-2 pb-8" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-end">
+          <button
+            className="border-none outline-none rounded-[18px] px-2 py-1 bg-frame-btn-bg"
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              setOpenMusicUploadModal(false);
+            }}
+          >
+            <img
+              src="/icons/close-upload-view-icon.svg"
+              alt="close"
+              className="w-8 h-8"
+            />
+          </button>
+        </div>
+        <div
+          className="pt-2 px-2 pb-8 relative"
+          onClick={(e) => e.stopPropagation()}
+        >
           <p className="text-center text-[18px] leading-[22px] font-semibold mb-2">
             Music Upload
           </p>
