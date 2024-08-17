@@ -73,7 +73,7 @@ const UserChannels: FC = () => {
             className="flex flex-col items-center justify-center gap-1 cursor-pointer"
             key={channel.id}
           >
-            <div className="w-[60px] h-[60px] rounded-[16px] border border-black-20 bg-frame-btn-bg">
+            <div className="w-[40px] h-[40px] rounded-[16px] border border-black-20 bg-frame-btn-bg">
               <img
                 src={channel.image_url}
                 alt={channel.name}

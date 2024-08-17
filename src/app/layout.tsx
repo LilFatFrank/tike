@@ -45,7 +45,7 @@ export default function RootLayout({
       <body className={`${inter.className}`}>
         <img src="/images/desktop-bg.png" alt="desktop-bg" className="fixed z-[-3] top-0 left-0 right-0 bottom-0 object-cover h-dvh w-dvw" />
         <Toaster />
-        <main className="w-dvw h-dvh md:h-[calc(100dvh-60px)] mx-auto md:w-[552px] md:border md:border-black-20 md:rounded-t-[20px] md:overflow-auto md:no-scrollbar bg-white opacity-90">
+        <main className="w-dvw h-dvh md:h-[calc(100dvh-40px)] mx-auto md:w-[552px] md:border md:border-black-20 md:rounded-t-[20px] md:overflow-auto md:no-scrollbar bg-white opacity-90">
           <Wrapper>{children}</Wrapper>
         </main>
       </body>
