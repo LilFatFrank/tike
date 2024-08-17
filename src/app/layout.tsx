@@ -48,7 +48,6 @@ export default function RootLayout({
         <main className="w-dvw h-dvh md:h-[calc(100dvh-60px)] mx-auto md:w-[552px] md:border md:border-black-20 md:rounded-t-[20px] md:overflow-auto md:no-scrollbar bg-white opacity-90">
           <Wrapper>{children}</Wrapper>
         </main>
-        {/* <Desktop /> */}
       </body>
     </html>
   );
