@@ -254,7 +254,7 @@ const CastInput: FC = () => {
 
   return (
     <>
-      <div className="bg-[#F0EEEF] w-dvw md:w-auto min-h-dvh flex flex-col">
+      <div className="bg-[#F0EEEF] w-dvw md:w-auto md:min-h-[auto] md:h-full min-h-dvh flex flex-col">
         <div className="grow p-2 bg-white rounded-[20px] shadow-cast-upload">
           <div className="w-full flex items-center justify-between mb-[40px]">
             <button
@@ -427,7 +427,7 @@ const CastInput: FC = () => {
                           : "/icons/thumbnail-upload-icon.svg"
                       }
                       alt="image"
-                      className="flex-shrink-0 rounded-[11px] object-cover"
+                      className="flex-shrink-0 rounded-[11px] object-cover w-[70px] h-[70px]"
                     />
                     <input
                       type="file"

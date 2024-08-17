@@ -133,7 +133,11 @@ function AudioEmbed({ url, title }: { url: string[]; title: string }) {
             src={`/icons/music-${isAudioPlaying ? "pause" : "play"}-icon.svg`}
             alt={isAudioPlaying ? "pause" : "play"}
             className="w-[18px] h-[18px] cursor-pointer"
-            onClick={togglePlayPause}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              togglePlayPause();
+            }}
           />
         </div>
       </div>
@@ -807,7 +811,7 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
                           : "/icons/thumbnail-upload-icon.svg"
                       }
                       alt="image"
-                      className="flex-shrink-0 rounded-[11px] object-cover"
+                      className="flex-shrink-0 rounded-[11px] object-cover w-[70px] h-[70px]"
                     />
                     <input
                       type="file"
