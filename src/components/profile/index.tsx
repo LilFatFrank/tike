@@ -63,12 +63,45 @@ const fetchProfileCasts = async ({
   return data;
 };
 
+const fetchRecastsReplies = async ({
+  pageParam = "",
+  queryKey,
+}: {
+  pageParam?: string;
+  queryKey: any;
+}): Promise<ApiResponse> => {
+  const [_key, { fid, viewerFid }] = queryKey;
+  const response = await fetch(`/api/replies-recasts`, {
+    method: "POST",
+    body: JSON.stringify({ cursor: pageParam, fid, viewerFid }),
+  });
+  if (!response.ok) {
+    throw new Error("Network response was not ok");
+  }
+  const data = await response.json();
+  return data;
+};
+
+const tabs = [
+  {
+    label: "Casts",
+    value: "casts",
+  },
+  {
+    label: "Recasts + Replies",
+    value: "recasts_replies",
+  },
+];
+
 interface Profile {
   fid: number;
 }
 
 const Profile: FC<Profile> = ({ fid }) => {
   const { user, logoutUser } = useNeynarContext();
+  const [selectedTab, setSelectedTab] = useState<"casts" | "recasts_replies">(
+    "casts"
+  );
 
   const {
     data,
@@ -88,17 +121,46 @@ const Profile: FC<Profile> = ({ fid }) => {
     }
   );
 
+  const {
+    data: rrData,
+    isLoading: rrIsLoading,
+    error: rrError,
+    fetchNextPage: rrFetchNextPage,
+    hasNextPage: rrHasNextPage,
+    isFetchingNextPage: rrIsFetchingNextPage,
+  } = useInfiniteQuery(
+    ["replies-recasts", { fid: fid, viewerFid: user?.fid || 3 }],
+    fetchRecastsReplies,
+    {
+      getNextPageParam: (lastPage) => {
+        return lastPage.next?.cursor ?? false;
+      },
+      refetchOnWindowFocus: false,
+      enabled: selectedTab === "recasts_replies",
+    }
+  );
+
   const { ref, inView } = useInView({
+    threshold: 0.3,
+  });
+  const { ref: rrRef, inView: rrInView } = useInView({
     threshold: 0.3,
   });
 
   useEffect(() => {
-    if (inView && hasNextPage) {
+    if (selectedTab === "casts" && inView && hasNextPage) {
       fetchNextPage();
     }
-  }, [inView, hasNextPage, fetchNextPage]);
+  }, [inView, hasNextPage, fetchNextPage, selectedTab]);
+
+  useEffect(() => {
+    if (selectedTab === "recasts_replies" && rrInView && rrHasNextPage) {
+      rrFetchNextPage();
+    }
+  }, [rrInView, rrHasNextPage, rrFetchNextPage, selectedTab]);
 
   const allProfileCasts = data?.pages.flatMap((page) => page.casts) ?? [];
+  const allRepliesRecasts = rrData?.pages.flatMap((page) => page.casts) ?? [];
 
   const [userPro, setUserPro] = useState<IUser>();
   const [errorPro, setErrorPro] = useState(false);
@@ -231,42 +293,103 @@ const Profile: FC<Profile> = ({ fid }) => {
                   </p>
                 </div>
               </div>
-              {allProfileCasts.map((cast, castIndex, arr) =>
-                cast.embeds[0].url ? (
-                  <Link href={`/cast/${cast.hash}`}>
-                    {cast.embedType === "frame" ? (
-                      <Frame
-                        frame={cast}
-                        key={`profile-cast-${cast.hash}`}
-                        style={{ paddingRight: 0, paddingLeft: 0 }}
-                      />
-                    ) : (
-                      <Cast
-                        cast={cast}
-                        key={`profile-cast-${cast.hash}`}
-                        style={{ paddingRight: 0, paddingLeft: 0 }}
-                      />
-                    )}
-                    {castIndex === arr.length - 1 ? null : (
-                      <hr className="border border-t-divider" />
-                    )}
-                  </Link>
-                ) : null
+              <div className="flex items-start justify-start gap-2 mt-4">
+                {tabs.map((t) => (
+                  <p
+                    className={`grow basis-1/2 text-center text-[16px] leading-[120%] font-600 ${
+                      t.value === selectedTab
+                        ? "text-black border-b-2 border-b-purple"
+                        : "text-tab-unselected-color"
+                    } pb-[2px] cursor-pointer`}
+                    onClick={() => {
+                      setSelectedTab(t.value as typeof selectedTab);
+                    }}
+                  >
+                    {t.label}
+                  </p>
+                ))}
+              </div>
+              {selectedTab === "casts" ? (
+                <>
+                  {allProfileCasts.map((cast, castIndex, arr) =>
+                    cast.embeds[0].url ? (
+                      <Link href={`/cast/${cast.parent_hash || cast.hash}`}>
+                        {cast.embedType === "frame" ? (
+                          <Frame
+                            frame={cast}
+                            key={`profile-cast-${cast.hash}`}
+                            style={{ paddingRight: 0, paddingLeft: 0 }}
+                          />
+                        ) : (
+                          <Cast
+                            cast={cast}
+                            key={`profile-cast-${cast.hash}`}
+                            style={{ paddingRight: 0, paddingLeft: 0 }}
+                          />
+                        )}
+                        {castIndex === arr.length - 1 ? null : (
+                          <hr className="border border-t-divider" />
+                        )}
+                      </Link>
+                    ) : null
+                  )}
+
+                  {(isFetchingNextPage || isLoading) && !error ? (
+                    <div className="p-2">
+                      <Spinner />
+                    </div>
+                  ) : null}
+
+                  <div ref={ref} style={{ height: "80px" }}></div>
+
+                  {allProfileCasts && allProfileCasts.length && !hasNextPage ? (
+                    <p className="w-full items-center justify-center py-2 text-center">
+                      End of the line!
+                    </p>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  {allRepliesRecasts.map((cast, castIndex, arr) =>
+                    cast.embeds[0].url ? (
+                      <Link href={`/cast/${cast.parent_hash || cast.hash}`}>
+                        {cast.embedType === "frame" ? (
+                          <Frame
+                            frame={cast}
+                            key={`profile-cast-${cast.hash}`}
+                            style={{ paddingRight: 0, paddingLeft: 0 }}
+                          />
+                        ) : (
+                          <Cast
+                            cast={cast}
+                            key={`profile-cast-${cast.hash}`}
+                            style={{ paddingRight: 0, paddingLeft: 0 }}
+                          />
+                        )}
+                        {castIndex === arr.length - 1 ? null : (
+                          <hr className="border border-t-divider" />
+                        )}
+                      </Link>
+                    ) : null
+                  )}
+
+                  {(rrIsFetchingNextPage || rrIsLoading) && !rrError ? (
+                    <div className="p-2">
+                      <Spinner />
+                    </div>
+                  ) : null}
+
+                  <div ref={rrRef} style={{ height: "80px" }}></div>
+
+                  {allRepliesRecasts &&
+                  allRepliesRecasts.length &&
+                  !rrHasNextPage ? (
+                    <p className="w-full items-center justify-center py-2 text-center">
+                      End of the line!
+                    </p>
+                  ) : null}
+                </>
               )}
-
-              {(isFetchingNextPage || isLoading) && !error ? (
-                <div className="p-2">
-                  <Spinner />
-                </div>
-              ) : null}
-
-              <div ref={ref} style={{ height: "80px" }}></div>
-
-              {allProfileCasts && allProfileCasts.length && !hasNextPage ? (
-                <p className="w-full items-center justify-center py-2 text-center">
-                  End of the line!
-                </p>
-              ) : null}
             </>
           )}
         </div>

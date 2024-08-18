@@ -146,7 +146,7 @@ export default function Page({ params }: { params: { channelId: number } }) {
             </div>
             {allChannelCasts.map((cast, castIndex, arr) =>
               cast.embeds[0].url ? (
-                <Link href={`/cast/${cast.hash}`}>
+                <Link href={`/cast/${cast.parent_hash || cast.hash}`}>
                   {cast.embedType === "frame" ? (
                     <Frame
                       frame={cast}
