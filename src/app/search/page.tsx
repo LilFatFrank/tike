@@ -49,6 +49,7 @@ const Search: FC = () => {
       display_name: string;
     }[]
   >([]);
+  const [loadingPage, setLoadingPage] = useState(false);
 
   const fetchTrendingChannels = async () => {
     try {
@@ -107,13 +108,31 @@ const Search: FC = () => {
   }, [selectedTab, debouncedInputSearch]);
 
   useEffect(() => {
-    fetchTrendingChannels();
-    fetchPowerUsers();
+    const pageLoad = async () => {
+      setLoadingPage(true);
+      try {
+        await fetchTrendingChannels();
+        await fetchPowerUsers();
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setLoadingPage(false);
+      }
+    };
+
+    pageLoad();
   }, []);
+
+  if (loadingPage)
+    return (
+      <div className="p-2 flex items-start justify-center h-full bg-white">
+        <Spinner />
+      </div>
+    );
 
   return (
     <>
-      <div className="flex-1 p-4">
+      <div className="flex-1 p-4 bg-white h-dvh">
         <div className="w-full flex items-center gap-1 mb-4">
           <div className="w-full grow items-center bg-frame-btn-bg relative rounded-[12px] py-2 pl-[42px] pr-4">
             <img
@@ -162,7 +181,7 @@ const Search: FC = () => {
             {selectedTab === "users" ? (
               <SearchUsers input={debouncedInputSearch} />
             ) : loadingChannels ? (
-              <div className="p-2">
+              <div className="p-2 flex items-start justify-center h-full bg-white">
                 <Spinner />
               </div>
             ) : errorChannels ? null : (

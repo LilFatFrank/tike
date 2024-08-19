@@ -73,7 +73,7 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="p-2">
+      <div className="p-2 flex items-start justify-center h-full bg-white">
         <Spinner />
       </div>
     );
@@ -89,7 +89,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="flex-1">
+      <div className="flex-1 bg-white">
         <ActivityBar />
 
         <UserChannels />

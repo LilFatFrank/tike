@@ -60,7 +60,7 @@ export default function Frames() {
   const allFrames = data?.pages.flatMap((page) => page.casts) ?? [];
 
   if (isLoading) {
-    return <div className="p-2">
+    return <div className="p-2 flex items-start justify-center h-full bg-white">
     <Spinner />
   </div>
   }
@@ -72,7 +72,7 @@ export default function Frames() {
   }
 
   return (
-    <div className="flex-1">
+    <div className="flex-1 bg-white">
 
       {allFrames.map((frame, frameIndex, arr) =>
         frame.embeds[0].url ? (

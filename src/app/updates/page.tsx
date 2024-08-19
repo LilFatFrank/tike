@@ -12,7 +12,7 @@ const Updates: FC = () => {
 
   return (
     <>
-      <div className="flex-1">
+      <div className="flex-1 bg-white">
         <div className="w-full py-3 px-4 flex items-center justify-start gap-1">
           <img
             src="/icons/back-icon.svg"

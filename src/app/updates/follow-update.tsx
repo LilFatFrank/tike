@@ -29,7 +29,7 @@ const FollowUpdate: FC<FollowUpdate> = ({ icon, follows }) => {
                   className="w-full h-full rounded-full"
                 />
               </Link>
-              <p className="font-bold text-[18px] leading-[22px]">
+              <p className="font-bold text-[18px] leading-[22px] flex flex-col items-start">
                 <Link
                   href={`/profile/${f.fid}`}
                   onClick={(e) => e.stopPropagation()}
@@ -37,7 +37,7 @@ const FollowUpdate: FC<FollowUpdate> = ({ icon, follows }) => {
                   {f.display_name}
                 </Link>
                 <span className="font-normal text-[#A1A1A1] text-[12px] leading-[auto] relative bottom-[2px]">
-                  &nbsp;followed you
+                  followed you
                 </span>
               </p>
             </div>

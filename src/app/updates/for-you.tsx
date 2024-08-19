@@ -68,7 +68,7 @@ const ForYou: FC = () => {
 
   if (isLoading) {
     return (
-      <div className="p-2">
+      <div className="p-2 flex items-start justify-center h-full bg-white">
         <Spinner />
       </div>
     );

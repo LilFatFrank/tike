@@ -100,7 +100,7 @@ export default function Page({ params }: { params: { hash: string } }) {
 
   if (loading)
     return (
-      <div className="p-4 flex items-center justify-center">
+      <div className="p-4 flex items-start justify-center h-full bg-white">
         <Spinner />
       </div>
     );
@@ -113,7 +113,7 @@ export default function Page({ params }: { params: { hash: string } }) {
     );
 
   return (
-    <>
+    <div className="flex-1 bg-white">
       <div className="py-3 px-4 flex items-center gap-1">
         <img
           src="/icons/back-icon.svg"
@@ -161,6 +161,6 @@ export default function Page({ params }: { params: { hash: string } }) {
           <div ref={ref} style={{ height: "20px" }}></div>
         </>
       )}
-    </>
+    </div>
   );
 }
