@@ -293,10 +293,10 @@ const Profile: FC<Profile> = ({ fid }) => {
                   </p>
                 </div>
               </div>
-              <div className="flex items-start justify-start gap-2 mt-4">
+              <div className="flex items-start justify-start gap-2 mt-9">
                 {tabs.map((t) => (
                   <p
-                    className={`grow basis-1/2 text-center text-[16px] leading-[120%] font-600 ${
+                    className={`grow basis-1/2 text-center font-semibold text-[16px] leading-[120%] font-600 ${
                       t.value === selectedTab
                         ? "text-black border-b-2 border-b-purple"
                         : "text-tab-unselected-color"
