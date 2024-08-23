@@ -42,8 +42,8 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="icon" href="/logo/favicon.svg" type="image/svg+xml" />
-        {process.env.NODE_ENV === "production" ? (
-          <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID ?? ""} />
+        {process.env.NEXT_PUBLIC_GTM_ID ? (
+          <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />
         ) : null}
       </head>
       <body className={`${inter.className}`}>

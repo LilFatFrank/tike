@@ -1,6 +1,5 @@
 "use client";
 import { FC, useEffect } from "react";
-import Head from "next/head";
 
 interface GoogleTagManager {
   gtmId: string;
@@ -8,17 +7,15 @@ interface GoogleTagManager {
 
 export const GoogleTagManager: FC<GoogleTagManager> = ({ gtmId }) => {
   useEffect(() => {
-    if (process.env.NODE_ENV === "production") {
-      window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push({
-        event: "page_view",
-        page: window.location.href,
-      });
-    }
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: "page_view",
+      page: window.location.href,
+    });
   }, [gtmId]);
 
   return (
-    <Head>
+    <>
       <script
         async
         src={`https://www.googletagmanager.com/gtag/js?id=${gtmId}`}
@@ -33,6 +30,6 @@ export const GoogleTagManager: FC<GoogleTagManager> = ({ gtmId }) => {
           `,
         }}
       />
-    </Head>
+    </>
   );
 };
