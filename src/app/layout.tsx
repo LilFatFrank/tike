@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Wrapper } from "@/components";
 import { Toaster } from "sonner";
+import { GoogleTagManager } from "@/components/googletagmanager";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -41,9 +42,16 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="icon" href="/logo/favicon.svg" type="image/svg+xml" />
+        {process.env.NODE_ENV === "production" ? (
+          <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID ?? ""} />
+        ) : null}
       </head>
       <body className={`${inter.className}`}>
-        <img src="/images/desktop-bg.png" alt="desktop-bg" className="fixed z-[-3] top-0 left-0 right-0 bottom-0 object-cover h-dvh w-dvw" />
+        <img
+          src="/images/desktop-bg.png"
+          alt="desktop-bg"
+          className="fixed z-[-3] top-0 left-0 right-0 bottom-0 object-cover h-dvh w-dvw"
+        />
         <Toaster />
         <main className="w-dvw max-md:h-dvh md:h-[calc(100dvh-40px)] mx-auto md:w-[552px] md:border md:border-black-20 md:rounded-t-[20px] md:overflow-auto md:no-scrollbar">
           <Wrapper>{children}</Wrapper>

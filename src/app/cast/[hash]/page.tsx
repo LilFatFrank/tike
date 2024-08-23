@@ -113,7 +113,7 @@ export default function Page({ params }: { params: { hash: string } }) {
     );
 
   return (
-    <div className="flex-1 bg-white">
+    <div className="flex-1 bg-white min-h-full">
       <div className="py-3 px-4 flex items-center gap-1">
         <img
           src="/icons/back-icon.svg"
