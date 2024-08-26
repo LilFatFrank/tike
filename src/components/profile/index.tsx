@@ -15,6 +15,7 @@ import Cast from "../cast";
 import formatNumber from "@/utils/formatNumber";
 import Frame from "../frame";
 import Link from "next/link";
+import StringProcessor from "../stringprocessor";
 
 interface Button
   extends DetailedHTMLProps<
@@ -277,7 +278,12 @@ const Profile: FC<Profile> = ({ fid }) => {
                     ) : null}
                   </p>
                 </div>
-                <p className="font-normal">{userPro?.profile.bio.text}</p>
+                <p className="font-normal">
+                  <StringProcessor
+                    inputString={userPro?.profile.bio.text ?? ""}
+                    mentionedProfiles={[]}
+                  />
+                </p>
                 <div className="flex items-center justify-start gap-[12px]">
                   <p className="text-[15px] leading-[auto] text-black-50 font-medium">
                     <span className="font-bold text-black mr-1">

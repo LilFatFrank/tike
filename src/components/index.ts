@@ -10,3 +10,5 @@ export { default as Profile } from "./profile";
 export { default as CastInput } from "./castinput";
 export { default as Sidebar } from "./sidebar";
 export { default as ActivityBar } from "./activitybar";
+export { default as StringProcessor } from "./stringprocessor";
+export { default as EmbedRenderer } from "./embedrenderer";

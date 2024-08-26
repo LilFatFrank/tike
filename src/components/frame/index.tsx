@@ -4,6 +4,7 @@ import { useNeynarContext } from "@neynar/react";
 import Link from "next/link";
 import { CSSProperties, FC, useState } from "react";
 import { toast } from "sonner";
+import StringProcessor from "../stringprocessor";
 
 interface Frame {
   frame: any;
@@ -72,7 +73,7 @@ const Frame: FC<Frame> = ({ frame, style, type }) => {
         </div>
         {frame?.text ? (
           <p className="text-[18px] font-medium text-black w-full mb-[4px] break-words">
-            {frame?.text}
+            <StringProcessor inputString={frame?.text} mentionedProfiles={frame?.mentioned_profiles} />
           </p>
         ) : null}
         <img

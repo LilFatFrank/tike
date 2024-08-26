@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Spinner } from "@/components";
 import formatNumber from "@/utils/formatNumber";
 import { useNeynarContext } from "@neynar/react";
+import SearchCasts from "./search-casts";
 
 const tabs = [
   {
@@ -15,12 +16,18 @@ const tabs = [
     label: "Channels",
     value: "channels",
   },
+  {
+    label: "Casts",
+    value: "casts",
+  },
 ];
 
 const Search: FC = () => {
   const { user } = useNeynarContext();
 
-  const [selectedTab, setSelectedTab] = useState<"users" | "channels">("users");
+  const [selectedTab, setSelectedTab] = useState<
+    "users" | "channels" | "casts"
+  >("users");
   const [inputSearch, setInputSearch] = useState("");
   const [debouncedInputSearch, setDebouncedInputSearch] = useState("");
   const [allChannels, setAllChannels] = useState<
@@ -132,7 +139,7 @@ const Search: FC = () => {
 
   return (
     <>
-      <div className="flex-1 p-4 bg-white h-dvh">
+      <div className="flex-1 p-4 bg-white min-h-dvh">
         <div className="w-full flex items-center gap-1 mb-4">
           <div className="w-full grow items-center bg-frame-btn-bg relative rounded-[12px] py-2 pl-[42px] pr-4">
             <img
@@ -180,6 +187,8 @@ const Search: FC = () => {
             </div>
             {selectedTab === "users" ? (
               <SearchUsers input={debouncedInputSearch} />
+            ) : selectedTab === "casts" ? (
+              <SearchCasts input={debouncedInputSearch} />
             ) : loadingChannels ? (
               <div className="p-2 flex items-start justify-center h-full bg-white">
                 <Spinner />

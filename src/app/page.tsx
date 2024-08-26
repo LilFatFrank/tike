@@ -89,14 +89,14 @@ export default function Home() {
 
   return (
     <>
-      <div className="flex-1 bg-white">
+      <div className="flex-1 bg-white min-h-full">
         <ActivityBar />
 
         <UserChannels />
 
         {allCasts.map((cast, castIndex, arr) =>
           cast.embeds[0].url ? (
-            <Link href={`/cast/${cast.parent_hash || cast.hash}`}>
+            <Link href={`/cast/${cast.parent_hash || cast.hash}`} key={`${cast.parent_hash || cast.hash}`} >
               {cast.embedType === "frame" ? (
                 <Frame frame={cast} key={`cast-${cast.hash}`} />
               ) : (

@@ -76,7 +76,7 @@ export default function Frames() {
 
       {allFrames.map((frame, frameIndex, arr) =>
         frame.embeds[0].url ? (
-          <Link href={`/cast/${frame.parent_hash || frame.hash}`}>
+          <Link href={`/cast/${frame.parent_hash || frame.hash}`} key={`${frame.parent_hash || frame.hash}`} >
             <Frame frame={frame} key={`frame-${frame.hash}`} />
             {frameIndex === arr.length - 1 ? null : (
               <hr className="border border-t-divider" />

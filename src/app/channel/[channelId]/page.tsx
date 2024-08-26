@@ -1,5 +1,5 @@
 "use client";
-import { Cast, Frame, Spinner } from "@/components";
+import { Cast, Frame, Spinner, StringProcessor } from "@/components";
 import formatNumber from "@/utils/formatNumber";
 import { useNeynarContext } from "@neynar/react";
 import Link from "next/link";
@@ -134,7 +134,12 @@ export default function Page({ params }: { params: { channelId: number } }) {
                   /{channelPro?.id}
                 </p>
               </div>
-              <p className="font-normal">{channelPro?.description}</p>
+              <p className="font-normal">
+                <StringProcessor
+                  inputString={channelPro?.description}
+                  mentionedProfiles={[]}
+                />
+              </p>
               <div className="flex items-center justify-start gap-[12px]">
                 <p className="text-[15px] leading-[auto] text-black-50 font-medium">
                   <span className="text-black font-bold mr-1">
