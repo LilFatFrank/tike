@@ -136,7 +136,7 @@ export default function Page({ params }: { params: { channelId: number } }) {
               </div>
               <p className="font-normal">
                 <StringProcessor
-                  inputString={channelPro?.description}
+                  inputString={channelPro?.description ?? ""}
                   mentionedProfiles={[]}
                 />
               </p>
