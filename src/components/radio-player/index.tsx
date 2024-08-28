@@ -120,7 +120,7 @@ const RadioPlayer: React.FC = () => {
 
   return (
     <div className="fixed left-[20px] bottom-[20px]">
-      <div className="flex items-center gap-1 p-2 rounded-[12px] bg-white/50">
+      <div className="flex items-center gap-1 p-2 rounded-[12px] bg-white/50 backdrop-blur-[10px]">
         <YouTube
           videoId={videos[currentVideoIndex].id}
           opts={{
