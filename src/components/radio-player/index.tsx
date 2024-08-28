@@ -78,13 +78,12 @@ const videos = [
 
 const RadioPlayer: React.FC = () => {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const playerRef = useRef<any>(null);
 
   const onReady = (event: any) => {
     playerRef.current = event.target;
-    playerRef.current.setVolume(50);
-    playerRef.current.playVideo();
+    playerRef.current.setVolume(70);
   };
 
   const onEnd = () => {
@@ -138,7 +137,7 @@ const RadioPlayer: React.FC = () => {
         <Equalizer isAnimating={isPlaying} />
         <div className="flex items-center gap-2">
           <div className="text-left">
-            <p className="text-[12px] leading-[15px] font-bold mb-1 w-[18ch] text-ellipsis overflow-hidden whitespace-nowrap">
+            <p className="text-[12px] leading-[15px] font-bold mb-1 w-[18ch] text-ellipsis overflow-hidden whitespace-nowrap text-[#3A6A6B]">
               {videos[currentVideoIndex].title}
             </p>
             <p className="text-[12px] leading-[15px] text-[#3A6A6BCC] w-[18ch] text-ellipsis overflow-hidden whitespace-nowrap">
@@ -183,7 +182,7 @@ interface Equalizer {
 
 const Equalizer: FC<Equalizer> = ({ isAnimating }) => {
   return (
-    <div className="flex items-end h-8">
+    <div className="flex items-center h-5">
       <div
         className={`w-[3px] h-full bg-[#3A6A6B] mx-[1px] ${
           isAnimating ? "animate-bounce" : ""
