@@ -42,6 +42,15 @@ const config: Config = {
         "comment-upload-media-modal":
           "0px 24px 24px -12px #0E3F7E0A, 0px 12px 12px -6px #0E3F7E0A, 0px 6px 6px -3px #2A33460A, 0px 3px 3px -1.5px #2A33460A, 0px 1px 1px -0.5px #2A33450A, 0px 0px 4px 1px #0E3F7E0A",
       },
+      keyframes: {
+        bounce: {
+          '0%, 100%': { transform: 'scaleY(0.3)' },
+          '50%': { transform: 'scaleY(0.8)' },
+        },
+      },
+      animation: {
+        bounce: 'bounce 1s ease-in-out infinite',
+      },
     },
   },
   plugins: [

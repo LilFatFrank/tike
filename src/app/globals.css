@@ -53,6 +53,36 @@ body {
   }
 
   .frame-btn {
-    @apply bg-frame-btn-bg rounded-[12px] py-[8px] px-[16px] w-full flex flex-row items-center w-full gap-[6px] justify-center;
+    @apply bg-frame-btn-bg rounded-[12px] py-[8px] px-[16px] flex flex-row items-center w-full gap-[6px] justify-center;
   }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.5);
+  }
+}
+
+.music-bar {
+  animation: bounce 1s infinite;
+}
+
+.music-bar:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.music-bar:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.music-bar:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+.music-bar:nth-child(5) {
+  animation-delay: 0.4s;
 }
