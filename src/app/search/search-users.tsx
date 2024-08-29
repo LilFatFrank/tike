@@ -1,7 +1,7 @@
 "use client";
 import { Spinner } from "@/components";
 import { useNeynarContext } from "@neynar/react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FC, useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 import { useInfiniteQuery } from "react-query";
@@ -36,6 +36,7 @@ interface SearchUsers {
 
 const SearchUsers: FC<SearchUsers> = ({ input }) => {
   const { user } = useNeynarContext();
+  const router = useRouter();
 
   const {
     data,
@@ -83,7 +84,7 @@ const SearchUsers: FC<SearchUsers> = ({ input }) => {
   return (
     <div className="flex-1">
       {allUsers.map((user, index, arr) => (
-        <Link href={`/profile/${user.fid}`}>
+        <span onClick={() => router.push(`/profile/${user.fid}`)}>
           <div className="w-full px-[16px] py-[20px] flex items-center justify-start gap-[10px]">
             <img
               className="w-[40px] h-[40px] rounded-[20px] object-cover"
@@ -102,7 +103,7 @@ const SearchUsers: FC<SearchUsers> = ({ input }) => {
           {index === arr.length - 1 ? null : (
             <hr className="border border-t-divider" key={`${user.username}`} />
           )}
-        </Link>
+        </span>
       ))}
 
       {isFetchingNextPage ? (

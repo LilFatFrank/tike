@@ -1,4 +1,5 @@
-import Link from "next/link";
+"use client";
+import { useRouter } from "next/navigation";
 import { FC } from "react";
 
 interface RecastUpdate {
@@ -20,32 +21,44 @@ const RecastUpdate: FC<RecastUpdate> = ({
   fid,
   cast,
 }) => {
+  const router = useRouter();
+
   return (
-    <Link href={`/cast/${cast.hash}`} className="w-full">
+    <span
+      onClick={() => router.push(`/cast/${cast.hash}`)}
+      className="w-full cursor-pointer"
+    >
       <div className={`w-full py-5 px-4`}>
         <div className="w-full flex items-start justify-start gap-[10px]">
           <div className="w-full flex items-start justify-start gap-[10px]">
             <img src={icon} alt={"recast"} className="w-10 h-10 rounded-full" />
             <div className="grow flex items-start justify-start gap-[10px]">
-              <Link
-                href={`/profile/${fid}`}
-                onClick={(e) => e.stopPropagation()}
-                className="w-10 h-10 flex-shrink-0"
+              <span
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  router.push(`/profile/${fid}`);
+                }}
+                className="w-10 h-10 flex-shrink-0 cursor-pointer"
               >
                 <img
                   src={userPfp}
                   alt={userName}
                   className="w-full h-full rounded-full"
                 />
-              </Link>
+              </span>
               <div className="flex flex-col items-start justify-start gap-[6px]">
                 <p className="font-bold text-[18px] leading-[22px]">
-                  <Link
-                    href={`/profile/${fid}`}
-                    onClick={(e) => e.stopPropagation()}
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      router.push(`/profile/${fid}`);
+                    }}
+                    className="cursor-pointer"
                   >
                     {userName}
-                  </Link>
+                  </span>
                   <span className="font-normal text-[#A1A1A1] text-[12px] leading-[auto] relative bottom-[2px]">
                     &nbsp;recasted
                   </span>
@@ -67,7 +80,7 @@ const RecastUpdate: FC<RecastUpdate> = ({
           </div>
         </div>
       </div>
-    </Link>
+    </span>
   );
 };
 

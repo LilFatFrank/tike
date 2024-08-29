@@ -14,8 +14,8 @@ import { useInView } from "react-intersection-observer";
 import Cast from "../cast";
 import formatNumber from "@/utils/formatNumber";
 import Frame from "../frame";
-import Link from "next/link";
 import StringProcessor from "../stringprocessor";
+import { useRouter } from "next/navigation";
 
 interface Button
   extends DetailedHTMLProps<
@@ -147,6 +147,8 @@ const Profile: FC<Profile> = ({ fid }) => {
   const { ref: rrRef, inView: rrInView } = useInView({
     threshold: 0.3,
   });
+
+  const router = useRouter();
 
   useEffect(() => {
     if (selectedTab === "casts" && inView && hasNextPage) {
@@ -319,7 +321,15 @@ const Profile: FC<Profile> = ({ fid }) => {
                 <>
                   {allProfileCasts.map((cast, castIndex, arr) =>
                     cast.embeds[0].url ? (
-                      <Link href={`/cast/${cast.parent_hash || cast.hash}`}>
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          router.push(`/cast/${cast.parent_hash || cast.hash}`);
+                        }}
+                        key={cast.hash}
+                        className="cursor-pointer"
+                      >
                         {cast.embedType === "frame" ? (
                           <Frame
                             frame={cast}
@@ -336,7 +346,7 @@ const Profile: FC<Profile> = ({ fid }) => {
                         {castIndex === arr.length - 1 ? null : (
                           <hr className="border border-t-divider" />
                         )}
-                      </Link>
+                      </span>
                     ) : null
                   )}
 
@@ -358,7 +368,15 @@ const Profile: FC<Profile> = ({ fid }) => {
                 <>
                   {allRepliesRecasts.map((cast, castIndex, arr) =>
                     cast.embeds[0].url ? (
-                      <Link href={`/cast/${cast.parent_hash || cast.hash}`}>
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          router.push(`/cast/${cast.parent_hash || cast.hash}`);
+                        }}
+                        key={cast.hash}
+                        className="cursor-pointer"
+                      >
                         {cast.embedType === "frame" ? (
                           <Frame
                             frame={cast}
@@ -375,7 +393,7 @@ const Profile: FC<Profile> = ({ fid }) => {
                         {castIndex === arr.length - 1 ? null : (
                           <hr className="border border-t-divider" />
                         )}
-                      </Link>
+                      </span>
                     ) : null
                   )}
 

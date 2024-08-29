@@ -1,4 +1,5 @@
-import Link from "next/link";
+"use client";
+import { useRouter } from "next/navigation";
 import { FC } from "react";
 
 interface LikeUpdate {
@@ -14,16 +15,24 @@ interface LikeUpdate {
 }
 
 const LikeUpdate: FC<LikeUpdate> = ({ icon, userPfp, userName, fid, cast }) => {
+  const router = useRouter();
+
   return (
-    <Link href={`/cast/${cast.hash}`} className="w-full">
+    <span
+      onClick={() => router.push(`/cast/${cast.hash}`)}
+      className="w-full cursor-pointer"
+    >
       <div className={`w-full py-5 px-4`}>
         <div className="w-full flex items-start justify-start gap-[10px]">
           <div className="w-full flex items-start justify-start gap-[10px]">
             <img src={icon} alt={"like"} className="w-10 h-10 rounded-full" />
             <div className="grow flex items-start justify-start gap-[10px]">
-              <Link
-                href={`/profile/${fid}`}
-                onClick={(e) => e.stopPropagation()}
+              <span
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  router.push(`/profile/${fid}`);
+                }}
                 className="w-10 h-10 flex-shrink-0"
               >
                 <img
@@ -31,15 +40,18 @@ const LikeUpdate: FC<LikeUpdate> = ({ icon, userPfp, userName, fid, cast }) => {
                   alt={userName}
                   className="w-full h-full rounded-full"
                 />
-              </Link>
+              </span>
               <div className="flex flex-col items-start justify-start gap-[6px]">
                 <p className="font-bold text-[18px] leading-[22px]">
-                  <Link
-                    href={`/profile/${fid}`}
-                    onClick={(e) => e.stopPropagation()}
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      router.push(`/profile/${fid}`);
+                    }}
                   >
                     {userName}
-                  </Link>
+                  </span>
                   <span className="font-normal text-[#A1A1A1] text-[12px] leading-[auto] relative bottom-[2px]">
                     &nbsp;liked
                   </span>
@@ -61,7 +73,7 @@ const LikeUpdate: FC<LikeUpdate> = ({ icon, userPfp, userName, fid, cast }) => {
           </div>
         </div>
       </div>
-    </Link>
+    </span>
   );
 };
 

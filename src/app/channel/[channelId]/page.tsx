@@ -2,7 +2,7 @@
 import { Cast, Frame, Spinner, StringProcessor } from "@/components";
 import formatNumber from "@/utils/formatNumber";
 import { useNeynarContext } from "@neynar/react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import { useInfiniteQuery } from "react-query";
@@ -33,6 +33,7 @@ const fetchChannelCasts = async ({
 
 export default function Page({ params }: { params: { channelId: number } }) {
   const { user } = useNeynarContext();
+  const router = useRouter();
 
   const {
     data,
@@ -151,7 +152,12 @@ export default function Page({ params }: { params: { channelId: number } }) {
             </div>
             {allChannelCasts.map((cast, castIndex, arr) =>
               cast.embeds[0].url ? (
-                <Link href={`/cast/${cast.parent_hash || cast.hash}`}>
+                <span
+                  onClick={() =>
+                    router.push(`/cast/${cast.parent_hash || cast.hash}`)
+                  }
+                  className="cursor-pointer"
+                >
                   {cast.embedType === "frame" ? (
                     <Frame
                       frame={cast}
@@ -168,7 +174,7 @@ export default function Page({ params }: { params: { channelId: number } }) {
                   {castIndex === arr.length - 1 ? null : (
                     <hr className="border border-t-divider" />
                   )}
-                </Link>
+                </span>
               ) : null
             )}
 

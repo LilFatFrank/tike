@@ -1,11 +1,11 @@
 "use client";
 import { FC, useEffect, useState } from "react";
 import SearchUsers from "./search-users";
-import Link from "next/link";
 import { Spinner } from "@/components";
 import formatNumber from "@/utils/formatNumber";
 import { useNeynarContext } from "@neynar/react";
 import SearchCasts from "./search-casts";
+import { useRouter } from "next/navigation";
 
 const tabs = [
   {
@@ -24,6 +24,7 @@ const tabs = [
 
 const Search: FC = () => {
   const { user } = useNeynarContext();
+  const router = useRouter();
 
   const [selectedTab, setSelectedTab] = useState<
     "users" | "channels" | "casts"
@@ -195,7 +196,10 @@ const Search: FC = () => {
               </div>
             ) : errorChannels ? null : (
               allChannels.map((channel, channelIndex, arr) => (
-                <Link href={`/channel/${channel.id}`}>
+                <span
+                  onClick={() => router.push(`/channel/${channel.id}`)}
+                  className="cursor-pointer"
+                >
                   <div className="w-full px-[16px] py-[20px] flex items-center justify-start gap-[10px]">
                     <img
                       className="w-[40px] h-[40px] rounded-[20px] object-cover"
@@ -214,7 +218,7 @@ const Search: FC = () => {
                   {channelIndex === arr.length - 1 ? null : (
                     <hr className="border border-t-divider" />
                   )}
-                </Link>
+                </span>
               ))
             )}
           </>
@@ -237,8 +241,10 @@ const Search: FC = () => {
                   <div className="w-full overflow-x-auto no-scrollbar">
                     <div className="grid grid-rows-3 grid-flow-col gap-5">
                       {trendingChannels.map((tc) => (
-                        <Link
-                          href={`/channel/${tc.channel.id}`}
+                        <span
+                          onClick={() =>
+                            router.push(`/channel/${tc.channel.id}`)
+                          }
                           key={tc.channel.id}
                         >
                           <div className="flex items-center gap-3 w-[160px]">
@@ -262,7 +268,7 @@ const Search: FC = () => {
                               </p>
                             </div>
                           </div>
-                        </Link>
+                        </span>
                       ))}
                     </div>
                   </div>
@@ -284,7 +290,10 @@ const Search: FC = () => {
                   <div className="w-full overflow-x-auto no-scrollbar">
                     <div className="grid grid-rows-3 grid-flow-col gap-4">
                       {powerUsers.map((pu) => (
-                        <Link href={`/profile/${pu.fid}`} key={pu.fid}>
+                        <span
+                          onClick={() => router.push(`/profile/${pu.fid}`)}
+                          key={pu.fid}
+                        >
                           <div className="flex flex-col items-center w-[90px] gap-[6px]">
                             <img
                               src={pu.pfp_url}
@@ -305,7 +314,7 @@ const Search: FC = () => {
                               </p>
                             </div>
                           </div>
-                        </Link>
+                        </span>
                       ))}
                     </div>
                   </div>

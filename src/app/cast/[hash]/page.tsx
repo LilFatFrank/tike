@@ -1,7 +1,6 @@
 "use client";
 import { Cast, Frame, Spinner } from "@/components";
 import { useNeynarContext } from "@neynar/react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
@@ -37,7 +36,7 @@ export default function Page({ params }: { params: { hash: string } }) {
   const [cast, setCast] = useState<any>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  const { back } = useRouter();
+  const { back, push } = useRouter();
 
   const {
     data,
@@ -140,7 +139,10 @@ export default function Page({ params }: { params: { hash: string } }) {
       ) : (
         <>
           {allReplies.map((cast, castIndex, arr) => (
-            <Link href={`/cast/${cast.hash}`}>
+            <span
+              onClick={() => push(`/cast/${cast.hash}`)}
+              className="cursor-pointer"
+            >
               {cast.embedType === "frame" ? (
                 <Frame frame={cast} key={`cast-${cast.hash}`} type="reply" />
               ) : (
@@ -149,7 +151,7 @@ export default function Page({ params }: { params: { hash: string } }) {
               {castIndex === arr.length - 1 ? null : (
                 <hr className="border border-t-divider" />
               )}
-            </Link>
+            </span>
           ))}
 
           {isFetchingNextPage || isLoading ? (

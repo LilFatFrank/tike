@@ -4,9 +4,9 @@ import { FC, useContext, useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 import { useInfiniteQuery } from "react-query";
 import Spinner from "../spinner";
-import Link from "next/link";
 import { AppContext } from "@/context";
 import { SET_USER_CHANNELS } from "@/context/actions";
+import { useRouter } from "next/navigation";
 
 interface ApiResponse {
   channels: any;
@@ -52,6 +52,8 @@ const UserChannels: FC = () => {
     threshold: 0.3,
   });
 
+  const router = useRouter();
+
   useEffect(() => {
     if (inView && hasNextPage) {
       fetchNextPage();
@@ -68,7 +70,11 @@ const UserChannels: FC = () => {
   return (
     <div className="pt-[10px] pb-[20px] pl-[16px] flex items-center justify-start gap-4 overflow-x-auto whitespace-nowrap no-scrollbar">
       {state.userChannels.map((channel) => (
-        <Link href={`/channel/${channel.id}`} className="flex-shrink-0" key={`${channel.id}`}>
+        <span
+          onClick={() => router.push(`/channel/${channel.id}`)}
+          className="flex-shrink-0 cursor-pointer"
+          key={`${channel.id}`}
+        >
           <div
             className="flex flex-col items-center justify-center gap-1 cursor-pointer"
             key={channel.id}
@@ -84,7 +90,7 @@ const UserChannels: FC = () => {
               {channel.name}
             </p>
           </div>
-        </Link>
+        </span>
       ))}
 
       {isFetchingNextPage ? (

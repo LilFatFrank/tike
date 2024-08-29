@@ -1,7 +1,7 @@
 "use client";
 import { Frame, Spinner } from "@/components";
 import { useNeynarContext } from "@neynar/react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 import { useInfiniteQuery } from "react-query";
@@ -32,6 +32,7 @@ const fetchFrames = async ({
 
 export default function Frames() {
   const { user } = useNeynarContext();
+  const router = useRouter();
 
   const {
     data,
@@ -60,9 +61,11 @@ export default function Frames() {
   const allFrames = data?.pages.flatMap((page) => page.casts) ?? [];
 
   if (isLoading) {
-    return <div className="p-2 flex items-start justify-center h-full bg-white">
-    <Spinner />
-  </div>
+    return (
+      <div className="p-2 flex items-start justify-center h-full bg-white">
+        <Spinner />
+      </div>
+    );
   }
 
   if (error) {
@@ -73,15 +76,20 @@ export default function Frames() {
 
   return (
     <div className="flex-1 bg-white">
-
       {allFrames.map((frame, frameIndex, arr) =>
         frame.embeds[0].url ? (
-          <Link href={`/cast/${frame.parent_hash || frame.hash}`} key={`${frame.parent_hash || frame.hash}`} >
+          <span
+            onClick={() =>
+              router.push(`/cast/${frame.parent_hash || frame.hash}`)
+            }
+            key={`${frame.parent_hash || frame.hash}`}
+            className="cursor-pointer"
+          >
             <Frame frame={frame} key={`frame-${frame.hash}`} />
             {frameIndex === arr.length - 1 ? null : (
               <hr className="border border-t-divider" />
             )}
-          </Link>
+          </span>
         ) : null
       )}
 

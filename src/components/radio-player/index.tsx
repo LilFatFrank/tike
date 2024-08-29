@@ -113,7 +113,6 @@ const RadioPlayer: React.FC = () => {
 
   useEffect(() => {
     if (playerRef.current) {
-      console.log("Playing video on index change");
       playerRef.current.playVideo();
     }
   }, [currentVideoIndex]);
@@ -127,7 +126,6 @@ const RadioPlayer: React.FC = () => {
             height: "0",
             width: "0",
             playerVars: {
-              autoplay: 1,
               controls: 0,
             },
           }}

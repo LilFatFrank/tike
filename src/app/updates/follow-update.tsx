@@ -1,4 +1,5 @@
-import Link from "next/link";
+"use client";
+import { useRouter } from "next/navigation";
 import { FC } from "react";
 
 interface FollowUpdate {
@@ -11,6 +12,8 @@ interface FollowUpdate {
 }
 
 const FollowUpdate: FC<FollowUpdate> = ({ icon, follows }) => {
+  const router = useRouter();
+
   return follows.map((f, i, arr) => (
     <>
       <div className={`w-full py-5 px-4`} key={f.fid}>
@@ -18,24 +21,31 @@ const FollowUpdate: FC<FollowUpdate> = ({ icon, follows }) => {
           <div className="w-full flex items-start justify-start gap-[10px]">
             <img src={icon} alt={"follow"} className="w-10 h-10 rounded-full" />
             <div className="grow flex items-center justify-start gap-[10px]">
-              <Link
-                href={`/profile/${f.fid}`}
-                onClick={(e) => e.stopPropagation()}
-                className="w-10 h-10 flex-shrink-0"
+              <span
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  router.push(`/profile/${f.fid}`);
+                }}
+                className="w-10 h-10 flex-shrink-0 cursor-pointer"
               >
                 <img
                   src={f.pfp}
                   alt={f.display_name}
                   className="w-full h-full rounded-full"
                 />
-              </Link>
+              </span>
               <p className="font-bold text-[18px] leading-[22px] flex flex-col items-start">
-                <Link
-                  href={`/profile/${f.fid}`}
-                  onClick={(e) => e.stopPropagation()}
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    router.push(`/profile/${f.fid}`);
+                  }}
+                  className="cursor-pointer"
                 >
                   {f.display_name}
-                </Link>
+                </span>
                 <span className="font-normal text-[#A1A1A1] text-[12px] leading-[auto] relative bottom-[2px]">
                   followed you
                 </span>

@@ -1,7 +1,7 @@
 "use client";
 import { ActivityBar, Cast, Frame, Spinner, UserChannels } from "@/components";
 import { useNeynarContext } from "@neynar/react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
@@ -56,6 +56,7 @@ export default function Home() {
   });
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   useEffect(() => {
     if (inView && hasNextPage) {
@@ -96,7 +97,13 @@ export default function Home() {
 
         {allCasts.map((cast, castIndex, arr) =>
           cast.embeds[0].url ? (
-            <Link href={`/cast/${cast.parent_hash || cast.hash}`} key={`${cast.parent_hash || cast.hash}`} >
+            <span
+              onClick={() =>
+                router.push(`/cast/${cast.parent_hash || cast.hash}`)
+              }
+              key={`${cast.parent_hash || cast.hash}`}
+              className="cursor-pointer"
+            >
               {cast.embedType === "frame" ? (
                 <Frame frame={cast} key={`cast-${cast.hash}`} />
               ) : (
@@ -105,7 +112,7 @@ export default function Home() {
               {castIndex === arr.length - 1 ? null : (
                 <hr className="border border-t-divider" />
               )}
-            </Link>
+            </span>
           ) : null
         )}
 

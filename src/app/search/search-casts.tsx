@@ -1,6 +1,6 @@
 "use client";
 import { EmbedRenderer, Spinner, StringProcessor } from "@/components";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FC, useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 import { useInfiniteQuery } from "react-query";
@@ -49,6 +49,8 @@ const SearchCasts: FC<SearchCasts> = ({ input }) => {
     enabled: !!input,
   });
 
+  const router = useRouter();
+
   const { ref, inView } = useInView({
     threshold: 0.3,
   });
@@ -77,15 +79,22 @@ const SearchCasts: FC<SearchCasts> = ({ input }) => {
     <div className="flex-1 bg-white min-h-full">
       {allCasts.map((cast, index, arr) =>
         cast?.embeds[0]?.url ? (
-          <Link
-            href={`/cast/${cast.parent_hash || cast.hash}`}
+          <span
+            onClick={() =>
+              router.push(`/cast/${cast.parent_hash || cast.hash}`)
+            }
             key={`${cast.parent_hash || cast.hash}`}
+            className="cursor-pointer"
           >
             <div className="w-full px-[16px] py-[20px] flex items-start justify-between gap-[10px]">
               <div className="grow flex flex-col items-start gap-[2px]">
-                <Link
-                  href={`/profile/${cast?.author?.fid}`}
-                  onClick={(e) => e.stopPropagation()}
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    router.push(`/profile/${cast?.author?.fid}`);
+                  }}
+                  className="cursor-pointer"
                 >
                   <div className="flex items-center justify-start gap-1">
                     <img
@@ -97,7 +106,7 @@ const SearchCasts: FC<SearchCasts> = ({ input }) => {
                       {cast?.author?.display_name}
                     </p>
                   </div>
-                </Link>
+                </span>
                 <p className="font-normal text-[12px] leading-auto text-gray-text-1 break-normal text-ellipsis whitespace-nowrap overflow-hidden w-[60ch]">
                   <StringProcessor
                     inputString={cast?.text ?? ""}
@@ -115,7 +124,7 @@ const SearchCasts: FC<SearchCasts> = ({ input }) => {
             {index === arr.length - 1 ? null : (
               <hr className="border border-t-divider" />
             )}
-          </Link>
+          </span>
         ) : null
       )}
 

@@ -3,20 +3,14 @@ import formatNumber from "@/utils/formatNumber";
 import formatTime from "@/utils/formatTime";
 import timeAgo from "@/utils/timeAgo";
 import { useNeynarContext } from "@neynar/react";
-import Link from "next/link";
-import {
-  ChangeEvent,
-  CSSProperties,
-  FC,
-  useEffect,
-  useState,
-} from "react";
+import { ChangeEvent, CSSProperties, FC, useEffect, useState } from "react";
 import { toast } from "sonner";
 import Modal from "../modal";
 import { AiOutlineClose } from "react-icons/ai";
 import axios from "axios";
 import StringProcessor from "../stringprocessor";
 import EmbedRenderer from "../embedrenderer";
+import { useRouter } from "next/navigation";
 
 interface Cast {
   cast: any;
@@ -50,6 +44,8 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [currentAudioTime, setCurrentAudioTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
+
+  const router = useRouter();
 
   const postReaction = async (type: "like" | "recast") => {
     const res = await fetch(`/api/post-reaction`, {
@@ -243,18 +239,20 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
     <>
       <div className="w-full px-[16px] py-[20px]" style={{ ...style }}>
         <div className="flex items-center justify-start gap-[10px] mb-[10px]">
-          <Link
-            href={`/profile/${castDet?.author?.fid}`}
+          <span
             onClick={(e) => {
               e.stopPropagation();
+              e.preventDefault();
+              router.push(`/profile/${castDet?.author?.fid}`);
             }}
+            className="cursor-pointer"
           >
             <img
               className="w-[40px] h-[40px] rounded-[20px] object-cover"
               src={castDet?.author?.pfp_url}
               alt={castDet?.author?.username}
             />
-          </Link>
+          </span>
           <div className="flex flex-col items-start gap-[2px]">
             <p className="font-bold text-[18px] leading-auto">
               {castDet?.author?.display_name}&nbsp;
@@ -263,15 +261,16 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
               {type !== "reply" && castDet?.channel ? (
                 <span className="font-normal text-[12px] leading-auto text-gray-text-1">
                   posted in&nbsp;
-                  <Link
-                    href={`/channel/${castDet?.channel.id}`}
-                    className="font-normal text-[12px] leading-auto text-black"
+                  <span
+                    className="font-normal text-[12px] leading-auto text-black cursor-pointer"
                     onClick={(e) => {
                       e.stopPropagation();
+                      e.preventDefault();
+                      router.push(`/channel/${castDet?.channel.id}`);
                     }}
                   >
                     /{castDet?.channel.id}
-                  </Link>
+                  </span>
                 </span>
               ) : (
                 <span className="font-normal text-[12px] leading-auto text-gray-text-1">
@@ -286,7 +285,10 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
         </div>
         {castDet?.text && castDet?.embedType !== "audio" ? (
           <p className="text-[18px] font-medium text-black w-full mb-[4px] break-words">
-            <StringProcessor inputString={castDet?.text} mentionedProfiles={castDet?.mentioned_profiles} />
+            <StringProcessor
+              inputString={castDet?.text}
+              mentionedProfiles={castDet?.mentioned_profiles}
+            />
           </p>
         ) : null}
         <EmbedRenderer

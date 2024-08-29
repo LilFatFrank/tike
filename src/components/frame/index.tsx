@@ -1,7 +1,7 @@
 "use client";
 import timeAgo from "@/utils/timeAgo";
 import { useNeynarContext } from "@neynar/react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CSSProperties, FC, useState } from "react";
 import { toast } from "sonner";
 import StringProcessor from "../stringprocessor";
@@ -14,6 +14,7 @@ interface Frame {
 
 const Frame: FC<Frame> = ({ frame, style, type }) => {
   const { user } = useNeynarContext();
+  const router = useRouter();
 
   const [frameInput, setFrameInput] = useState<string>("");
 
@@ -34,16 +35,20 @@ const Frame: FC<Frame> = ({ frame, style, type }) => {
     <>
       <div className="w-full px-[16px] py-[20px]" style={{ ...style }}>
         <div className="flex items-center justify-start gap-[10px] mb-[10px]">
-          <Link
-            href={`/profile/${frame?.author.fid}`}
-            onClick={(e) => e.stopPropagation()}
+          <span
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              router.push(`/profile/${frame?.author.fid}`);
+            }}
+            className="cursor-pointer"
           >
             <img
               className="w-[40px] h-[40px] rounded-[20px] object-cover"
               src={frame?.author.pfp_url}
               alt={frame?.author.username}
             />
-          </Link>
+          </span>
           <div className="flex flex-col items-start gap-[2px]">
             <p className="font-bold text-[18px] leading-auto">
               {frame?.author.display_name}&nbsp;
@@ -52,13 +57,16 @@ const Frame: FC<Frame> = ({ frame, style, type }) => {
               {type !== "reply" && frame?.channel ? (
                 <span className="font-normal text-[12px] leading-auto text-gray-text-1">
                   posted in&nbsp;
-                  <Link
-                    href={`/channel/${frame?.channel.id}`}
-                    className="font-normal text-[12px] leading-auto text-black"
-                    onClick={(e) => e.stopPropagation()}
+                  <span
+                    className="font-normal text-[12px] leading-auto text-black cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      router.push(`/channel/${frame?.channel.id}`);
+                    }}
                   >
                     /{frame?.channel.id}
-                  </Link>
+                  </span>
                 </span>
               ) : (
                 <span className="font-normal text-[12px] leading-auto text-gray-text-1">
@@ -73,7 +81,10 @@ const Frame: FC<Frame> = ({ frame, style, type }) => {
         </div>
         {frame?.text ? (
           <p className="text-[18px] font-medium text-black w-full mb-[4px] break-words">
-            <StringProcessor inputString={frame?.text} mentionedProfiles={frame?.mentioned_profiles} />
+            <StringProcessor
+              inputString={frame?.text}
+              mentionedProfiles={frame?.mentioned_profiles}
+            />
           </p>
         ) : null}
         <img
@@ -100,12 +111,17 @@ const Frame: FC<Frame> = ({ frame, style, type }) => {
             <p className="font-medium">{b.title}</p>
           </button>
         ))} */}
-        <Link
-          className="w-full"
-          href={`https://warpcast.com/${frame?.author.username}/${frame?.hash}`}
-          target="_blank"
-          rel="noreferrer noopener"
-          onClick={(e) => e.stopPropagation()}
+        <span
+          className="w-full cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            window.open(
+              `https://warpcast.com/${frame?.author.username}/${frame?.hash}`,
+              "_blank",
+              "noreferrer noopener"
+            );
+          }}
         >
           <button className="frame-btn">
             <img
@@ -116,7 +132,7 @@ const Frame: FC<Frame> = ({ frame, style, type }) => {
             />
             <p className="font-medium">View in Warpcast</p>
           </button>
-        </Link>
+        </span>
       </div>
     </>
   );

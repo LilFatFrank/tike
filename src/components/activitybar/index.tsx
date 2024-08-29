@@ -194,11 +194,13 @@ const ActivityBar: FC = () => {
                 Channel
               </p>
               {channels.map((c) => (
-                <Link
-                  href={`/channel/${c.id}`}
+                <span
                   className="py-1 flex items-center justify-start gap-1 mb-1"
                   key={c.id}
-                  onClick={() => setOpenSidebar(false)}
+                  onClick={() => {
+                    setOpenSidebar(false);
+                    push(`/channel/${c.id}`);
+                  }}
                 >
                   <img
                     src={c.image_url}
@@ -210,7 +212,7 @@ const ActivityBar: FC = () => {
                   <p className="text-black text-[16px] leading-[22px] font-medium">
                     {c.name}
                   </p>
-                </Link>
+                </span>
               ))}
             </div>
           )}

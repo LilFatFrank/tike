@@ -1,4 +1,5 @@
-import Link from "next/link";
+"use client";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 interface Profile {
@@ -15,12 +16,15 @@ const StringProcessor: React.FC<StringProcessorProps> = ({
   inputString,
   mentionedProfiles,
 }) => {
+  const router = useRouter();
+
   const handleClick = (
-    e: React.MouseEvent<HTMLAnchorElement>,
+    e: React.MouseEvent<HTMLSpanElement, MouseEvent>,
     href: string
   ) => {
     e.stopPropagation();
-    console.log(`Navigating to: ${href}`);
+    e.preventDefault();
+    router.push(href);
   };
 
   const unescapeString = (str: string): string => {
@@ -89,14 +93,13 @@ const StringProcessor: React.FC<StringProcessorProps> = ({
               if (matchedProfile) {
                 const href = `/profile/${matchedProfile.fid}`;
                 parts.push(
-                  <Link
+                  <span
                     key={`mention-${lineIndex}-${partIndex}-${match.index}`}
-                    href={href}
                     onClick={(e) => handleClick(e, href)}
-                    className="text-purple break-words"
+                    className="text-purple break-words cursor-pointer"
                   >
                     {token}
-                  </Link>
+                  </span>
                 );
               } else {
                 parts.push(token);
@@ -106,14 +109,13 @@ const StringProcessor: React.FC<StringProcessorProps> = ({
               const tag = token.slice(1);
               const href = `/channel/${tag}`;
               parts.push(
-                <Link
+                <span
                   key={`tag-${lineIndex}-${partIndex}-${match.index}`}
-                  href={href}
                   onClick={(e) => handleClick(e, href)}
-                  className="text-purple break-words"
+                  className="text-purple break-words cursor-pointer"
                 >
                   {token}
-                </Link>
+                </span>
               );
             }
 
