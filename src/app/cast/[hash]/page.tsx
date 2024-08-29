@@ -106,7 +106,7 @@ export default function Page({ params }: { params: { hash: string } }) {
 
   if (error)
     return (
-      <p className="w-full items-center justify-center py-2 text-center">
+      <p className="w-full items-start justify-center py-2 text-center h-full bg-white">
         Could not fetch cast!
       </p>
     );
