@@ -17,6 +17,11 @@ const Frame: FC<Frame> = ({ frame, style, type }) => {
   const router = useRouter();
 
   const [frameInput, setFrameInput] = useState<string>("");
+  const [castOptionType, setCastOptionType] = useState<"delete" | "copy-hash">(
+    "delete"
+  );
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
+  const [openCastOptions, setOpenCastOptions] = useState(false);
 
   const postFrameAction = async (req: any) => {
     try {
@@ -31,53 +36,152 @@ const Frame: FC<Frame> = ({ frame, style, type }) => {
     }
   };
 
-  return (
+  const deleteCast = async () => {
+    try {
+      const res = await fetch(`/api/delete-cast`, {
+        method: "POST",
+        body: JSON.stringify({
+          hash: frame?.hash,
+          uuid: user?.signer_uuid,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setDeleteSuccess(true);
+        toast.success("Cast Deleted!");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Error deleting cast!");
+    }
+  };
+
+  return deleteSuccess ? (
     <>
       <div className="w-full px-[16px] py-[20px]" style={{ ...style }}>
-        <div className="flex items-center justify-start gap-[10px] mb-[10px]">
-          <span
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              router.push(`/profile/${frame?.author.fid}`);
-            }}
-            className="cursor-pointer"
-          >
-            <img
-              className="w-[40px] h-[40px] rounded-[20px] object-cover"
-              src={frame?.author.pfp_url}
-              alt={frame?.author.username}
-            />
-          </span>
-          <div className="flex flex-col items-start gap-[2px]">
-            <p className="font-bold text-[18px] leading-auto">
-              {frame?.author.display_name}&nbsp;
-            </p>
-            <div className="flex items-center justify-start gap-1">
-              {type !== "reply" && frame?.channel ? (
+        <div className="flex items-center justify-between w-full">
+          This frame was deleted!
+        </div>
+      </div>
+    </>
+  ) : (
+    <>
+      <div className="w-full px-[16px] py-[20px]" style={{ ...style }}>
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center justify-start gap-[10px] mb-[10px]">
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                router.push(`/profile/${frame?.author?.fid}`);
+              }}
+              className="cursor-pointer"
+            >
+              <img
+                className="w-[40px] h-[40px] rounded-[20px] object-cover"
+                src={frame?.author?.pfp_url}
+                alt={frame?.author?.username}
+              />
+            </span>
+            <div className="flex flex-col items-start gap-[2px]">
+              <p className="font-bold text-[18px] leading-auto">
+                {frame?.author?.display_name}&nbsp;
+              </p>
+              <div className="flex items-center justify-start gap-1">
+                {type !== "reply" && frame?.channel ? (
+                  <span className="font-normal text-[12px] leading-auto text-gray-text-1">
+                    posted in&nbsp;
+                    <span
+                      className="font-normal text-[12px] leading-auto text-black cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        router.push(`/channel/${frame?.channel.id}`);
+                      }}
+                    >
+                      /{frame?.channel.id}
+                    </span>
+                  </span>
+                ) : (
+                  <span className="font-normal text-[12px] leading-auto text-gray-text-1">
+                    @{frame?.author?.username}
+                  </span>
+                )}
                 <span className="font-normal text-[12px] leading-auto text-gray-text-1">
-                  posted in&nbsp;
-                  <span
-                    className="font-normal text-[12px] leading-auto text-black cursor-pointer"
+                  {timeAgo(frame?.timestamp)}
+                </span>
+              </div>
+            </div>
+          </div>
+          {frame?.author?.fid === user?.fid ? (
+            <div className="relative">
+              <img
+                src="/icons/cast-more-icon.svg"
+                alt="cast-more"
+                className="w-6 h-6 cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setOpenCastOptions(!openCastOptions);
+                }}
+              />
+              <div
+                className={`absolute right-0 top-full bg-white transition-all duration-300 ease-in-out rounded-[18px] shadow-comment-upload-media-modal w-[150px] ${
+                  openCastOptions
+                    ? "opacity-100 visible z-[99]"
+                    : "opacity-0 invisible z-[-1]"
+                }`}
+              >
+                <div className="flex flex-col w-full items-center justify-center p-2 rounded-[18px] gap-1">
+                  <div
+                    className={`cursor-pointer w-full px-2 py-[10px] flex items-center justify-start gap-[2px] rounded-[12px] hover:bg-frame-btn-bg ${
+                      castOptionType === "delete"
+                        ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
+                        : ""
+                    }`}
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
-                      router.push(`/channel/${frame?.channel.id}`);
+                      setCastOptionType("delete");
+                      deleteCast();
                     }}
                   >
-                    /{frame?.channel.id}
-                  </span>
-                </span>
-              ) : (
-                <span className="font-normal text-[12px] leading-auto text-gray-text-1">
-                  @{frame?.author?.username}
-                </span>
-              )}
-              <span className="font-normal text-[12px] leading-auto text-gray-text-1">
-                {timeAgo(frame?.timestamp)}
-              </span>
+                    <img
+                      src="/icons/delete-post-icon.svg"
+                      alt="delete"
+                      className="w-6 h-6"
+                    />
+                    <span className="font-medium leading-[22px]">
+                      Delete Post
+                    </span>
+                  </div>
+                  <div
+                    className={`cursor-pointer w-full px-2 py-[10px] flex items-center justify-start gap-[2px] rounded-[12px] hover:bg-frame-btn-bg ${
+                      castOptionType === "copy-hash"
+                        ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
+                        : ""
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setCastOptionType("copy-hash");
+                      window.navigator.clipboard.writeText(frame?.hash);
+                      toast.success("Hash copied!");
+                    }}
+                  >
+                    <img
+                      src="/icons/copy-hash-icon.svg"
+                      alt="delete"
+                      className="w-6 h-6"
+                    />
+                    <span className="font-medium leading-[22px]">
+                      Copy Hash
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+          ) : null}
         </div>
         {frame?.text ? (
           <p className="text-[18px] font-medium text-black w-full mb-[4px] break-words">

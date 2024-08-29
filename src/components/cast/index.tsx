@@ -330,13 +330,13 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
                 }}
               />
               <div
-                className={`absolute right-0 top-full bg-white transition-all duration-300 ease-in-out p-2 rounded-[18px] shadow-comment-upload-media-modal w-[180px] ${
+                className={`absolute right-0 top-full bg-white transition-all duration-300 ease-in-out rounded-[18px] shadow-comment-upload-media-modal w-[150px] ${
                   openCastOptions
                     ? "opacity-100 visible z-[99]"
                     : "opacity-0 invisible z-[-1]"
                 }`}
               >
-                <div className="flex flex-col w-full items-center justify-center p-2 rounded-[18px] gap-2">
+                <div className="flex flex-col w-full items-center justify-center p-2 rounded-[18px] gap-1">
                   <div
                     className={`cursor-pointer w-full px-2 py-[10px] flex items-center justify-start gap-[2px] rounded-[12px] hover:bg-frame-btn-bg ${
                       castOptionType === "delete"
@@ -370,7 +370,7 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
                       e.preventDefault();
                       setCastOptionType("copy-hash");
                       window.navigator.clipboard.writeText(castDet?.hash);
-                      toast.success("Link copied!");
+                      toast.success("Hash copied!");
                     }}
                   >
                     <img

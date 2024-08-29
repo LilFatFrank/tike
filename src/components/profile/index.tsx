@@ -380,7 +380,7 @@ const Profile: FC<Profile> = ({ fid }) => {
                 <>
                   <div className="grid grid-cols-3 gap-2 w-full py-5">
                     {allProfileCasts.map((cast) =>
-                      cast.embedType === "frame" ? null : (
+                      cast.embedType === "frame" || cast.embedType === "youtube" ? null : (
                         <span
                           onClick={(e) => {
                             e.stopPropagation();
@@ -403,7 +403,7 @@ const Profile: FC<Profile> = ({ fid }) => {
                                 ? cast?.embeds[1]?.url
                                 : cast?.embeds[0]?.url
                             }
-                            className="object-cover"
+                            className={"object-cover"}
                           />
                         </span>
                       )
