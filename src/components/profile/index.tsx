@@ -313,7 +313,7 @@ const Profile: FC<Profile> = ({ fid }) => {
                   </p>
                 </div>
               </div>
-              <div className="flex items-start justify-start gap-2 mt-9">
+              <div className="flex items-end justify-start gap-2 mt-9">
                 {tabs.map((t) => (
                   <p
                     className={`grow basis-1/2 text-center font-semibold text-[16px] leading-[120%] font-600 ${
