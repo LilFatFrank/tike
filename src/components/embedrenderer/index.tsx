@@ -3,23 +3,27 @@ import formatTime from "@/utils/formatTime";
 import { useNeynarContext } from "@neynar/react";
 import { ChangeEvent, useState } from "react";
 
-function ImageEmbed({ url }: { url: string }) {
+function ImageEmbed({ url, className }: { url: string; className?: string }) {
   return (
     <img
       src={url}
       alt="Cast image"
-      className="w-full h-full object-contain rounded-[10px]"
+      className={`w-full h-full object-contain rounded-[10px] ${
+        className || ""
+      }`}
     />
   );
 }
 
-function VideoEmbed({ url }: { url: string }) {
+function VideoEmbed({ url, className }: { url: string; className?: string }) {
   return (
     <video
       controls
       autoPlay
       muted
-      className="w-full h-full object-contain rounded-[10px]"
+      className={`w-full h-full object-contain rounded-[10px] ${
+        className || ""
+      }`}
     >
       <source src={url} type="video/mp4" />
       Your browser does not support the video tag.
@@ -27,7 +31,15 @@ function VideoEmbed({ url }: { url: string }) {
   );
 }
 
-function AudioEmbed({ url, title }: { url: string[]; title: string }) {
+function AudioEmbed({
+  url,
+  title,
+  className,
+}: {
+  url: string[];
+  title: string;
+  className?: string;
+}) {
   const { user } = useNeynarContext();
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [currentAudioTime, setCurrentAudioTime] = useState(0);
@@ -62,7 +74,11 @@ function AudioEmbed({ url, title }: { url: string[]; title: string }) {
   };
 
   return (
-    <div className="p-2 rounded-[12px] bg-music-upload-color/60 flex flex-col items-center gap-4">
+    <div
+      className={`p-2 rounded-[12px] bg-music-upload-color/60 flex flex-col items-center gap-4 ${
+        className || ""
+      }`}
+    >
       <div className="rounded-[22px]">
         <img
           src={url[1]}
@@ -138,7 +154,7 @@ function getYouTubeVideoId(url: string): string | null {
   return match ? match[1] : null;
 }
 
-function YouTubeEmbed({ url }: { url: string }) {
+function YouTubeEmbed({ url, className }: { url: string; className?: string }) {
   const videoId = getYouTubeVideoId(url);
   return (
     <iframe
@@ -147,7 +163,9 @@ function YouTubeEmbed({ url }: { url: string }) {
       frameBorder="0"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       allowFullScreen
-      className="w-full max-h-[100dvw] min-h-[300px] object-contain rounded-[10px]"
+      className={`w-full max-h-[100dvw] min-h-[300px] object-contain rounded-[10px] ${
+        className || ""
+      }`}
     ></iframe>
   );
 }
@@ -156,20 +174,28 @@ export default function EmbedRenderer({
   type,
   url,
   audioTitle,
+  className,
 }: {
   type: string;
   url: string[] | string;
   audioTitle?: string;
+  className?: string;
 }) {
   switch (type) {
     case "image":
-      return <ImageEmbed url={url as string} />;
+      return <ImageEmbed url={url as string} className={className} />;
     case "video":
-      return <VideoEmbed url={url as string} />;
+      return <VideoEmbed url={url as string} className={className} />;
     case "audio":
-      return <AudioEmbed url={url as string[]} title={audioTitle as string} />;
+      return (
+        <AudioEmbed
+          url={url as string[]}
+          title={audioTitle as string}
+          className={className}
+        />
+      );
     case "youtube":
-      return <YouTubeEmbed url={url as string} />;
+      return <YouTubeEmbed url={url as string} className={className} />;
     default:
       return null;
   }

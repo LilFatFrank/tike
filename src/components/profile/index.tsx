@@ -16,6 +16,7 @@ import formatNumber from "@/utils/formatNumber";
 import Frame from "../frame";
 import StringProcessor from "../stringprocessor";
 import { useRouter } from "next/navigation";
+import EmbedRenderer from "../embedrenderer";
 
 interface Button
   extends DetailedHTMLProps<
@@ -92,6 +93,10 @@ const tabs = [
     label: "Recasts + Replies",
     value: "recasts_replies",
   },
+  {
+    label: "Media",
+    value: "media",
+  },
 ];
 
 interface Profile {
@@ -100,9 +105,9 @@ interface Profile {
 
 const Profile: FC<Profile> = ({ fid }) => {
   const { user, logoutUser } = useNeynarContext();
-  const [selectedTab, setSelectedTab] = useState<"casts" | "recasts_replies">(
-    "casts"
-  );
+  const [selectedTab, setSelectedTab] = useState<
+    "casts" | "recasts_replies" | "media"
+  >("casts");
 
   const {
     data,
@@ -147,14 +152,21 @@ const Profile: FC<Profile> = ({ fid }) => {
   const { ref: rrRef, inView: rrInView } = useInView({
     threshold: 0.3,
   });
+  const { ref: mRef, inView: mInView } = useInView({
+    threshold: 0.3,
+  });
 
   const router = useRouter();
 
   useEffect(() => {
-    if (selectedTab === "casts" && inView && hasNextPage) {
+    if (
+      (selectedTab === "casts" || selectedTab === "media") &&
+      (inView || mInView) &&
+      hasNextPage
+    ) {
       fetchNextPage();
     }
-  }, [inView, hasNextPage, fetchNextPage, selectedTab]);
+  }, [inView, mInView, hasNextPage, fetchNextPage, selectedTab]);
 
   useEffect(() => {
     if (selectedTab === "recasts_replies" && rrInView && rrHasNextPage) {
@@ -357,6 +369,54 @@ const Profile: FC<Profile> = ({ fid }) => {
                   ) : null}
 
                   <div ref={ref} style={{ height: "80px" }}></div>
+
+                  {allProfileCasts && allProfileCasts.length && !hasNextPage ? (
+                    <p className="w-full items-center justify-center py-2 text-center">
+                      End of the line!
+                    </p>
+                  ) : null}
+                </>
+              ) : selectedTab === "media" ? (
+                <>
+                  <div className="grid grid-cols-3 gap-2 w-full py-5">
+                    {allProfileCasts.map((cast) =>
+                      cast.embedType === "frame" ? null : (
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            router.push(
+                              `/cast/${cast.parent_hash || cast.hash}`
+                            );
+                          }}
+                          key={`profile-cast-${cast.hash}`}
+                          className="cursor-pointer w-full aspect-square rounded-[12px]"
+                        >
+                          <EmbedRenderer
+                            type={
+                              cast.embedType === "audio"
+                                ? "image"
+                                : cast.embedType
+                            }
+                            url={
+                              cast.embedType === "audio"
+                                ? cast?.embeds[1]?.url
+                                : cast?.embeds[0]?.url
+                            }
+                            className="object-cover"
+                          />
+                        </span>
+                      )
+                    )}
+                  </div>
+
+                  {(isFetchingNextPage || isLoading) && !error ? (
+                    <div className="p-2">
+                      <Spinner />
+                    </div>
+                  ) : null}
+
+                  <div ref={mRef} style={{ height: "80px" }}></div>
 
                   {allProfileCasts && allProfileCasts.length && !hasNextPage ? (
                     <p className="w-full items-center justify-center py-2 text-center">

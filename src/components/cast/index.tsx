@@ -44,6 +44,11 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [currentAudioTime, setCurrentAudioTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
+  const [openCastOptions, setOpenCastOptions] = useState(false);
+  const [castOptionType, setCastOptionType] = useState<"delete" | "copy-hash">(
+    "delete"
+  );
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
 
   const router = useRouter();
 
@@ -102,6 +107,26 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
             ] - 1,
         },
       });
+    }
+  };
+
+  const deleteCast = async () => {
+    try {
+      const res = await fetch(`/api/delete-cast`, {
+        method: "POST",
+        body: JSON.stringify({
+          hash: castDet?.hash,
+          uuid: user?.signer_uuid,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setDeleteSuccess(true);
+        toast.success("Cast Deleted!");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Error deleting cast!");
     }
   };
 
@@ -235,53 +260,132 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
     setCastDet(cast);
   }, [cast]);
 
-  return (
+  return deleteSuccess ? (
     <>
       <div className="w-full px-[16px] py-[20px]" style={{ ...style }}>
-        <div className="flex items-center justify-start gap-[10px] mb-[10px]">
-          <span
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              router.push(`/profile/${castDet?.author?.fid}`);
-            }}
-            className="cursor-pointer"
-          >
-            <img
-              className="w-[40px] h-[40px] rounded-[20px] object-cover"
-              src={castDet?.author?.pfp_url}
-              alt={castDet?.author?.username}
-            />
-          </span>
-          <div className="flex flex-col items-start gap-[2px]">
-            <p className="font-bold text-[18px] leading-auto">
-              {castDet?.author?.display_name}&nbsp;
-            </p>
-            <div className="flex items-center justify-start gap-1">
-              {type !== "reply" && castDet?.channel ? (
+        <div className="flex items-center justify-between w-full">
+          This cast was deleted!
+        </div>
+      </div>
+    </>
+  ) : (
+    <>
+      <div className="w-full px-[16px] py-[20px]" style={{ ...style }}>
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center justify-start gap-[10px] mb-[10px]">
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                router.push(`/profile/${castDet?.author?.fid}`);
+              }}
+              className="cursor-pointer"
+            >
+              <img
+                className="w-[40px] h-[40px] rounded-[20px] object-cover"
+                src={castDet?.author?.pfp_url}
+                alt={castDet?.author?.username}
+              />
+            </span>
+            <div className="flex flex-col items-start gap-[2px]">
+              <p className="font-bold text-[18px] leading-auto">
+                {castDet?.author?.display_name}&nbsp;
+              </p>
+              <div className="flex items-center justify-start gap-1">
+                {type !== "reply" && castDet?.channel ? (
+                  <span className="font-normal text-[12px] leading-auto text-gray-text-1">
+                    posted in&nbsp;
+                    <span
+                      className="font-normal text-[12px] leading-auto text-black cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        router.push(`/channel/${castDet?.channel.id}`);
+                      }}
+                    >
+                      /{castDet?.channel.id}
+                    </span>
+                  </span>
+                ) : (
+                  <span className="font-normal text-[12px] leading-auto text-gray-text-1">
+                    @{castDet?.author?.username}
+                  </span>
+                )}
                 <span className="font-normal text-[12px] leading-auto text-gray-text-1">
-                  posted in&nbsp;
-                  <span
-                    className="font-normal text-[12px] leading-auto text-black cursor-pointer"
+                  {timeAgo(castDet?.timestamp)}
+                </span>
+              </div>
+            </div>
+          </div>
+          {castDet?.author?.fid === user?.fid ? (
+            <div className="relative">
+              <img
+                src="/icons/cast-more-icon.svg"
+                alt="cast-more"
+                className="w-6 h-6 cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setOpenCastOptions(!openCastOptions);
+                }}
+              />
+              <div
+                className={`absolute right-0 top-full bg-white transition-all duration-300 ease-in-out p-2 rounded-[18px] shadow-comment-upload-media-modal w-[180px] ${
+                  openCastOptions
+                    ? "opacity-100 visible z-[99]"
+                    : "opacity-0 invisible z-[-1]"
+                }`}
+              >
+                <div className="flex flex-col w-full items-center justify-center p-2 rounded-[18px] gap-2">
+                  <div
+                    className={`cursor-pointer w-full px-2 py-[10px] flex items-center justify-start gap-[2px] rounded-[12px] hover:bg-frame-btn-bg ${
+                      castOptionType === "delete"
+                        ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
+                        : ""
+                    }`}
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
-                      router.push(`/channel/${castDet?.channel.id}`);
+                      setCastOptionType("delete");
+                      deleteCast();
                     }}
                   >
-                    /{castDet?.channel.id}
-                  </span>
-                </span>
-              ) : (
-                <span className="font-normal text-[12px] leading-auto text-gray-text-1">
-                  @{castDet?.author?.username}
-                </span>
-              )}
-              <span className="font-normal text-[12px] leading-auto text-gray-text-1">
-                {timeAgo(castDet?.timestamp)}
-              </span>
+                    <img
+                      src="/icons/delete-post-icon.svg"
+                      alt="delete"
+                      className="w-6 h-6"
+                    />
+                    <span className="font-medium leading-[22px]">
+                      Delete Post
+                    </span>
+                  </div>
+                  <div
+                    className={`cursor-pointer w-full px-2 py-[10px] flex items-center justify-start gap-[2px] rounded-[12px] hover:bg-frame-btn-bg ${
+                      castOptionType === "copy-hash"
+                        ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
+                        : ""
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setCastOptionType("copy-hash");
+                      window.navigator.clipboard.writeText(castDet?.hash);
+                      toast.success("Link copied!");
+                    }}
+                  >
+                    <img
+                      src="/icons/copy-hash-icon.svg"
+                      alt="delete"
+                      className="w-6 h-6"
+                    />
+                    <span className="font-medium leading-[22px]">
+                      Copy Hash
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+          ) : null}
         </div>
         {castDet?.text && castDet?.embedType !== "audio" ? (
           <p className="text-[18px] font-medium text-black w-full mb-[4px] break-words">
