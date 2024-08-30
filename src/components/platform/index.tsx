@@ -14,7 +14,7 @@ const Platform: FC<Platform> = ({ children }) => {
   return (
     <>
       {!user ? <SignIn /> : children}
-      <div className="hidden lg:block">
+      <div className="hidden xl:block">
         <RadioPlayer />
       </div>
     </>
