@@ -79,43 +79,59 @@ const videos = [
 const RadioPlayer: React.FC = () => {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const playerRef = useRef<any>(null);
-
-  const onReady = (event: any) => {
-    playerRef.current = event.target;
-    playerRef.current.setVolume(70);
-  };
-
-  const onEnd = () => {
-    handleNext();
-  };
+  const playerRef = React.useRef<any>(null);
 
   const handlePlayPause = () => {
-    if (isPlaying) {
-      playerRef.current.pauseVideo();
-    } else {
-      playerRef.current.playVideo();
+    if (playerRef.current) {
+      if (isPlaying) {
+        playerRef.current.pauseVideo();
+      } else {
+        playerRef.current.playVideo();
+      }
+      setIsPlaying(!isPlaying);
     }
-    setIsPlaying(!isPlaying);
   };
 
   const handleNext = () => {
     const nextIndex = (currentVideoIndex + 1) % videos.length;
     setCurrentVideoIndex(nextIndex);
-    setIsPlaying(true);
+    if (playerRef.current) {
+      playerRef.current.loadVideoById(videos[nextIndex].id);
+      if (isPlaying) {
+        playerRef.current.playVideo();
+      }
+    }
   };
 
   const handlePrev = () => {
     const prevIndex = (currentVideoIndex - 1 + videos.length) % videos.length;
     setCurrentVideoIndex(prevIndex);
-    setIsPlaying(true);
+    if (playerRef.current) {
+      playerRef.current.loadVideoById(videos[prevIndex].id);
+      if (isPlaying) {
+        playerRef.current.playVideo();
+      }
+    }
   };
 
-  useEffect(() => {
-    if (playerRef.current) {
+  const onReady = (event: any) => {
+    playerRef.current = event.target;
+    console.log({event});
+    playerRef.current.setVolume(70);
+    if (isPlaying) {
       playerRef.current.playVideo();
+    } else {
+      playerRef.current.pauseVideo();
     }
-  }, [currentVideoIndex]);
+  };
+
+  const onError = (error: any) => {
+    console.error("YouTube player error:", error);
+  };
+
+  const onStateChange = (event: any) => {
+    console.log("YouTube player state changed:", event.data);
+  };
 
   return (
     <div className="fixed left-[20px] bottom-[20px]">
@@ -127,11 +143,17 @@ const RadioPlayer: React.FC = () => {
             width: "0",
             playerVars: {
               controls: 0,
+              autoplay: 1,
+              loop: 1,
+              playlist: videos.map((video) => video.id).join(","),
             },
           }}
           onReady={onReady}
-          onEnd={onEnd}
+          onError={onError}
+          onStateChange={onStateChange}
+          key={currentVideoIndex}
         />
+        {/* Equalizer component */}
         <Equalizer isAnimating={isPlaying} />
         <div className="flex items-center gap-2">
           <div className="text-left">
@@ -155,13 +177,13 @@ const RadioPlayer: React.FC = () => {
                   ? "/icons/radio-pause-icon.svg"
                   : "/icons/radio-play-icon.svg"
               }
-              alt="prev"
+              alt="play/pause"
               className="w-[18px] h-[18px] cursor-pointer"
               onClick={handlePlayPause}
             />
             <img
               src="/icons/radio-next-icon.svg"
-              alt="prev"
+              alt="next"
               className="w-[18px] h-[18px] cursor-pointer"
               onClick={handleNext}
             />
@@ -174,53 +196,26 @@ const RadioPlayer: React.FC = () => {
 
 export default RadioPlayer;
 
-interface Equalizer {
+interface EqualizerProps {
   isAnimating: boolean;
 }
 
-const Equalizer: FC<Equalizer> = ({ isAnimating }) => {
+const Equalizer: React.FC<EqualizerProps> = ({ isAnimating }) => {
   return (
     <div className="flex items-center h-5">
-      <div
-        className={`w-[3px] h-full bg-[#3A6A6B] mx-[1px] ${
-          isAnimating ? "animate-bounce" : ""
-        }`}
-        style={{
-          animationDelay: "0s",
-          transformOrigin: "bottom",
-          transform: isAnimating ? "" : "scaleY(0.3)",
-        }}
-      ></div>
-      <div
-        className={`w-[3px] h-full bg-[#3A6A6B] mx-[1px] ${
-          isAnimating ? "animate-bounce" : ""
-        }`}
-        style={{
-          animationDelay: "0.2s",
-          transformOrigin: "bottom",
-          transform: isAnimating ? "" : "scaleY(0.3)",
-        }}
-      ></div>
-      <div
-        className={`w-[3px] h-full bg-[#3A6A6B] mx-[1px] ${
-          isAnimating ? "animate-bounce" : ""
-        }`}
-        style={{
-          animationDelay: "0.4s",
-          transformOrigin: "bottom",
-          transform: isAnimating ? "" : "scaleY(0.3)",
-        }}
-      ></div>
-      <div
-        className={`w-[3px] h-full bg-[#3A6A6B] mx-[1px] ${
-          isAnimating ? "animate-bounce" : ""
-        }`}
-        style={{
-          animationDelay: "0.6s",
-          transformOrigin: "bottom",
-          transform: isAnimating ? "" : "scaleY(0.3)",
-        }}
-      ></div>
+      {[0, 200, 400, 600].map((delay) => (
+        <div
+          key={delay}
+          className={`w-[3px] h-full bg-[#3A6A6B] mx-[1px] ${
+            isAnimating ? "animate-bounce" : ""
+          }`}
+          style={{
+            animationDelay: `${delay / 1000}s`,
+            transformOrigin: "bottom",
+            transform: isAnimating ? "" : "scaleY(0.3)",
+          }}
+        ></div>
+      ))}
     </div>
   );
 };
