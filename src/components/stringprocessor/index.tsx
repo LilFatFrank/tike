@@ -70,7 +70,7 @@ const StringProcessor: React.FC<StringProcessorProps> = ({
           );
         } else {
           // This part is not a URL, process it for mentions and tags
-          const tokenRegex = /(@[\w.]+|(?<!\S)\/\w+(?!\S))/g;
+          const tokenRegex = /(@[\w_.-]+|(?<!\S)\/\w+(?!\S))/g;
           let lastIndex = 0;
           let match;
 
