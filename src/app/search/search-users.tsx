@@ -84,7 +84,7 @@ const SearchUsers: FC<SearchUsers> = ({ input }) => {
   return (
     <div className="flex-1">
       {allUsers.map((user, index, arr) => (
-        <span onClick={() => router.push(`/profile/${user.fid}`)}>
+        <span onClick={() => router.push(`/profile/${user.fid}`)} className="cursor-pointer" key={`${user.fid}`}>
           <div className="w-full px-[16px] py-[20px] flex items-center justify-start gap-[10px]">
             <img
               className="w-[40px] h-[40px] rounded-[20px] object-cover"

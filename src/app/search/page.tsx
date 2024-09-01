@@ -246,6 +246,7 @@ const Search: FC = () => {
                             router.push(`/channel/${tc.channel.id}`)
                           }
                           key={tc.channel.id}
+                          className="cursor-pointer"
                         >
                           <div className="flex items-center gap-3 w-[160px]">
                             <img
@@ -293,6 +294,7 @@ const Search: FC = () => {
                         <span
                           onClick={() => router.push(`/profile/${pu.fid}`)}
                           key={pu.fid}
+                          className="cursor-pointer"
                         >
                           <div className="flex flex-col items-center w-[90px] gap-[6px]">
                             <img
