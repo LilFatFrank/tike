@@ -10,11 +10,13 @@ interface Profile {
 interface StringProcessorProps {
   inputString: string;
   mentionedProfiles: Profile[];
+  maxLength?: number;
 }
 
 const StringProcessor: React.FC<StringProcessorProps> = ({
   inputString,
   mentionedProfiles,
+  maxLength = 100,
 }) => {
   const router = useRouter();
 
@@ -133,7 +135,52 @@ const StringProcessor: React.FC<StringProcessorProps> = ({
     return parts;
   };
 
-  return <>{processString(inputString)}</>;
+  const truncateContent = (content: React.ReactNode[]): React.ReactNode[] => {
+    let length = 0;
+    const truncatedContent: React.ReactNode[] = [];
+
+    for (const part of content) {
+      if (typeof part === "string") {
+        if (length + part.length <= maxLength) {
+          truncatedContent.push(part);
+          length += part.length;
+        } else {
+          const remainingSpace = maxLength - length;
+          truncatedContent.push(part.slice(0, remainingSpace));
+          break;
+        }
+      } else {
+        truncatedContent.push(part);
+        // Estimate length for non-string elements (like links, mentions)
+        length += 10; // Adjust this value based on your average token length
+      }
+
+      if (length >= maxLength) break;
+    }
+
+    return truncatedContent;
+  };
+
+  const processedContent = processString(inputString);
+  const contentLength = inputString.length;
+  const shouldTruncate = contentLength > maxLength;
+
+  const displayContent = shouldTruncate
+    ? truncateContent(processedContent)
+    : processedContent;
+
+  return (
+    <span>
+      {displayContent}
+      {shouldTruncate ? (
+        <>
+          &nbsp;<span className="text-purple">...Read More</span>
+        </>
+      ) : (
+        false
+      )}
+    </span>
+  );
 };
 
 export default StringProcessor;
