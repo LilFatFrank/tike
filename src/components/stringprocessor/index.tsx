@@ -177,7 +177,11 @@ const StringProcessor: React.FC<StringProcessorProps> = ({
         {shouldTruncate ? (
           <span
             className="text-purple cursor-pointer"
-            onClick={() => setExpanded(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              setExpanded(true);
+            }}
           >
             &nbsp;...Read More
           </span>
@@ -185,7 +189,11 @@ const StringProcessor: React.FC<StringProcessorProps> = ({
         {expanded && contentLength > maxLength ? (
           <span
             className="text-purple cursor-pointer block w-fit"
-            onClick={() => setExpanded(false)}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              setExpanded(false);
+            }}
           >
             Show Less
           </span>
