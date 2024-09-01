@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
 
 interface Profile {
   username: string;
@@ -19,6 +19,7 @@ const StringProcessor: React.FC<StringProcessorProps> = ({
   maxLength = 100,
 }) => {
   const router = useRouter();
+  const [expanded, setExpanded] = useState(false);
 
   const handleClick = (
     e: React.MouseEvent<HTMLSpanElement, MouseEvent>,
@@ -163,7 +164,7 @@ const StringProcessor: React.FC<StringProcessorProps> = ({
 
   const processedContent = processString(inputString);
   const contentLength = inputString.length;
-  const shouldTruncate = contentLength > maxLength;
+  const shouldTruncate = contentLength > maxLength && !expanded;
 
   const displayContent = shouldTruncate
     ? truncateContent(processedContent)
@@ -172,13 +173,24 @@ const StringProcessor: React.FC<StringProcessorProps> = ({
   return (
     <span>
       {displayContent}
-      {shouldTruncate ? (
-        <>
-          &nbsp;<span className="text-purple">...Read More</span>
-        </>
-      ) : (
-        false
-      )}
+      <>
+        {shouldTruncate ? (
+          <span
+            className="text-purple cursor-pointer"
+            onClick={() => setExpanded(true)}
+          >
+            &nbsp;...Read More
+          </span>
+        ) : null}
+        {expanded && contentLength > maxLength ? (
+          <span
+            className="text-purple cursor-pointer block w-fit"
+            onClick={() => setExpanded(false)}
+          >
+            Show Less
+          </span>
+        ) : null}
+      </>
     </span>
   );
 };
