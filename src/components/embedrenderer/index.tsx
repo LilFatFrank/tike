@@ -24,6 +24,10 @@ function VideoEmbed({ url, className }: { url: string; className?: string }) {
       className={`w-full h-full object-contain rounded-[10px] ${
         className || ""
       }`}
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+      }}
     >
       <source src={url} type="video/mp4" />
       Your browser does not support the video tag.
@@ -166,6 +170,10 @@ function YouTubeEmbed({ url, className }: { url: string; className?: string }) {
       className={`w-full max-h-[100dvw] min-h-[300px] object-contain rounded-[10px] ${
         className || ""
       }`}
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+      }}
     ></iframe>
   );
 }
