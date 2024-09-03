@@ -220,7 +220,7 @@ const ActivityBar: FC = () => {
               </p>
               {channels.map((c) => (
                 <span
-                  className="py-1 flex items-center justify-start gap-1 mb-1"
+                  className="py-1 flex items-center justify-start gap-1 mb-1 cursor-pointer"
                   key={c.id}
                   onClick={() => {
                     setOpenSidebar(false);
