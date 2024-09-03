@@ -23,10 +23,10 @@ const links = [
     path: "/create",
   },
   {
-    icon: "/icons/frames-icon.svg",
-    selected: "/icons/frames-filled-icon.svg",
-    label: "Frames",
-    path: "/frames",
+    icon: "/icons/hub-icon.svg",
+    selected: "/icons/hub-filled-icon.svg",
+    label: "Hub",
+    path: "/hub",
   },
   {
     icon: "/icons/profile-icon.svg",
@@ -52,15 +52,37 @@ const Footer: FC = () => {
           <Link
             key={l.label}
             href={l.path}
-            className={"flex-grow flex flex-col items-center justify-center gap-2 p-2"}
+            className={
+              "flex-grow flex flex-col items-center justify-center gap-2 p-2"
+            }
           >
-            <img
-              src={pathname === l.path ? l.selected : l.icon}
-              alt={`${l.label}-icon`}
-              width={24}
-              height={24}
-            />
-            <p className="font-bold text-[12px] leading-[16px] text-black">{l.label}</p>
+            {l.path === "/hub" ? (
+              <>
+                <div className="w-6 h-6 flex items-center justify-center">
+                  <img
+                    src={pathname === l.path ? l.selected : l.icon}
+                    alt={`${l.label}-icon`}
+                    width={20}
+                    height={20}
+                  />
+                </div>
+                <p className="font-bold text-[12px] leading-[16px] text-black">
+                  {l.label}
+                </p>
+              </>
+            ) : (
+              <>
+                <img
+                  src={pathname === l.path ? l.selected : l.icon}
+                  alt={`${l.label}-icon`}
+                  width={24}
+                  height={24}
+                />
+                <p className="font-bold text-[12px] leading-[16px] text-black">
+                  {l.label}
+                </p>
+              </>
+            )}
           </Link>
         ))}
       </footer>

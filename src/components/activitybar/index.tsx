@@ -12,9 +12,9 @@ const ActivityBar: FC = () => {
   const [loadingChannels, setLoadingChannels] = useState(false);
   const [channels, setChannels] = useState<any[]>([]);
   const [errorChannels, setErrorChannels] = useState(false);
-  const [filter, setFilter] = useState<null | "video" | "image" | "frame">(
-    null
-  );
+  const [filter, setFilter] = useState<
+    null | "video" | "image" | "frame" | "audio"
+  >(null);
 
   const called = useRef<boolean>(false);
 
@@ -115,6 +115,31 @@ const ActivityBar: FC = () => {
             <div
               className="py-1 cursor-pointer flex items-center justify-start gap-1"
               onClick={() => {
+                push("?filter=image");
+                setOpenSidebar(false);
+              }}
+            >
+              <img
+                src={
+                  filter === "image"
+                    ? "/icons/image-filter-icon.svg"
+                    : "/icons/image-icon.svg"
+                }
+                alt={"image"}
+                width={24}
+                height={24}
+              />
+              <p
+                className={`${
+                  filter === "image" ? "text-purple" : "text-black"
+                } text-[24px] leading-[120%] font-medium`}
+              >
+                Image
+              </p>
+            </div>
+            <div
+              className="py-1 cursor-pointer flex items-center justify-start gap-1"
+              onClick={() => {
                 push("?filter=video");
                 setOpenSidebar(false);
               }}
@@ -140,26 +165,26 @@ const ActivityBar: FC = () => {
             <div
               className="py-1 cursor-pointer flex items-center justify-start gap-1"
               onClick={() => {
-                push("?filter=image");
+                push("?filter=audio");
                 setOpenSidebar(false);
               }}
             >
               <img
                 src={
-                  filter === "image"
-                    ? "/icons/image-filter-icon.svg"
-                    : "/icons/image-icon.svg"
+                  filter === "audio"
+                    ? "/icons/music-filter-icon.svg"
+                    : "/icons/music-icon.svg"
                 }
-                alt={"image"}
+                alt={"music"}
                 width={24}
                 height={24}
               />
               <p
                 className={`${
-                  filter === "image" ? "text-purple" : "text-black"
+                  filter === "audio" ? "text-purple" : "text-black"
                 } text-[24px] leading-[120%] font-medium`}
               >
-                Image
+                Music
               </p>
             </div>
             <div

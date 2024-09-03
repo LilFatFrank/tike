@@ -160,7 +160,10 @@ const Search: FC = () => {
           </div>
           {changeView ? (
             <button
-              onClick={() => setChangeView(false)}
+              onClick={() => {
+                setChangeView(false);
+                setInputSearch("");
+              }}
               className="grow bg-none text-black-50 p-0 m-0 border-none outline-none"
             >
               Cancel

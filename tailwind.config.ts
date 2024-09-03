@@ -36,6 +36,8 @@ const config: Config = {
         "signup-button-text-color": "#EAE9E9",
         "music-upload-color": "#018A08",
         "music-progress-bg": "#3D7F41",
+        "good": "#35C77B",
+        "bad": "#C73535"
       },
       boxShadow: {
         "cast-upload": "0px -2px 6.89px 0px #0000001A",
@@ -47,9 +49,14 @@ const config: Config = {
           '0%, 100%': { transform: 'scaleY(0.3)' },
           '50%': { transform: 'scaleY(0.8)' },
         },
+        rotate: {
+          "0%": { transform: "rotate(0deg) scale(10)" },
+          "100%": { transform: "rotate(360deg) scale(10)" },
+        },
       },
       animation: {
         bounce: 'bounce 1s ease-in-out infinite',
+        rotate: "rotate 10s linear infinite",
       },
     },
   },

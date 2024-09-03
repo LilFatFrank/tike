@@ -86,7 +86,7 @@ const SearchCasts: FC<SearchCasts> = ({ input }) => {
             key={`${cast.parent_hash || cast.hash}`}
             className="cursor-pointer"
           >
-            <div className="w-full px-[16px] py-[20px] flex items-start justify-between gap-[10px]">
+            <div className="w-full py-[20px] flex items-start justify-between gap-[10px]">
               <div className="grow flex flex-col items-start gap-[2px]">
                 <span
                   onClick={(e) => {
