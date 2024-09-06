@@ -12,3 +12,4 @@ export { default as Sidebar } from "./sidebar";
 export { default as ActivityBar } from "./activitybar";
 export { default as StringProcessor } from "./stringprocessor";
 export { default as EmbedRenderer } from "./embedrenderer";
+export { default as Error } from "./error";

@@ -1,3 +1,4 @@
 export default interface State {
-    userChannels: any[]
+    userChannels: any[];
+    pageNotFound: boolean;
 }

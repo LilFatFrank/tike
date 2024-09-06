@@ -1,8 +1,9 @@
 "use client";
+import { AppContext } from "@/context";
 import { useNeynarContext } from "@neynar/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FC } from "react";
+import { FC, useContext } from "react";
 const links = [
   {
     icon: "/icons/home-icon.svg",
@@ -37,13 +38,14 @@ const links = [
 ];
 
 const Footer: FC = () => {
+  const [state] = useContext(AppContext);
   const pathname = usePathname();
 
   const { user } = useNeynarContext();
 
   if (!user) return null;
 
-  if (pathname === "/create") return null;
+  if (pathname === "/create" || state.pageNotFound) return null;
 
   return (
     <>
@@ -53,7 +55,7 @@ const Footer: FC = () => {
             key={l.label}
             href={l.path}
             className={
-              "flex-grow flex flex-col items-center justify-center gap-2 p-2"
+              "grow flex-shrink-0 basis-1/5 flex flex-col items-center justify-center gap-2 p-2"
             }
           >
             {l.path === "/hub" ? (

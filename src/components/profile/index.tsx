@@ -17,23 +17,35 @@ import Frame from "../frame";
 import StringProcessor from "../stringprocessor";
 import { useRouter } from "next/navigation";
 import EmbedRenderer from "../embedrenderer";
+import cn from "@/utils/cn";
+import { toast } from "sonner";
+import EditProfile from "./edit-profile";
 
 interface Button
   extends DetailedHTMLProps<
     ButtonHTMLAttributes<HTMLButtonElement>,
     HTMLButtonElement
   > {
-  buttonType?: "default" | "alternate";
+  buttonType?: "default" | "alternate" | "edit";
 }
 
-const Button: FC<Button> = ({ buttonType = "default", ...props }) => {
+const Button: FC<Button> = ({
+  buttonType = "default",
+  className,
+  ...props
+}) => {
   return (
     <button
-      className={`py-2 px-4 text-[20px] leading-[22px] font-medium rounded-[16px] ${
-        buttonType === "alternate"
-          ? "bg-black text-white"
-          : "bg-white text-black ring-1 ring-inset ring-black"
-      }`}
+      className={cn(
+        `py-2 px-4 text-[16px] leading-[19px] font-medium rounded-[16px] ${
+          buttonType === "edit"
+            ? "bg-[#00000005] border-[1px] border-black-20"
+            : buttonType === "alternate"
+            ? "bg-black text-white"
+            : "bg-white text-black ring-1 ring-inset ring-black"
+        }`,
+        className
+      )}
       onClick={props.onClick}
     >
       {props.children}
@@ -108,6 +120,11 @@ const Profile: FC<Profile> = ({ fid }) => {
   const [selectedTab, setSelectedTab] = useState<
     "casts" | "recasts_replies" | "media"
   >("casts");
+  const [openProfileOptions, setOpenProfileOptions] = useState(false);
+  const [profileOptionType, setProfileOptionType] = useState<
+    "log-out" | "copy-profile" | ""
+  >("");
+  const [openEditProfile, setOpenEditProfile] = useState(false);
 
   const {
     data,
@@ -116,6 +133,7 @@ const Profile: FC<Profile> = ({ fid }) => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    refetch,
   } = useInfiniteQuery(
     ["profile-casts", { fid: fid, viewerFid: user?.fid || 3 }],
     fetchProfileCasts,
@@ -134,6 +152,7 @@ const Profile: FC<Profile> = ({ fid }) => {
     fetchNextPage: rrFetchNextPage,
     hasNextPage: rrHasNextPage,
     isFetchingNextPage: rrIsFetchingNextPage,
+    refetch: rrRefetch,
   } = useInfiniteQuery(
     ["replies-recasts", { fid: fid, viewerFid: user?.fid || 3 }],
     fetchRecastsReplies,
@@ -263,15 +282,95 @@ const Profile: FC<Profile> = ({ fid }) => {
                 alt={userPro?.username}
                 className="w-[82px] h-[82px] rounded-[41px] absolute top-[-41px] left-[16px] object-cover border-4 border-white"
               />
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2 items-center">
                 {user?.fid === Number(fid) ? (
-                  <Button onClick={logoutUser}>Log out</Button>
+                  <Button
+                    onClick={() => setOpenEditProfile(true)}
+                    buttonType="edit"
+                  >
+                    Edit Profile
+                  </Button>
                 ) : userPro?.viewer_context?.following ? (
                   <Button onClick={unfollowUser}>Unfollow</Button>
                 ) : !userPro?.viewer_context?.following ? (
                   <Button buttonType="alternate" onClick={followUser}>
                     Follow
                   </Button>
+                ) : null}
+                {user?.fid === Number(fid) ? (
+                  <>
+                    <div className="relative">
+                      <div
+                        className="rounded-full bg-[#00000005] border-black-20 border-[1px] p-2"
+                        onClick={() =>
+                          setOpenProfileOptions(!openProfileOptions)
+                        }
+                      >
+                        <img
+                          src="/icons/cast-more-icon.svg"
+                          alt="more"
+                          className="w-[18px] h-[18px] cursor-pointer"
+                        />
+                      </div>
+                      <div
+                        className={`absolute right-0 top-full bg-white transition-all duration-300 ease-in-out rounded-[18px] shadow-comment-upload-media-modal w-[190px] ${
+                          openProfileOptions
+                            ? "opacity-100 visible z-[99]"
+                            : "opacity-0 invisible z-[-1]"
+                        }`}
+                      >
+                        <div className="flex flex-col w-full items-center justify-center p-2 rounded-[18px] gap-1">
+                          <div
+                            className={`cursor-pointer w-full px-2 py-[10px] flex items-center justify-start gap-[2px] rounded-[12px] hover:bg-frame-btn-bg ${
+                              profileOptionType === "copy-profile"
+                                ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
+                                : ""
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              setProfileOptionType("copy-profile");
+                              window.navigator.clipboard.writeText(
+                                `${window.location.origin}/profile/${userPro?.fid}`
+                              );
+                              toast.success("Profile Link copied!");
+                            }}
+                          >
+                            <img
+                              src="/icons/copy-hash-icon.svg"
+                              alt="delete"
+                              className="w-6 h-6"
+                            />
+                            <span className="font-medium leading-[22px]">
+                              Copy Profile Link
+                            </span>
+                          </div>
+                          <div
+                            className={`cursor-pointer w-full px-2 py-[10px] flex items-center justify-start gap-[2px] rounded-[12px] hover:bg-frame-btn-bg ${
+                              profileOptionType === "log-out"
+                                ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
+                                : ""
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              setProfileOptionType("log-out");
+                              logoutUser();
+                            }}
+                          >
+                            <img
+                              src="/icons/log-out-icon.svg"
+                              alt="delete"
+                              className="w-6 h-6"
+                            />
+                            <span className="font-medium leading-[22px]">
+                              Log out
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
                 ) : null}
               </div>
               <div className="flex flex-col items-start justify-start gap-3 mt-[12px]">
@@ -380,7 +479,8 @@ const Profile: FC<Profile> = ({ fid }) => {
                 <>
                   <div className="grid grid-cols-3 gap-2 w-full py-5">
                     {allProfileCasts.map((cast) =>
-                      cast.embedType === "frame" || cast.embedType === "youtube" ? null : (
+                      cast.embedType === "frame" ||
+                      cast.embedType === "youtube" ? null : (
                         <span
                           onClick={(e) => {
                             e.stopPropagation();
@@ -478,6 +578,16 @@ const Profile: FC<Profile> = ({ fid }) => {
           )}
         </div>
       </div>
+      <EditProfile
+        isOpen={openEditProfile}
+        onClose={() => setOpenEditProfile(false)}
+        userPro={userPro}
+        refetch={() => {
+          fetchUserProfile();
+          refetch();
+          rrRefetch();
+        }}
+      />
     </>
   );
 };

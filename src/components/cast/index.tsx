@@ -45,9 +45,9 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
   const [currentAudioTime, setCurrentAudioTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
   const [openCastOptions, setOpenCastOptions] = useState(false);
-  const [castOptionType, setCastOptionType] = useState<"delete" | "copy-hash">(
-    "delete"
-  );
+  const [castOptionType, setCastOptionType] = useState<
+    "delete" | "copy-hash" | ""
+  >("");
   const [deleteSuccess, setDeleteSuccess] = useState(false);
 
   const router = useRouter();
