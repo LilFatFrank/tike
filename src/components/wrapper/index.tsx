@@ -1,8 +1,8 @@
 "use client";
 import { NeynarContextProvider, Theme } from "@neynar/react";
-import { FC, ReactNode, useEffect, useState } from "react";
+import { FC, ReactNode/* , useEffect, useState */ } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { Error, Footer, Platform } from "@/components";
+import { /* Error, */ Footer, Platform } from "@/components";
 import { AppContextProvider } from "@/context";
 
 const queryClient = new QueryClient();
@@ -12,7 +12,7 @@ interface Wrapper {
 }
 
 const Wrapper: FC<Wrapper> = ({ children }) => {
-  const [isSafariMobile, setIsSafariMobile] = useState(false);
+  /* const [isSafariMobile, setIsSafariMobile] = useState(false);
 
   useEffect(() => {
     const ua = navigator.userAgent;
@@ -28,7 +28,7 @@ const Wrapper: FC<Wrapper> = ({ children }) => {
         type="error"
       />
     );
-  }
+  } */
 
   return (
     <NeynarContextProvider
