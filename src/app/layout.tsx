@@ -41,6 +41,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#472B92" />
+        <link rel="apple-touch-icon" href="/images/192x192-logo.png" />
         <link rel="icon" href="/logo/favicon.svg" type="image/svg+xml" />
         {process.env.NEXT_PUBLIC_GTM_ID ? (
           <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />
@@ -51,6 +54,24 @@ export default function RootLayout({
         <main className="w-dvw max-md:h-dvh md:h-[calc(100dvh-40px)] mx-auto md:w-[552px] md:border md:border-black-20 md:border-b-0 md:rounded-t-[20px] md:overflow-auto md:no-scrollbar">
           <Wrapper>{children}</Wrapper>
         </main>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').then(
+            function(registration) {
+              console.log('Service Worker registration successful with scope: ', registration.scope);
+            },
+            function(err) {
+              console.log('Service Worker registration failed: ', err);
+            }
+          );
+        });
+      }
+    `,
+          }}
+        />
       </body>
     </html>
   );
