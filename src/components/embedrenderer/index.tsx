@@ -1,7 +1,7 @@
 "use client";
 import formatTime from "@/utils/formatTime";
-import { useNeynarContext } from "@neynar/react";
 import { ChangeEvent, useState } from "react";
+import StringProcessor from "../stringprocessor";
 
 function ImageEmbed({ url, className }: { url: string; className?: string }) {
   return (
@@ -39,24 +39,31 @@ function AudioEmbed({
   url,
   title,
   className,
+  author,
+  index,
 }: {
   url: string[];
   title: string;
   className?: string;
+  author?: string;
+  index?: string;
 }) {
-  const { user } = useNeynarContext();
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [currentAudioTime, setCurrentAudioTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
 
   const handleTimeUpdate = () => {
-    const audio = document.getElementById("audio-element") as HTMLAudioElement;
+    const audio = document.getElementById(
+      `audio-element-${index}`
+    ) as HTMLAudioElement;
     setCurrentAudioTime(audio.currentTime);
     setAudioDuration(audio.duration);
   };
 
   const handleSeek = (e: ChangeEvent<HTMLInputElement>) => {
-    const audio = document.getElementById("audio-element") as HTMLAudioElement;
+    const audio = document.getElementById(
+      `audio-element-${index}`
+    ) as HTMLAudioElement;
     audio.currentTime = parseFloat(e.target.value);
     setCurrentAudioTime(audio.currentTime);
 
@@ -67,7 +74,9 @@ function AudioEmbed({
   };
 
   const togglePlayPause = () => {
-    const audio = document.getElementById("audio-element") as HTMLAudioElement;
+    const audio = document.getElementById(
+      `audio-element-${index}`
+    ) as HTMLAudioElement;
     if (audio.paused) {
       audio.play();
       setIsAudioPlaying(true);
@@ -83,20 +92,22 @@ function AudioEmbed({
         className || ""
       }`}
     >
-      <div className="rounded-[22px]">
-        <img
-          src={url[1]}
-          alt="image"
-          className="flex-shrink-0 rounded-[11px] object-cover"
-        />
-      </div>
+      {url[1] ? (
+        <div className="rounded-[22px]">
+          <img
+            src={url[1]}
+            alt="image"
+            className="flex-shrink-0 rounded-[11px] object-cover"
+          />
+        </div>
+      ) : null}
       <div className="w-full flex flex-col items-start justify-between">
         <div className="mb-2 flex flex-col gap-1">
           <p className="text-[12px] leading-[120%] tracking-[0.3px] font-semibold text-white">
-            {title}
+            <StringProcessor inputString={title} mentionedProfiles={[]} />
           </p>
           <p className="text-[10px] leading-[120%] tracking-[0.3px] font-semibold text-white/60">
-            @{user?.username}
+            @{author}
           </p>
           <div
             className={`py-[2px] px-1 rounded-[2px] bg-white/20 ${
@@ -110,7 +121,7 @@ function AudioEmbed({
         </div>
         <div className="flex flex-row-reverse items-center gap-2 w-full">
           <audio
-            id="audio-element"
+            id={`audio-element-${index}`}
             src={url[0]}
             className="hidden"
             onTimeUpdate={handleTimeUpdate}
@@ -183,11 +194,15 @@ export default function EmbedRenderer({
   url,
   audioTitle,
   className,
+  author,
+  index,
 }: {
   type: string;
   url: string[] | string;
+  author?: string;
   audioTitle?: string;
   className?: string;
+  index?: string;
 }) {
   switch (type) {
     case "image":
@@ -200,6 +215,8 @@ export default function EmbedRenderer({
           url={url as string[]}
           title={audioTitle as string}
           className={className}
+          author={author}
+          index={index}
         />
       );
     case "youtube":

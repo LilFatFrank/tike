@@ -1,6 +1,6 @@
+import { processCasts } from "@/utils/processCasts";
 import axios from "axios";
 import { NextApiRequest, NextApiResponse } from "next";
-import {processCasts} from "../../utils/processCasts";
 
 export default async function handler(
   req: NextApiRequest,
@@ -13,7 +13,9 @@ export default async function handler(
       const filter = JSON.parse(req.body).filter as string;
 
       const resp = await axios.get(
-        `https://api.neynar.com/v2/farcaster/feed/following?fid=${fid}&with_recasts=true&viewer_fid=${fid}&limit=${
+        `https://api.neynar.com/v2/farcaster/feed?feed_type=filter&filter_type=embed_types&fid=${fid}&embed_types=${
+          !filter ? "image,video,audio" : filter
+        }&with_recasts=true&limit=${
           filter === "video" ? "100" : "50"
         }&cursor=${cursor}`,
         {
@@ -31,6 +33,7 @@ export default async function handler(
           : processedObjects,
         next: { cursor: resp.data.next.cursor },
       });
+      res.status(200).json(resp.data);
     } catch (error: any) {
       console.error("Error processing request:", error);
       res.status(500).json({ error: error.message });

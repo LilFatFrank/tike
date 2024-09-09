@@ -118,6 +118,8 @@ const SearchCasts: FC<SearchCasts> = ({ input }) => {
                 <EmbedRenderer
                   type={cast?.embedType}
                   url={cast?.embeds[0].url}
+                  author={cast?.author?.username}
+                  index={`${cast.parent_hash || cast.hash}`}
                 />
               </div>
             </div>

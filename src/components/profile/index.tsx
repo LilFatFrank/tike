@@ -503,7 +503,9 @@ const Profile: FC<Profile> = ({ fid }) => {
                                 ? cast?.embeds[1]?.url
                                 : cast?.embeds[0]?.url
                             }
+                            author={cast?.author?.username}
                             className={"object-cover"}
+                            index={`${cast.parent_hash || cast.hash}`}
                           />
                         </span>
                       )

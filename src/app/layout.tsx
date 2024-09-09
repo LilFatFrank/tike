@@ -47,11 +47,6 @@ export default function RootLayout({
         ) : null}
       </head>
       <body className={`${inter.className}`}>
-        <img
-          src="/images/desktop-bg.png"
-          alt="desktop-bg"
-          className="fixed z-[-3] top-0 left-0 right-0 bottom-0 object-cover h-dvh w-dvw"
-        />
         <Toaster position="bottom-center" />
         <main className="w-dvw max-md:h-dvh md:h-[calc(100dvh-40px)] mx-auto md:w-[552px] md:border md:border-black-20 md:border-b-0 md:rounded-t-[20px] md:overflow-auto md:no-scrollbar">
           <Wrapper>{children}</Wrapper>

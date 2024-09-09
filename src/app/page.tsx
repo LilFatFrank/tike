@@ -33,7 +33,7 @@ const fetchCasts = async ({
 
 export default function Home() {
   const { user } = useNeynarContext();
-  const [filter, setFilter] = useState<null | "video" | "image" | "frame">(
+  const [filter, setFilter] = useState<null | "video" | "image" | "audio">(
     null
   );
 

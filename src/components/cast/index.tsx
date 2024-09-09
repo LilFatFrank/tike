@@ -402,7 +402,9 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
               ? castDet?.embeds?.map((e: any) => e.url)
               : castDet?.embeds[0]?.url
           }
+          author={castDet?.author?.username}
           audioTitle={castDet?.text}
+          index={`${cast.parent_hash || cast.hash}`}
         />
         <div className="w-full flex items-center justify-between mt-[16px]">
           <div className="flex items-center justify-start gap-[14px]">
