@@ -1,5 +1,4 @@
 "use client";
-import { Spinner } from "@/components";
 import formatNumber from "@/utils/formatNumber";
 import Link from "next/link";
 import { FC, useEffect, useMemo, useState } from "react";
@@ -203,7 +202,14 @@ const Hub: FC = () => {
           }
         </p>
         {loading ? (
-          <Spinner />
+          <div className="w-full">
+            {Array.from({ length: 15 }).map((_, index) => (
+              <div
+                key={index}
+                className="animate-pulse w-full h-[50px] bg-divider rounded-lg mb-2"
+              />
+            ))}
+          </div>
         ) : (
           <InfiniteScroller pageStart={0} loadMore={() => {}}>
             <div className="flex flex-col w-full gap-3">

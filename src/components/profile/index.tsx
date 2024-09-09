@@ -273,7 +273,15 @@ const Profile: FC<Profile> = ({ fid }) => {
             </div>
           ) : loadingPro ? (
             <div className="p-4">
-              <Spinner />
+              <div className="flex flex-col items-start justify-start gap-3 mt-3 w-full">
+                <div className="flex items-center justify-between w-full">
+                  <div />
+                  <div className="w-1/2 rounded-[12px] h-[40px] bg-divider animate-pulse" />
+                </div>
+                <div className="animate-pulse w-full h-[50px] bg-divider rounded-lg" />
+                <div className="animate-pulse w-full h-[70px] bg-divider rounded-lg" />
+                <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
+              </div>
             </div>
           ) : (
             <>
@@ -463,7 +471,18 @@ const Profile: FC<Profile> = ({ fid }) => {
 
                   {(isFetchingNextPage || isLoading) && !error ? (
                     <div className="p-2">
-                      <Spinner />
+                      {Array.from({ length: 3 }).map((_, index) => (
+                        <div className="py-5 w-full" key={index}>
+                          <div className="flex items-center flex-col justify-start w-full gap-3">
+                            <div className="flex items-center gap-2 w-full">
+                              <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
+                              <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
+                            </div>
+                            <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
+                            <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ) : null}
 
@@ -505,7 +524,6 @@ const Profile: FC<Profile> = ({ fid }) => {
                             }
                             author={cast?.author?.username}
                             className={"object-cover"}
-                            index={`${cast.parent_hash || cast.hash}`}
                           />
                         </span>
                       )
@@ -513,8 +531,13 @@ const Profile: FC<Profile> = ({ fid }) => {
                   </div>
 
                   {(isFetchingNextPage || isLoading) && !error ? (
-                    <div className="p-2">
-                      <Spinner />
+                    <div className="grid grid-cols-3 gap-2 w-full">
+                      {Array.from({ length: 12 }).map((_, index) => (
+                        <div
+                          className="aspect-square rounded-[12px] bg-divider animate-pulse w-full"
+                          key={index}
+                        />
+                      ))}
                     </div>
                   ) : null}
 
@@ -561,7 +584,18 @@ const Profile: FC<Profile> = ({ fid }) => {
 
                   {(rrIsFetchingNextPage || rrIsLoading) && !rrError ? (
                     <div className="p-2">
-                      <Spinner />
+                      {Array.from({ length: 3 }).map((_, index) => (
+                        <div className="py-5 w-full" key={index}>
+                          <div className="flex items-center flex-col justify-start w-full gap-3">
+                            <div className="flex items-center gap-2 w-full">
+                              <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
+                              <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
+                            </div>
+                            <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
+                            <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ) : null}
 

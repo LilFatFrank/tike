@@ -133,8 +133,12 @@ const Search: FC = () => {
 
   if (loadingPage)
     return (
-      <div className="p-2 flex items-start justify-center h-full bg-white">
-        <Spinner />
+      <div className="p-2 flex flex-col items-start justify-start min-h-full bg-white w-full">
+        <div className="animate-pulse w-full h-[40px] bg-divider rounded-lg mb-5" />
+        <div className="animate-pulse w-1/2 h-[20px] bg-divider rounded-lg mb-2" />
+        <div className="animate-pulse w-full h-[300px] bg-divider rounded-lg mb-6" />
+        <div className="animate-pulse w-1/2 h-[20px] bg-divider rounded-lg mb-2" />
+        <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
       </div>
     );
 
@@ -194,8 +198,13 @@ const Search: FC = () => {
             ) : selectedTab === "casts" ? (
               <SearchCasts input={debouncedInputSearch} />
             ) : loadingChannels ? (
-              <div className="p-2 flex items-start justify-center h-full bg-white">
-                <Spinner />
+              <div className="p-2 flex flex-col items-start justify-start gap-2 h-full bg-white">
+                {Array.from({ length: 10 }).map((_, index) => (
+                  <div
+                    className="animate-pulse w-full h-[80px] rounded-lg bg-divider"
+                    key={index}
+                  />
+                ))}
               </div>
             ) : errorChannels ? null : (
               allChannels.map((channel, channelIndex, arr) => (

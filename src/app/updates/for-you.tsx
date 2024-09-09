@@ -68,8 +68,13 @@ const ForYou: FC = () => {
 
   if (isLoading) {
     return (
-      <div className="p-2 flex items-start justify-center h-full bg-white">
-        <Spinner />
+      <div className="p-2 flex flex-col items-start justify-start gap-2 h-full bg-white">
+        {Array.from({ length: 10 }).map((_, index) => (
+          <div
+            className="animate-pulse w-full h-[80px] rounded-lg bg-divider"
+            key={index}
+          />
+        ))}
       </div>
     );
   }
@@ -130,8 +135,13 @@ const ForYou: FC = () => {
       ))}
 
       {isFetchingNextPage ? (
-        <div className="p-2">
-          <Spinner />
+        <div className="p-2 flex flex-col items-start justify-start gap-2 h-full bg-white">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div
+              className="animate-pulse w-full h-[80px] rounded-lg bg-divider"
+              key={index}
+            />
+          ))}
         </div>
       ) : null}
 

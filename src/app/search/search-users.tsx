@@ -71,8 +71,13 @@ const SearchUsers: FC<SearchUsers> = ({ input }) => {
 
   if (isLoading) {
     return (
-      <div className="p-2 flex items-start justify-center h-full bg-white">
-        <Spinner />
+      <div className="p-2 flex flex-col items-start justify-start gap-2 h-full bg-white">
+        {Array.from({ length: 10 }).map((_, index) => (
+          <div
+            className="animate-pulse w-full h-[80px] rounded-lg bg-divider"
+            key={index}
+          />
+        ))}
       </div>
     );
   }
@@ -84,7 +89,11 @@ const SearchUsers: FC<SearchUsers> = ({ input }) => {
   return (
     <div className="flex-1">
       {allUsers.map((user, index, arr) => (
-        <span onClick={() => router.push(`/profile/${user.fid}`)} className="cursor-pointer" key={`${user.fid}`}>
+        <span
+          onClick={() => router.push(`/profile/${user.fid}`)}
+          className="cursor-pointer"
+          key={`${user.fid}`}
+        >
           <div className="w-full px-[16px] py-[20px] flex items-center justify-start gap-[10px]">
             <img
               className="w-[40px] h-[40px] rounded-[20px] object-cover"
@@ -107,8 +116,13 @@ const SearchUsers: FC<SearchUsers> = ({ input }) => {
       ))}
 
       {isFetchingNextPage ? (
-        <div className="p-2">
-          <Spinner />
+        <div className="flex flex-col items-start justify-start gap-2">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div
+              className="animate-pulse w-full h-[80px] rounded-lg bg-divider"
+              key={index}
+            />
+          ))}
         </div>
       ) : null}
 

@@ -1,5 +1,5 @@
 "use client";
-import { Cast, Frame, Spinner, StringProcessor } from "@/components";
+import { Cast, Frame, StringProcessor } from "@/components";
 import formatNumber from "@/utils/formatNumber";
 import { useNeynarContext } from "@neynar/react";
 import { useRouter } from "next/navigation";
@@ -117,7 +117,15 @@ export default function Page({ params }: { params: { channelId: number } }) {
           </div>
         ) : loadingCh ? (
           <div className="p-4">
-            <Spinner />
+            <div className="flex flex-col items-start justify-start gap-3 mt-3 w-full">
+              <div className="flex items-center justify-between w-full">
+                <div />
+                <div className="w-1/2 rounded-[12px] h-[40px] bg-divider animate-pulse" />
+              </div>
+              <div className="animate-pulse w-full h-[50px] bg-divider rounded-lg" />
+              <div className="animate-pulse w-full h-[70px] bg-divider rounded-lg" />
+              <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
+            </div>
           </div>
         ) : (
           <>
@@ -180,7 +188,18 @@ export default function Page({ params }: { params: { channelId: number } }) {
 
             {(isFetchingNextPage || isLoading) && !error ? (
               <div className="p-2">
-                <Spinner />
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div className="py-5 w-full" key={index}>
+                    <div className="flex items-center flex-col justify-start w-full gap-3">
+                      <div className="flex items-center gap-2 w-full">
+                        <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
+                        <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
+                      </div>
+                      <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
+                      <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : null}
 

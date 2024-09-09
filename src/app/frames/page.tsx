@@ -63,7 +63,39 @@ export default function Frames() {
   if (isLoading) {
     return (
       <div className="p-2 flex items-start justify-center h-full bg-white">
-        <Spinner />
+        <div className="p-2 flex flex-col items-start justify-start min-h-full bg-white w-full">
+          <div className="animate-pulse w-full h-[70px] bg-divider rounded-lg" />
+          <div className="py-5 w-full">
+            <div className="flex items-center flex-col justify-start w-full gap-3">
+              <div className="flex items-center gap-2 w-full">
+                <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
+                <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
+              </div>
+              <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
+              <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
+            </div>
+          </div>
+          <div className="py-5 w-full">
+            <div className="flex items-center flex-col justify-start w-full gap-3">
+              <div className="flex items-center gap-2 w-full">
+                <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
+                <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
+              </div>
+              <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
+              <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
+            </div>
+          </div>
+          <div className="py-5 w-full">
+            <div className="flex items-center flex-col justify-start w-full gap-3">
+              <div className="flex items-center gap-2 w-full">
+                <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
+                <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
+              </div>
+              <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
+              <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -98,7 +130,20 @@ export default function Frames() {
 
       {isFetchingNextPage ? (
         <div className="p-2">
-          <Spinner />
+          <div className="p-2">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div className="py-5 w-full" key={index}>
+                <div className="flex items-center flex-col justify-start w-full gap-3">
+                  <div className="flex items-center gap-2 w-full">
+                    <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
+                    <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
+                  </div>
+                  <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
+                  <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       ) : null}
 

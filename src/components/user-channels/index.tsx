@@ -94,8 +94,13 @@ const UserChannels: FC = () => {
       ))}
 
       {isFetchingNextPage ? (
-        <div className="p-2">
-          <Spinner />
+        <div className="p-2 flex items-start justify-start gap-4 h-full bg-white">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div
+              className="animate-pulse w-[62.5px] h-[80.5px] rounded-lg bg-divider"
+              key={index}
+            />
+          ))}
         </div>
       ) : null}
 
