@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, memo, useCallback, useEffect, useMemo, useState } from "react";
 import Modal from "../modal";
 import { IUser } from "@neynar/react/dist/types/common";
 import axios from "axios";
@@ -12,7 +12,7 @@ interface EditProfileProps {
   refetch: () => void;
 }
 
-const EditProfile: FC<EditProfileProps> = ({
+const EditProfile: FC<EditProfileProps> = memo(({
   isOpen,
   onClose,
   userPro,
@@ -25,7 +25,7 @@ const EditProfile: FC<EditProfileProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useNeynarContext();
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -33,8 +33,10 @@ const EditProfile: FC<EditProfileProps> = ({
         setPreviewImage(reader.result as string);
       };
       reader.readAsDataURL(file);
-    }
-  };
+      }
+    },
+    []
+  );
 
   const isProfileChanged = useMemo(() => {
     if (!userPro) return false;
@@ -46,7 +48,7 @@ const EditProfile: FC<EditProfileProps> = ({
     );
   }, [displayName, username, bio, previewImage, userPro]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     try {
       setIsLoading(true);
 
@@ -86,10 +88,12 @@ const EditProfile: FC<EditProfileProps> = ({
       toast.error("Failed to update profile");
     } finally {
       setIsLoading(false);
-    }
-  };
+      }
+    },
+    [bio, displayName, previewImage, refetch, user, userPro, username]
+  );
 
-  const handleUploadToPinata = async (file: File) => {
+  const handleUploadToPinata = useCallback(async (file: File) => {
     try {
       const url = "https://api.pinata.cloud/pinning/pinFileToIPFS";
       const formData = new FormData();
@@ -109,16 +113,20 @@ const EditProfile: FC<EditProfileProps> = ({
       console.log("Error uploading to pinata", error);
       toast.error("Error uploading media");
       throw error;
-    }
-  };
+      }
+    },
+    []
+  );
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setDisplayName(userPro?.display_name || "");
     setUsername(userPro?.username || "");
     setBio(userPro?.profile?.bio?.text || "");
     setPreviewImage(userPro?.pfp_url || null);
-    onClose();
-  };
+      onClose();
+    },
+    [onClose, userPro]
+  );
 
   useEffect(() => {
     if (isOpen && userPro) {
@@ -126,8 +134,10 @@ const EditProfile: FC<EditProfileProps> = ({
       setUsername(userPro.username || "");
       setBio(userPro.profile?.bio?.text || "");
       setPreviewImage(userPro.pfp_url || null);
-    }
-  }, [isOpen, userPro]);
+      }
+    },
+    [isOpen, userPro]
+  );
 
   return (
     <Modal
@@ -235,7 +245,8 @@ const EditProfile: FC<EditProfileProps> = ({
         </div>
       </div>
     </Modal>
-  );
-};
+    );
+  }
+);
 
 export default EditProfile;

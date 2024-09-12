@@ -1,12 +1,12 @@
 // components/Sidebar.tsx
-import React from "react";
+import React, { memo } from "react";
 
 interface SidebarProps {
   isOpen: boolean;
   children: React.ReactNode;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, children }) => {
+const Sidebar: React.FC<SidebarProps> = memo(({ isOpen, children }) => {
   return (
     <div>
       <div
@@ -18,6 +18,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, children }) => {
       </div>
     </div>
   );
-};
+});
 
 export default Sidebar;

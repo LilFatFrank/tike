@@ -3,7 +3,7 @@ import formatNumber from "@/utils/formatNumber";
 import formatTime from "@/utils/formatTime";
 import timeAgo from "@/utils/timeAgo";
 import { useNeynarContext } from "@neynar/react";
-import { ChangeEvent, CSSProperties, FC, useEffect, useState } from "react";
+import { ChangeEvent, CSSProperties, FC, memo, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import Modal from "../modal";
 import { AiOutlineClose } from "react-icons/ai";
@@ -23,7 +23,7 @@ interface Media {
   file: File;
 }
 
-const Cast: FC<Cast> = ({ cast, style, type }) => {
+const Cast: FC<Cast> = memo(({ cast, style, type }) => {
   const { user } = useNeynarContext();
 
   const [castDet, setCastDet] = useState<any>();
@@ -52,7 +52,7 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
 
   const router = useRouter();
 
-  const postReaction = async (type: "like" | "recast") => {
+  const postReaction = useCallback(async (type: "like" | "recast") => {
     const res = await fetch(`/api/post-reaction`, {
       method: "POST",
       body: JSON.stringify({
@@ -78,10 +78,13 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
             ] + 1,
         },
       });
-    }
-  };
+      }
+    },
+    [castDet, user?.signer_uuid]
+  );
 
-  const deleteReaction = async (type: "like" | "recast") => {
+  const deleteReaction = useCallback(
+    async (type: "like" | "recast") => {
     const res = await fetch(`/api/delete-reaction`, {
       method: "POST",
       body: JSON.stringify({
@@ -107,10 +110,12 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
             ] - 1,
         },
       });
-    }
-  };
+      }
+    },
+    [castDet, user?.signer_uuid]
+  );
 
-  const deleteCast = async () => {
+  const deleteCast = useCallback(async () => {
     try {
       const res = await fetch(`/api/delete-cast`, {
         method: "POST",
@@ -127,8 +132,10 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
     } catch (error) {
       console.log(error);
       toast.error("Error deleting cast!");
-    }
-  };
+      }
+    },
+    [castDet, user?.signer_uuid]
+  );
 
   const recastOperation = (type: "post" | "delete") => {
     if (type === "post") postReaction("recast");
@@ -140,7 +147,7 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
     else deleteReaction("like");
   };
 
-  const handleMediaChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleMediaChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const file = files[0];
@@ -155,20 +162,24 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
       }
       setMedia({ type, url, file });
       setOpenCommentMediaModal(false);
-    }
-  };
+      }
+    },
+    []
+  );
 
-  const handleAudioThumbnailMedia = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleAudioThumbnailMedia = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       setAudioThumbnailMedia({
         url: URL.createObjectURL(files[0]),
         file: files[0],
       });
-    }
-  };
+      }
+    },
+    []
+  );
 
-  const handleUploadToPinata = async (file: File) => {
+  const handleUploadToPinata = useCallback(async (file: File) => {
     try {
       const url = "https://api.pinata.cloud/pinning/pinFileToIPFS";
       const formData = new FormData();
@@ -188,10 +199,12 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
       console.log("Error uploading to pinata", error);
       toast.error("Error uploading media");
       return "";
-    }
-  };
+      }
+    },
+    []
+  );
 
-  const handlePost = async () => {
+  const handlePost = useCallback(async () => {
     setIsUploading(true);
 
     try {
@@ -225,16 +238,21 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
       setIsUploading(false);
       setCommentText("");
       setMedia(null);
-    }
-  };
+      }
+    },
+    [castDet, user?.signer_uuid, media, audioThumbnailMedia, musicTitle]
+  );
 
-  const handleTimeUpdate = () => {
+  const handleTimeUpdate = useCallback(() => {
     const audio = document.getElementById("audio-element") as HTMLAudioElement;
     setCurrentAudioTime(audio.currentTime);
-    setAudioDuration(audio.duration);
-  };
+      setAudioDuration(audio.duration);
+      },
+    []
+  );
 
-  const handleSeek = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleSeek = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
     const audio = document.getElementById("audio-element") as HTMLAudioElement;
     audio.currentTime = parseFloat(e.target.value);
     setCurrentAudioTime(audio.currentTime);
@@ -243,9 +261,9 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
     const max = parseFloat(e.target.max);
     const value = ((parseFloat(e.target.value) - min) / (max - min)) * 100;
     e.target.style.background = `linear-gradient(to right, white ${value}%, #3D7F41 ${value}%)`;
-  };
+  }, []);
 
-  const togglePlayPause = () => {
+  const togglePlayPause = useCallback(() => {
     const audio = document.getElementById("audio-element") as HTMLAudioElement;
     if (audio.paused) {
       audio.play();
@@ -254,11 +272,17 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
       audio.pause();
       setIsAudioPlaying(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     setCastDet(cast);
   }, [cast]);
+
+  const audioProgressWidth = useMemo(() => {
+    return audioDuration
+      ? Math.floor((currentAudioTime / audioDuration) * 100)
+      : 0;
+  }, [currentAudioTime, audioDuration]);
 
   return deleteSuccess ? (
     <>
@@ -800,13 +824,7 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
                       <div
                         className={`bg-white rounded-[2px] h-[4px]`}
                         style={{
-                          width: `${
-                            audioDuration
-                              ? Math.floor(
-                                  (currentAudioTime / audioDuration) * 100
-                                )
-                              : 0
-                          }%`,
+                          width: `${audioProgressWidth}%`,
                         }}
                       />
                     </div>
@@ -909,6 +927,6 @@ const Cast: FC<Cast> = ({ cast, style, type }) => {
       </Modal>
     </>
   );
-};
+});
 
 export default Cast;

@@ -1,25 +1,31 @@
 "use client";
-import { Error } from "@/components";
-import { AppContext } from "@/context";
-import { SET_PAGE_NOT_FOUND } from "@/context/actions";
+import { memo, useCallback, useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useContext, useEffect } from "react";
+import { Error } from "@/components";
+import { SET_PAGE_NOT_FOUND } from "@/context/actions";
+import { AppContext } from "@/context";
 
-export default function NotFound() {
-  const router = useRouter();
-
+const useNotFoundEffect = () => {
   const [, dispatch] = useContext(AppContext);
-
   useEffect(() => {
     dispatch({ type: SET_PAGE_NOT_FOUND, payload: true });
   }, [dispatch]);
+};
+
+const NotFound = memo(() => {
+  const router = useRouter();
+  useNotFoundEffect();
+
+  const handleGoHome = useCallback(() => router.push("/"), [router]);
 
   return (
     <Error
       type="404"
       message="We could not find the page you are looking for."
       buttonLabel="Go to Home"
-      buttonAction={() => router.push("/")}
+      buttonAction={handleGoHome}
     />
   );
-}
+});
+
+export default NotFound;

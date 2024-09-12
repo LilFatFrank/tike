@@ -2,38 +2,65 @@
 import { Cast, Frame, StringProcessor } from "@/components";
 import formatNumber from "@/utils/formatNumber";
 import { useNeynarContext } from "@neynar/react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { FC, memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import { useInfiniteQuery } from "react-query";
+
+const CastItem = memo(({ cast, router }: { cast: any; router: any }) => {
+  return (
+    <span
+      onClick={() => router.push(`/cast/${cast.parent_hash || cast.hash}`)}
+      className="cursor-pointer"
+    >
+      {cast.embedType === "frame" ? (
+        <Frame
+          frame={cast}
+          key={`channel-cast-${cast.hash}`}
+          style={{ paddingRight: 0, paddingLeft: 0 }}
+        />
+      ) : (
+        <Cast
+          cast={cast}
+          key={`channel-cast-${cast.hash}`}
+          style={{ paddingRight: 0, paddingLeft: 0 }}
+        />
+      )}
+    </span>
+  );
+});
 
 interface ApiResponse {
   casts: any;
   next: { cursor: string };
 }
 
-const fetchChannelCasts = async ({
-  pageParam = "",
-  queryKey,
-}: {
-  pageParam?: string;
-  queryKey: any;
-}): Promise<ApiResponse> => {
-  const [_key, { viewerFid, channelId }] = queryKey;
-  const response = await fetch(`/api/channel-casts`, {
-    method: "POST",
-    body: JSON.stringify({ cursor: pageParam, viewerFid, channelId }),
-  });
-  if (!response.ok) {
-    throw new Error("Network response was not ok");
-  }
-  const data = await response.json();
-  return data;
-};
-
-export default function Page({ params }: { params: { channelId: number } }) {
+const Channel: FC<{ params: { channelId: number } }> = memo(({ params }) => {
   const { user } = useNeynarContext();
   const router = useRouter();
+
+  const fetchChannelCasts = useCallback(
+    async ({
+      pageParam = "",
+      queryKey,
+    }: {
+      pageParam?: string;
+      queryKey: any;
+    }): Promise<ApiResponse> => {
+      const [_key, { viewerFid, channelId }] = queryKey;
+      const response = await fetch(`/api/channel-casts`, {
+        method: "POST",
+        body: JSON.stringify({ cursor: pageParam, viewerFid, channelId }),
+      });
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data = await response.json();
+      return data;
+    },
+    []
+  );
 
   const {
     data,
@@ -53,6 +80,8 @@ export default function Page({ params }: { params: { channelId: number } }) {
         return lastPage.next?.cursor ?? false;
       },
       refetchOnWindowFocus: false,
+      staleTime: 60000,
+      cacheTime: 3600000,
     }
   );
 
@@ -60,13 +89,20 @@ export default function Page({ params }: { params: { channelId: number } }) {
     threshold: 0.3,
   });
 
-  useEffect(() => {
+  const handleFetchNextPage = useCallback(() => {
     if (inView && hasNextPage) {
       fetchNextPage();
     }
   }, [inView, hasNextPage, fetchNextPage]);
 
-  const allChannelCasts = data?.pages.flatMap((page) => page.casts) ?? [];
+  useEffect(() => {
+    handleFetchNextPage();
+  }, [handleFetchNextPage]);
+
+  const allChannelCasts = useMemo(
+    () => data?.pages.flatMap((page) => page.casts) ?? [],
+    [data]
+  );
 
   const [channelPro, setChannelPro] = useState<any | undefined>();
   const [errorCh, setErrorCh] = useState(false);
@@ -105,10 +141,13 @@ export default function Page({ params }: { params: { channelId: number } }) {
 
   return (
     <div className="w-full h-full">
-      <img
+      <Image
         className="w-full h-full object-cover z-[-1] fixed md:w-[550px] md:rounded-[20px]"
         src="/images/profile-background.png"
         alt="background"
+        width={550}
+        height={550}
+        quality={100}
       />
       <div className="w-full relative min-h-full top-[120px] bg-white rounded-t-[20px] py-[10px] px-[16px]">
         {errorCh ? (
@@ -129,10 +168,14 @@ export default function Page({ params }: { params: { channelId: number } }) {
           </div>
         ) : (
           <>
-            <img
+            <Image
               src={channelPro?.image_url}
               alt={channelPro?.id}
               className="w-[82px] h-[82px] rounded-[18px] absolute top-[-41px] left-[16px] object-cover border-4 border-white"
+              width={82}
+              height={82}
+              quality={100}
+              loading="lazy"
             />
             <div className="flex flex-col items-start justify-start gap-3 mt-[40px]">
               <div className="flex flex-col items-start gap-[2px]">
@@ -160,29 +203,12 @@ export default function Page({ params }: { params: { channelId: number } }) {
             </div>
             {allChannelCasts.map((cast, castIndex, arr) =>
               cast.embeds[0].url ? (
-                <span
-                  onClick={() =>
-                    router.push(`/cast/${cast.parent_hash || cast.hash}`)
-                  }
-                  className="cursor-pointer"
-                >
-                  {cast.embedType === "frame" ? (
-                    <Frame
-                      frame={cast}
-                      key={`channel-cast-${cast.hash}`}
-                      style={{ paddingRight: 0, paddingLeft: 0 }}
-                    />
-                  ) : (
-                    <Cast
-                      cast={cast}
-                      key={`channel-cast-${cast.hash}`}
-                      style={{ paddingRight: 0, paddingLeft: 0 }}
-                    />
-                  )}
+                <>
+                  <CastItem cast={cast} router={router} />
                   {castIndex === arr.length - 1 ? null : (
                     <hr className="border border-t-divider" />
                   )}
-                </span>
+                </>
               ) : null
             )}
 
@@ -215,4 +241,6 @@ export default function Page({ params }: { params: { channelId: number } }) {
       </div>
     </div>
   );
-}
+});
+
+export default Channel;

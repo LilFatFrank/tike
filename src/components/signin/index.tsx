@@ -1,12 +1,26 @@
 "use client";
-import {
-  NeynarAuthButton,
-  SIWN_variant,
-  useNeynarContext,
-} from "@neynar/react";
-import { FC } from "react";
+import { NeynarAuthButton, SIWN_variant } from "@neynar/react";
+import Image from "next/image";
+import { FC, memo } from "react";
 
-const SignIn: FC = () => {
+const AuthButton = memo(() => (
+  <NeynarAuthButton
+    variant={SIWN_variant.FARCASTER}
+    icon={
+      <Image
+        src="/icons/farcaster-sign-in-icon.svg"
+        alt="sign-in-farcaster"
+        width={24}
+        height={24}
+        loading="lazy"
+        quality={100}
+      />
+    }
+    className="login-btn backdrop-blur-(10px) rounded-[100px] font-grotesk z-20"
+  />
+));
+
+const SignIn: FC = memo(() => {
   return (
     <>
       <div className="w-full h-full relative flex flex-col items-center justify-end">
@@ -27,23 +41,13 @@ const SignIn: FC = () => {
             <div className="animate-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(white_20deg,transparent_120deg)]" />
             <div className="absolute inset-[1px] rounded-[100px] bg-sign-in-bg" />
             <div className="relative z-20 w-full bg-auth-btn-bg rounded-[100px]">
-              <NeynarAuthButton
-                variant={SIWN_variant.FARCASTER}
-                icon={
-                  <img
-                    src="/icons/farcaster-sign-in-icon.svg"
-                    alt="sign-in-farcaster"
-                    className="w-6 h-6"
-                  />
-                }
-                className="login-btn backdrop-blur-(10px) rounded-[100px] font-grotesk z-20"
-              />
+              <AuthButton />
             </div>
           </div>
         </div>
       </div>
     </>
   );
-};
+});
 
 export default SignIn;

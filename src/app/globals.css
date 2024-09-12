@@ -3,6 +3,12 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --primary-color: #472b92;
+  --frame-btn-bg: #eff1f5;
+  --text-white: #ffffff;
+}
+
 @font-face {
   font-family: "ClashGrotesk";
   src: url("/fonts/ClashGrotesk-Medium.ttf") format("truetype");
@@ -21,7 +27,7 @@ body {
 
 @layer components {
   .login-btn {
-    @apply flex flex-row items-center justify-center gap-2 text-[20px] leading-[24px] py-4 px-[30px] w-full rounded-[100px];
+    @apply flex items-center justify-center gap-2 text-[20px] leading-[24px] py-4 px-[30px] w-full rounded-[100px];
   }
   .login-btn svg {
     @apply w-6 h-6 text-white;
@@ -31,7 +37,8 @@ body {
   }
 
   .frame-btn {
-    @apply bg-frame-btn-bg rounded-[12px] py-[8px] px-[16px] flex flex-row items-center w-full gap-[6px] justify-center;
+    @apply bg-frame-btn-bg rounded-[12px] py-[8px] px-[16px] flex items-center w-full gap-[6px] justify-center;
+    contain: content;
   }
 }
 
@@ -45,22 +52,20 @@ body {
   }
 }
 
+.music-bar:nth-child(2) {
+  --delay: 0.1s;
+}
+.music-bar:nth-child(3) {
+  --delay: 0.2s;
+}
+.music-bar:nth-child(4) {
+  --delay: 0.3s;
+}
+.music-bar:nth-child(5) {
+  --delay: 0.4s;
+}
+
 .music-bar {
   animation: bounce 1s infinite;
-}
-
-.music-bar:nth-child(2) {
-  animation-delay: 0.1s;
-}
-
-.music-bar:nth-child(3) {
-  animation-delay: 0.2s;
-}
-
-.music-bar:nth-child(4) {
-  animation-delay: 0.3s;
-}
-
-.music-bar:nth-child(5) {
-  animation-delay: 0.4s;
+  animation-delay: var(--delay, 0s);
 }

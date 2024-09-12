@@ -1,11 +1,11 @@
 "use client";
-import { FC, useEffect, useState } from "react";
+import { FC, memo, useCallback, useEffect, useMemo, useState } from "react";
 import SearchUsers from "./search-users";
-import { Spinner } from "@/components";
 import formatNumber from "@/utils/formatNumber";
 import { useNeynarContext } from "@neynar/react";
 import SearchCasts from "./search-casts";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const tabs = [
   {
@@ -22,7 +22,7 @@ const tabs = [
   },
 ];
 
-const Search: FC = () => {
+const Search: FC = memo(() => {
   const { user } = useNeynarContext();
   const router = useRouter();
 
@@ -59,7 +59,7 @@ const Search: FC = () => {
   >([]);
   const [loadingPage, setLoadingPage] = useState(false);
 
-  const fetchTrendingChannels = async () => {
+  const fetchTrendingChannels = useCallback(async () => {
     try {
       const res = await fetch("/api/trending-channels");
       const data = await res.json();
@@ -67,9 +67,9 @@ const Search: FC = () => {
     } catch (error) {
       console.log(error);
     }
-  };
+  }, []);
 
-  const fetchPowerUsers = async () => {
+  const fetchPowerUsers = useCallback(async () => {
     try {
       const res = await fetch("/api/power-users", {
         method: "POST",
@@ -80,9 +80,9 @@ const Search: FC = () => {
     } catch (error) {
       console.log(error);
     }
-  };
+  }, [user?.fid]);
 
-  const fetchAllChannels = async () => {
+  const fetchAllChannels = useCallback(async () => {
     try {
       setLoadingChannels(true);
       const res = await fetch("/api/search-channels", {
@@ -98,7 +98,126 @@ const Search: FC = () => {
       setErrorChannels(false);
       setLoadingChannels(false);
     }
-  };
+  }, [debouncedInputSearch]);
+
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setInputSearch(e.target.value);
+    },
+    []
+  );
+
+  const handleCancelSearch = useCallback(() => {
+    setChangeView(false);
+    setInputSearch("");
+  }, []);
+
+  const handleTabChange = useCallback((value: typeof selectedTab) => {
+    setSelectedTab(value);
+    setInputSearch("");
+  }, []);
+
+  const filteredChannels = useMemo(() => {
+    return allChannels.map((channel, channelIndex, arr) => (
+      <span
+        onClick={() => router.push(`/channel/${channel.id}`)}
+        className="cursor-pointer"
+      >
+        <div className="w-full px-[16px] py-[20px] flex items-center justify-start gap-[10px]">
+          <Image
+            className="w-[40px] h-[40px] rounded-[20px] object-cover"
+            src={channel.image_url}
+            alt={channel.id}
+            width={40}
+            height={40}
+            loading="lazy"
+            style={{ aspectRatio: "1 / 1" }}
+          />
+          <div className="flex flex-col items-start gap-[2px]">
+            <p className="font-bold text-[18px] leading-auto">
+              {channel.name}&nbsp;
+            </p>
+            <p className="font-normal text-[12px] leading-auto text-gray-text-1">
+              /{channel.id}
+            </p>
+          </div>
+        </div>
+        {channelIndex === arr.length - 1 ? null : (
+          <hr className="border border-t-divider" />
+        )}
+      </span>
+    ));
+  }, [allChannels, debouncedInputSearch]);
+
+  const renderedTrendingChannels = useMemo(() => {
+    return trendingChannels.map((tc) => (
+      <span
+        onClick={() => router.push(`/channel/${tc.channel.id}`)}
+        key={tc.channel.id}
+        className="cursor-pointer"
+      >
+        <div className="flex items-center gap-3 w-[160px]">
+          <Image
+            src={tc.channel.image_url}
+            alt={tc.channel.id}
+            className="w-[70px] h-[70px] rounded-[20px] border-none object-cover"
+            width={40}
+            height={40}
+            loading="lazy"
+            style={{ aspectRatio: "1 / 1" }}
+          />
+          <div className="flex flex-col items-start justify-start gap-1 max-w-[80px]">
+            <div className="w-full">
+              <p className="font-bold leading-[20px] text-ellipsis whitespace-nowrap overflow-hidden w-full">
+                {tc.channel.name}
+              </p>
+              <p className="font-medium text-[6px]">
+                {formatNumber(tc.channel.follower_count)} followers
+              </p>
+            </div>
+            <p className="text-black-50 text-[6px] text-ellipsis whitespace-nowrap overflow-hidden w-full">
+              {tc.channel.description}
+            </p>
+          </div>
+        </div>
+      </span>
+    ));
+  }, [trendingChannels]);
+
+  const renderedPowerUsers = useMemo(() => {
+    return powerUsers.map((pu) => (
+      <span
+        onClick={() => router.push(`/profile/${pu.fid}`)}
+        key={pu.fid}
+        className="cursor-pointer"
+      >
+        <div className="flex flex-col items-center w-[90px] gap-[6px]">
+          <Image
+            src={pu.pfp_url}
+            alt={pu.username}
+            className={
+              "w-[70px] h-[70px] rounded-full border-none object-cover"
+            }
+            width={70}
+            height={70}
+            loading="lazy"
+            style={{ aspectRatio: "1 / 1" }}
+          />
+          <div className="w-full text-center">
+            <p className="font-bold text-[10px] leading-[120%] text-ellipsis whitespace-nowrap overflow-hidden w-full">
+              {pu.display_name}
+            </p>
+            <p className="text-black-50 text-[6px] text-ellipsis whitespace-nowrap overflow-hidden w-full mb-1">
+              @{pu.username}
+            </p>
+            <p className="font-medium text-[6px]">
+              {formatNumber(pu.follower_count)} followers
+            </p>
+          </div>
+        </div>
+      </span>
+    ));
+  }, [powerUsers]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -147,27 +266,26 @@ const Search: FC = () => {
       <div className="flex-1 p-4 bg-white min-h-dvh">
         <div className="w-full flex items-center gap-1 mb-4">
           <div className="w-full grow items-center bg-frame-btn-bg relative rounded-[12px] py-2 pl-[42px] pr-4">
-            <img
+            <Image
               src="/icons/input-search-icon.svg"
               alt="input-search"
               width={22}
               height={22}
               className="absolute left-[16px]"
+              loading="lazy"
+              style={{ aspectRatio: "1 / 1" }}
             />
             <input
               className="p-0 outline-none border-none w-full bg-inherit placeholder:text-black-40"
               placeholder="Search users, channels"
               value={inputSearch}
-              onChange={(e) => setInputSearch(e.target.value)}
+              onChange={handleInputChange}
               onFocus={() => setChangeView(true)}
             />
           </div>
           {changeView ? (
             <button
-              onClick={() => {
-                setChangeView(false);
-                setInputSearch("");
-              }}
+              onClick={handleCancelSearch}
               className="grow bg-none text-black-50 p-0 m-0 border-none outline-none"
             >
               Cancel
@@ -184,10 +302,7 @@ const Search: FC = () => {
                       ? "text-black border-b-2 border-b-purple"
                       : "text-tab-unselected-color"
                   } pb-[2px] cursor-pointer`}
-                  onClick={() => {
-                    setSelectedTab(t.value as typeof selectedTab);
-                    setInputSearch("");
-                  }}
+                  onClick={() => handleTabChange(t.value as typeof selectedTab)}
                 >
                   {t.label}
                 </p>
@@ -207,31 +322,7 @@ const Search: FC = () => {
                 ))}
               </div>
             ) : errorChannels ? null : (
-              allChannels.map((channel, channelIndex, arr) => (
-                <span
-                  onClick={() => router.push(`/channel/${channel.id}`)}
-                  className="cursor-pointer"
-                >
-                  <div className="w-full px-[16px] py-[20px] flex items-center justify-start gap-[10px]">
-                    <img
-                      className="w-[40px] h-[40px] rounded-[20px] object-cover"
-                      src={channel.image_url}
-                      alt={channel.id}
-                    />
-                    <div className="flex flex-col items-start gap-[2px]">
-                      <p className="font-bold text-[18px] leading-auto">
-                        {channel.name}&nbsp;
-                      </p>
-                      <p className="font-normal text-[12px] leading-auto text-gray-text-1">
-                        /{channel.id}
-                      </p>
-                    </div>
-                  </div>
-                  {channelIndex === arr.length - 1 ? null : (
-                    <hr className="border border-t-divider" />
-                  )}
-                </span>
-              ))
+              filteredChannels
             )}
           </>
         ) : (
@@ -240,11 +331,13 @@ const Search: FC = () => {
               {trendingChannels.length ? (
                 <div className="w-full flex flex-col items-start justify-start gap-2">
                   <div className="flex items-center gap-[6px]">
-                    <img
+                    <Image
                       src="/icons/trending-channels-icon.svg"
                       alt="trending-channels"
                       width={22}
                       height={22}
+                      loading="lazy"
+                      style={{ aspectRatio: "1 / 1" }}
                     />
                     <p className="font-medium text-[20px] leading-[24px]">
                       Trending Channels
@@ -252,37 +345,7 @@ const Search: FC = () => {
                   </div>
                   <div className="w-full overflow-x-auto no-scrollbar">
                     <div className="grid grid-rows-3 grid-flow-col gap-5">
-                      {trendingChannels.map((tc) => (
-                        <span
-                          onClick={() =>
-                            router.push(`/channel/${tc.channel.id}`)
-                          }
-                          key={tc.channel.id}
-                          className="cursor-pointer"
-                        >
-                          <div className="flex items-center gap-3 w-[160px]">
-                            <img
-                              src={tc.channel.image_url}
-                              alt={tc.channel.id}
-                              className="w-[70px] h-[70px] rounded-[20px] border-none object-cover"
-                            />
-                            <div className="flex flex-col items-start justify-start gap-1 max-w-[80px]">
-                              <div className="w-full">
-                                <p className="font-bold leading-[20px] text-ellipsis whitespace-nowrap overflow-hidden w-full">
-                                  {tc.channel.name}
-                                </p>
-                                <p className="font-medium text-[6px]">
-                                  {formatNumber(tc.channel.follower_count)}{" "}
-                                  followers
-                                </p>
-                              </div>
-                              <p className="text-black-50 text-[6px] text-ellipsis whitespace-nowrap overflow-hidden w-full">
-                                {tc.channel.description}
-                              </p>
-                            </div>
-                          </div>
-                        </span>
-                      ))}
+                      {renderedTrendingChannels}
                     </div>
                   </div>
                 </div>
@@ -290,11 +353,14 @@ const Search: FC = () => {
               {powerUsers.length ? (
                 <div className="w-full flex flex-col items-start justify-start gap-2">
                   <div className="flex items-center gap-[6px]">
-                    <img
+                    <Image
                       src="/icons/power-users-icon.svg"
                       alt="power-users"
                       width={22}
                       height={22}
+                      loading="lazy"
+                      style={{ aspectRatio: "1 / 1" }}
+                      className="rounded-full"
                     />
                     <p className="font-medium text-[20px] leading-[24px]">
                       People to follow
@@ -302,34 +368,7 @@ const Search: FC = () => {
                   </div>
                   <div className="w-full overflow-x-auto no-scrollbar">
                     <div className="grid grid-rows-3 grid-flow-col gap-4">
-                      {powerUsers.map((pu) => (
-                        <span
-                          onClick={() => router.push(`/profile/${pu.fid}`)}
-                          key={pu.fid}
-                          className="cursor-pointer"
-                        >
-                          <div className="flex flex-col items-center w-[90px] gap-[6px]">
-                            <img
-                              src={pu.pfp_url}
-                              alt={pu.username}
-                              className={
-                                "w-[70px] h-[70px] rounded-full border-none object-cover"
-                              }
-                            />
-                            <div className="w-full text-center">
-                              <p className="font-bold text-[10px] leading-[120%] text-ellipsis whitespace-nowrap overflow-hidden w-full">
-                                {pu.display_name}
-                              </p>
-                              <p className="text-black-50 text-[6px] text-ellipsis whitespace-nowrap overflow-hidden w-full mb-1">
-                                @{pu.username}
-                              </p>
-                              <p className="font-medium text-[6px]">
-                                {formatNumber(pu.follower_count)} followers
-                              </p>
-                            </div>
-                          </div>
-                        </span>
-                      ))}
+                      {renderedPowerUsers}
                     </div>
                   </div>
                 </div>
@@ -340,6 +379,6 @@ const Search: FC = () => {
       </div>
     </>
   );
-};
+});
 
 export default Search;

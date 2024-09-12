@@ -6,6 +6,9 @@ import {
   FC,
   ClipboardEvent as ReactClipboardEvent,
   useContext,
+  memo,
+  useCallback,
+  useMemo,
 } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import axios from "axios";
@@ -15,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AppContext } from "@/context";
 import formatTime from "@/utils/formatTime";
+import Image from "next/image";
 
 interface Media {
   type: "image" | "video" | "audio";
@@ -22,7 +26,7 @@ interface Media {
   file: File;
 }
 
-const CastInput: FC = () => {
+const CastInput: FC = memo(() => {
   const [state] = useContext(AppContext);
   const [text, setText] = useState("");
   const [media, setMedia] = useState<Media | null>(null);
@@ -47,11 +51,14 @@ const CastInput: FC = () => {
   const { user } = useNeynarContext();
   const router = useRouter();
 
-  const handleTextChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    setText(e.target.value);
-  };
+  const handleTextChange = useCallback(
+    (e: ChangeEvent<HTMLTextAreaElement>) => {
+      setText(e.target.value);
+    },
+    []
+  );
 
-  const handleMediaChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleMediaChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const file = files[0];
@@ -65,63 +72,72 @@ const CastInput: FC = () => {
       }
       setMedia({ type, url, file });
     }
-  };
+  }, []);
 
-  const handleAudioThumbnailMedia = (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      setAudioThumbnailMedia({
-        url: URL.createObjectURL(files[0]),
-        file: files[0],
-      });
-    }
-  };
-
-  const handlePaste = (e: ReactClipboardEvent) => {
-    if (media) return;
-
-    const items = e.clipboardData?.items;
-    if (items) {
-      const newMedia = Array.from(items)
-        .map((item) => {
-          if (item.type.startsWith("image") || item.type.startsWith("video")) {
-            const file = item.getAsFile();
-            if (file) {
-              const url = URL.createObjectURL(file);
-              let type: "video" | "audio" | "image" = "image";
-              if (file.type.startsWith("video")) {
-                type = "video";
-              } else if (file.type.startsWith("audio")) {
-                type = "audio";
-              }
-              return { type, url, file };
-            }
-          }
-          return null;
-        })
-        .filter(Boolean) as Media[];
-
-      if (newMedia.length > 0) {
-        setMedia(newMedia[0]);
-      }
-
-      // Check for text content
-      const textItem = Array.from(items).find(
-        (item) => item.kind === "string" && item.type === "text/plain"
-      );
-      if (textItem) {
-        textItem.getAsString((pastedText) => {
-          setText((prevText) => prevText + pastedText);
+  const handleAudioThumbnailMedia = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        setAudioThumbnailMedia({
+          url: URL.createObjectURL(files[0]),
+          file: files[0],
         });
       }
-    }
-  };
+    },
+    []
+  );
 
-  const removeMedia = () => {
+  const handlePaste = useCallback(
+    (e: ReactClipboardEvent) => {
+      if (media) return;
+
+      const items = e.clipboardData?.items;
+      if (items) {
+        const newMedia = Array.from(items)
+          .map((item) => {
+            if (
+              item.type.startsWith("image") ||
+              item.type.startsWith("video")
+            ) {
+              const file = item.getAsFile();
+              if (file) {
+                const url = URL.createObjectURL(file);
+                let type: "video" | "audio" | "image" = "image";
+                if (file.type.startsWith("video")) {
+                  type = "video";
+                } else if (file.type.startsWith("audio")) {
+                  type = "audio";
+                }
+                return { type, url, file };
+              }
+            }
+            return null;
+          })
+          .filter(Boolean) as Media[];
+
+        if (newMedia.length > 0) {
+          setMedia(newMedia[0]);
+        }
+
+        // Check for text content
+        const textItem = Array.from(items).find(
+          (item) => item.kind === "string" && item.type === "text/plain"
+        );
+        if (textItem) {
+          textItem.getAsString((pastedText) => {
+            setText((prevText) => prevText + pastedText);
+          });
+        }
+      }
+    },
+    [media]
+  );
+
+  const removeMedia = useCallback(() => {
     setMedia(null);
-  };
+  }, []);
 
-  const handleUploadToPinata = async (file: File) => {
+  const handleUploadToPinata = useCallback(async (file: File) => {
     try {
       const url = "https://api.pinata.cloud/pinning/pinFileToIPFS";
       const formData = new FormData();
@@ -142,9 +158,9 @@ const CastInput: FC = () => {
       toast.error("Error uploading media");
       throw error;
     }
-  };
+  }, []);
 
-  const handlePost = async () => {
+  const handlePost = useCallback(async () => {
     setIsUploading(true);
 
     try {
@@ -186,9 +202,9 @@ const CastInput: FC = () => {
       setMedia(null);
       setSelectedChannel("");
     }
-  };
+  }, [media, selectedChannel, musicTitle, user?.signer_uuid, router]);
 
-  const fetchAllChannels = async () => {
+  const fetchAllChannels = useCallback(async () => {
     try {
       const res = await fetch("/api/search-channels", {
         method: "POST",
@@ -199,9 +215,9 @@ const CastInput: FC = () => {
     } catch (err) {
       console.log(err);
     }
-  };
+  }, [debouncedChannelSearch]);
 
-  const togglePlayPause = () => {
+  const togglePlayPause = useCallback(() => {
     const audio = document.getElementById("audio-element") as HTMLAudioElement;
     if (audio.paused) {
       audio.play();
@@ -210,15 +226,15 @@ const CastInput: FC = () => {
       audio.pause();
       setIsAudioPlaying(false);
     }
-  };
+  }, []);
 
-  const handleTimeUpdate = () => {
+  const handleTimeUpdate = useCallback(() => {
     const audio = document.getElementById("audio-element") as HTMLAudioElement;
     setCurrentAudioTime(audio.currentTime);
     setAudioDuration(audio.duration);
-  };
+  }, []);
 
-  const handleSeek = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleSeek = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const audio = document.getElementById("audio-element") as HTMLAudioElement;
     audio.currentTime = parseFloat(e.target.value);
     setCurrentAudioTime(audio.currentTime);
@@ -227,7 +243,7 @@ const CastInput: FC = () => {
     const max = parseFloat(e.target.max);
     const value = ((parseFloat(e.target.value) - min) / (max - min)) * 100;
     e.target.style.background = `linear-gradient(to right, white ${value}%, #3D7F41 ${value}%)`;
-  };
+  }, []);
 
   useEffect(() => {
     const handlePasteEvent = (e: ClipboardEvent) =>
@@ -236,7 +252,7 @@ const CastInput: FC = () => {
     return () => {
       document.removeEventListener("paste", handlePasteEvent);
     };
-  }, [media]);
+  }, [handlePaste]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -250,36 +266,55 @@ const CastInput: FC = () => {
 
   useEffect(() => {
     fetchAllChannels();
-  }, [debouncedChannelSearch]);
+  }, [fetchAllChannels]);
+
+  const isPostDisabled = useMemo(
+    () => !media || isUploading,
+    [media, isUploading]
+  );
+
+  const audioProgressWidth = useMemo(
+    () =>
+      audioDuration ? Math.floor((currentAudioTime / audioDuration) * 100) : 0,
+    [currentAudioTime, audioDuration]
+  );
 
   return (
     <>
-      <div className="bg-[#F0EEEF] w-dvw md:w-auto md:min-h-[auto] md:h-full min-h-dvh flex flex-col">
+      <div className="bg-[#F0EEEF] w-dvw md:w-auto md:min-h-full min-h-dvh h-auto flex flex-col">
         <div className="grow p-2 bg-white rounded-[20px] shadow-cast-upload">
           <div className="w-full flex items-center justify-between mb-[40px]">
             <button
               className="border-none outline-none rounded-[18px] px-2 py-1 bg-frame-btn-bg"
               onClick={() => router.back()}
             >
-              <img
+              <Image
                 src="/icons/close-upload-view-icon.svg"
                 alt="close"
                 className="w-8 h-8"
+                width={32}
+                height={32}
+                quality={100}
+                loading="lazy"
               />
             </button>
             <button
               className="border-none outline-none rounded-[22px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
-              disabled={!media || isUploading}
+              disabled={isPostDisabled}
               onClick={handlePost}
             >
               {isUploading ? "Uploading..." : "Post"}
             </button>
           </div>
           <div className={`flex items-center justify-start gap-2 mb-[12px]`}>
-            <img
-              src={user?.pfp_url}
-              alt={user?.display_name}
+            <Image
+              src={user?.pfp_url ?? ""}
+              alt={user?.display_name ?? ""}
               className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+              width={40}
+              height={40}
+              quality={100}
+              loading="lazy"
             />
             <div>
               <p className="font-[800] text-black text-[18px] leading-[21.6px]">
@@ -292,10 +327,14 @@ const CastInput: FC = () => {
                 <span className="text-purple font-bold text-[14px] leading-[120%]">
                   {selectedChannel ? `/${selectedChannel}` : "Select Channel"}
                 </span>
-                <img
+                <Image
                   src="/icons/channel-chevron-down-icon.svg"
                   alt="channel-down"
                   className="w-[14px] h-[14px]"
+                  width={14}
+                  height={14}
+                  quality={100}
+                  loading="lazy"
                 />
               </div>
             </div>
@@ -316,6 +355,7 @@ const CastInput: FC = () => {
                       src={media.url}
                       alt="media"
                       className="w-full object-cover rounded-lg"
+                      loading="lazy"
                     />
                   ) : media.type === "video" ? (
                     <video
@@ -342,10 +382,14 @@ const CastInput: FC = () => {
             }`}
           >
             <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
-              <img
+              <Image
                 src="/icons/image-upload-icon.svg"
                 alt="image"
                 className="w-8 h-8"
+                width={32}
+                height={32}
+                quality={100}
+                loading="lazy"
               />
               <input
                 type="file"
@@ -364,10 +408,14 @@ const CastInput: FC = () => {
             }`}
           >
             <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
-              <img
+              <Image
                 src="/icons/video-upload-icon.svg"
                 alt="video"
                 className="w-8 h-8"
+                width={32}
+                height={32}
+                quality={100}
+                loading="lazy"
               />
               <input
                 type="file"
@@ -386,10 +434,14 @@ const CastInput: FC = () => {
             }`}
           >
             <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
-              <img
+              <Image
                 src="/icons/music-upload-icon.svg"
                 alt="music"
                 className="w-8 h-8"
+                width={32}
+                height={32}
+                quality={100}
+                loading="lazy"
               />
               <input
                 type="file"
@@ -420,7 +472,7 @@ const CastInput: FC = () => {
               <div className="p-2 rounded-[12px] bg-music-upload-color/60 flex items-center gap-2">
                 <label className={`cursor-pointer`}>
                   <div className="rounded-[11px] w-[70px] h-[70px]">
-                    <img
+                    <Image
                       src={
                         audioThumbnailMedia
                           ? audioThumbnailMedia.url
@@ -428,6 +480,10 @@ const CastInput: FC = () => {
                       }
                       alt="image"
                       className="flex-shrink-0 rounded-[11px] object-cover w-[70px] h-[70px]"
+                      width={70}
+                      height={70}
+                      loading="lazy"
+                      quality={100}
                     />
                     <input
                       type="file"
@@ -475,23 +531,21 @@ const CastInput: FC = () => {
                       <div
                         className={`bg-white rounded-[2px] h-[4px]`}
                         style={{
-                          width: `${
-                            audioDuration
-                              ? Math.floor(
-                                  (currentAudioTime / audioDuration) * 100
-                                )
-                              : 0
-                          }%`,
+                          width: `${audioProgressWidth}%`,
                         }}
                       />
                     </div>
-                    <img
+                    <Image
                       src={`/icons/music-${
                         isAudioPlaying ? "pause" : "play"
                       }-icon.svg`}
                       alt={isAudioPlaying ? "pause" : "play"}
                       className="w-[18px] h-[18px] cursor-pointer"
                       onClick={togglePlayPause}
+                      width={18}
+                      height={18}
+                      loading="lazy"
+                      quality={100}
                     />
                   </div>
                 </div>
@@ -527,7 +581,7 @@ const CastInput: FC = () => {
                     audioThumbnailMedia ? "w-14 h-14" : "p-3"
                   } bg-frame-btn-bg`}
                 >
-                  <img
+                  <Image
                     src={
                       audioThumbnailMedia
                         ? audioThumbnailMedia.url
@@ -539,6 +593,10 @@ const CastInput: FC = () => {
                         ? "w-full h-full object-cover rounded-[12px]"
                         : "w-8 h-8"
                     }
+                    width={32}
+                    height={32}
+                    loading="lazy"
+                    quality={100}
                   />
                 </div>
                 <div className="grow">
@@ -578,12 +636,14 @@ const CastInput: FC = () => {
             Select Channel
           </p>
           <div className="w-full items-center bg-frame-btn-bg relative rounded-[12px] py-2 pl-[42px] pr-4 mb-1">
-            <img
+            <Image
               src="/icons/input-search-icon.svg"
               alt="input-search"
               width={22}
               height={22}
               className="absolute left-[16px]"
+              loading="lazy"
+              quality={100}
             />
             <input
               className="p-0 outline-none border-none w-full bg-inherit placeholder:text-black-40"
@@ -603,9 +663,13 @@ const CastInput: FC = () => {
               setOpenChannelModal(false);
             }}
           >
-            <img
-              className="w-[24px] h-[24px] rounded-[20px] object-cover"
+            <Image
               src={"/icons/home-icon.svg"}
+              className="w-[24px] h-[24px] rounded-[20px] object-cover"
+              width={24}
+              height={24}
+              loading="lazy"
+              quality={100}
               alt={"none"}
             />
             <p className="font-medium leading-[22px]">None</p>
@@ -626,9 +690,13 @@ const CastInput: FC = () => {
                       setOpenChannelModal(false);
                     }}
                   >
-                    <img
-                      className="w-[24px] h-[24px] rounded-[20px] object-cover"
+                    <Image
                       src={channel.image_url}
+                      className="w-[24px] h-[24px] rounded-[20px] object-cover"
+                      width={24}
+                      height={24}
+                      loading="lazy"
+                      quality={100}
                       alt={channel.id}
                     />
                     <p className="font-medium leading-[22px]">
@@ -653,10 +721,14 @@ const CastInput: FC = () => {
                       setOpenChannelModal(false);
                     }}
                   >
-                    <img
-                      className="w-[24px] h-[24px] rounded-[20px] object-cover"
+                    <Image
                       src={channel.image_url}
+                      className="w-[24px] h-[24px] rounded-[20px] object-cover"
                       alt={channel.id}
+                      width={24}
+                      height={24}
+                      loading="lazy"
+                      quality={100}
                     />
                     <p className="font-medium leading-[22px]">
                       {channel.id}&nbsp;
@@ -669,6 +741,6 @@ const CastInput: FC = () => {
       </Modal>
     </>
   );
-};
+});
 
 export default CastInput;

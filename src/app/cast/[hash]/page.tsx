@@ -1,42 +1,72 @@
 "use client";
-import { Cast, Frame, Spinner } from "@/components";
+import { Cast, Frame } from "@/components";
 import { useNeynarContext } from "@neynar/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { FC, Fragment, memo, useCallback, useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import { useInfiniteQuery } from "react-query";
+
+const ReplyItem = memo(({ cast, push }: { cast: any; push: any }) => {
+  return (
+    <span onClick={() => push(`/cast/${cast.hash}`)} className="cursor-pointer">
+      {cast.embedType === "frame" ? (
+        <Frame frame={cast} key={`cast-${cast.hash}`} type="reply" />
+      ) : (
+        <Cast cast={cast} key={`cast-${cast.hash}`} type="reply" />
+      )}
+    </span>
+  );
+});
+
+const LoadingSkeleton = () => (
+  <div className="p-4 flex items-start justify-center h-full bg-white">
+    <div className="py-5 w-full">
+      <div className="flex items-center flex-col justify-start w-full gap-3">
+        <div className="flex items-center gap-2 w-full">
+          <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
+          <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
+        </div>
+        <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
+        <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
+      </div>
+    </div>
+  </div>
+);
 
 interface ApiResponse {
   conversation: any;
   next: { cursor: string };
 }
 
-const fetchConversation = async ({
-  pageParam = "",
-  queryKey,
-}: {
-  pageParam?: string;
-  queryKey: any;
-}): Promise<ApiResponse> => {
-  const [_key, { hash, fid }] = queryKey;
-  const response = await fetch(`/api/conversation`, {
-    method: "POST",
-    body: JSON.stringify({ cursor: pageParam, hash, fid }),
-  });
-  if (!response.ok) {
-    throw new Error("Network response was not ok");
-  }
-  const data = await response.json();
-  return data;
-};
-
-export default function Page({ params }: { params: { hash: string } }) {
+const Page: FC<{ params: { hash: string } }> = memo(({ params }) => {
   const { user } = useNeynarContext();
 
   const [cast, setCast] = useState<any>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const { back, push } = useRouter();
+
+  const fetchConversation = useCallback(
+    async ({
+      pageParam = "",
+      queryKey,
+    }: {
+      pageParam?: string;
+      queryKey: any;
+    }): Promise<ApiResponse> => {
+      const [_key, { hash, fid }] = queryKey;
+      const response = await fetch(`/api/conversation`, {
+        method: "POST",
+        body: JSON.stringify({ cursor: pageParam, hash, fid }),
+      });
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data = await response.json();
+      return data;
+    },
+    []
+  );
 
   const {
     data,
@@ -53,6 +83,8 @@ export default function Page({ params }: { params: { hash: string } }) {
         return lastPage.next?.cursor ?? false;
       },
       refetchOnWindowFocus: false,
+      staleTime: 60000,
+      cacheTime: 3600000,
     }
   );
 
@@ -63,7 +95,7 @@ export default function Page({ params }: { params: { hash: string } }) {
   const allReplies =
     data?.pages.flatMap((page) => page.conversation.cast.direct_replies) ?? [];
 
-  const fetchCast = async () => {
+  const fetchCast = useCallback(async () => {
     try {
       setLoading(true);
       const resp = await fetch(`/api/cast`, {
@@ -85,33 +117,27 @@ export default function Page({ params }: { params: { hash: string } }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (params.hash) fetchCast();
   }, [params.hash]);
 
   useEffect(() => {
+    if (params.hash) fetchCast();
+  }, [params.hash, fetchCast]);
+
+  const handleFetchNextPage = useCallback(() => {
     if (inView && hasNextPage) {
       fetchNextPage();
     }
   }, [inView, hasNextPage, fetchNextPage]);
 
-  if (loading)
-    return (
-      <div className="p-4 flex items-start justify-center h-full bg-white">
-        <div className="py-5 w-full">
-          <div className="flex items-center flex-col justify-start w-full gap-3">
-            <div className="flex items-center gap-2 w-full">
-              <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
-              <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
-            </div>
-            <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
-            <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
-          </div>
-        </div>
-      </div>
-    );
+  useEffect(() => {
+    handleFetchNextPage();
+  }, [handleFetchNextPage]);
+
+  if (loading) return <LoadingSkeleton />;
 
   if (error)
     return (
@@ -148,39 +174,21 @@ export default function Page({ params }: { params: { hash: string } }) {
       ) : (
         <>
           {allReplies.map((cast, castIndex, arr) => (
-            <span
-              onClick={() => push(`/cast/${cast.hash}`)}
-              className="cursor-pointer"
-            >
-              {cast.embedType === "frame" ? (
-                <Frame frame={cast} key={`cast-${cast.hash}`} type="reply" />
-              ) : (
-                <Cast cast={cast} key={`cast-${cast.hash}`} type="reply" />
-              )}
+            <Fragment key={cast.hash}>
+              <ReplyItem cast={cast} push={push} />
               {castIndex === arr.length - 1 ? null : (
                 <hr className="border border-t-divider" />
               )}
-            </span>
+            </Fragment>
           ))}
 
-          {isFetchingNextPage || isLoading ? (
-            <div className="p-4 flex items-start justify-center h-full bg-white">
-              <div className="py-5 w-full">
-                <div className="flex items-center flex-col justify-start w-full gap-3">
-                  <div className="flex items-center gap-2 w-full">
-                    <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
-                    <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
-                  </div>
-                  <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
-                  <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
-                </div>
-              </div>
-            </div>
-          ) : null}
+          {isFetchingNextPage || isLoading ? <LoadingSkeleton /> : null}
 
           <div ref={ref} style={{ height: "20px" }}></div>
         </>
       )}
     </div>
   );
-}
+});
+
+export default Page;

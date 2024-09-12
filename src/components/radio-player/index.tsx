@@ -1,6 +1,8 @@
 "use client";
-import React, { useState, useRef, useEffect, FC } from "react";
+import Image from "next/image";
+import React, { useState, memo, useCallback } from "react";
 import YouTube from "react-youtube";
+import { toast } from "sonner";
 
 const videos = [
   {
@@ -76,12 +78,12 @@ const videos = [
   },
 ];
 
-const RadioPlayer: React.FC = () => {
+const RadioPlayer: React.FC = memo(() => {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const playerRef = React.useRef<any>(null);
 
-  const handlePlayPause = () => {
+  const handlePlayPause = useCallback(() => {
     if (playerRef.current) {
       if (isPlaying) {
         playerRef.current.pauseVideo();
@@ -90,9 +92,9 @@ const RadioPlayer: React.FC = () => {
       }
       setIsPlaying(!isPlaying);
     }
-  };
+  }, [isPlaying]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     const nextIndex = (currentVideoIndex + 1) % videos.length;
     setCurrentVideoIndex(nextIndex);
     if (playerRef.current) {
@@ -101,9 +103,9 @@ const RadioPlayer: React.FC = () => {
         playerRef.current.playVideo();
       }
     }
-  };
+  }, [currentVideoIndex, isPlaying]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     const prevIndex = (currentVideoIndex - 1 + videos.length) % videos.length;
     setCurrentVideoIndex(prevIndex);
     if (playerRef.current) {
@@ -112,26 +114,29 @@ const RadioPlayer: React.FC = () => {
         playerRef.current.playVideo();
       }
     }
-  };
+  }, [currentVideoIndex, isPlaying]);
 
-  const onReady = (event: any) => {
-    playerRef.current = event.target;
-    console.log({event});
-    playerRef.current.setVolume(70);
-    if (isPlaying) {
-      playerRef.current.playVideo();
-    } else {
-      playerRef.current.pauseVideo();
-    }
-  };
+  const onReady = useCallback(
+    (event: any) => {
+      playerRef.current = event.target;
+      playerRef.current.setVolume(70);
+      if (isPlaying) {
+        playerRef.current.playVideo();
+      } else {
+        playerRef.current.pauseVideo();
+      }
+    },
+    [isPlaying]
+  );
 
-  const onError = (error: any) => {
+  const onError = useCallback((error: any) => {
+    toast.error("Error playing video");
     console.error("YouTube player error:", error);
-  };
+  }, []);
 
-  const onStateChange = (event: any) => {
+  const onStateChange = useCallback((event: any) => {
     console.log("YouTube player state changed:", event.data);
-  };
+  }, []);
 
   return (
     <div className="fixed left-[20px] bottom-[20px]">
@@ -165,13 +170,17 @@ const RadioPlayer: React.FC = () => {
             </p>
           </div>
           <div className="flex space-x-[6px]">
-            <img
+            <Image
               src="/icons/radio-prev-icon.svg"
               alt="prev"
               className="w-[18px] h-[18px] cursor-pointer"
               onClick={handlePrev}
+              width={18}
+              height={18}
+              loading="lazy"
+              quality={100}
             />
-            <img
+            <Image
               src={
                 isPlaying
                   ? "/icons/radio-pause-icon.svg"
@@ -180,6 +189,10 @@ const RadioPlayer: React.FC = () => {
               alt="play/pause"
               className="w-[18px] h-[18px] cursor-pointer"
               onClick={handlePlayPause}
+              width={18}
+              height={18}
+              loading="lazy"
+              quality={100}
             />
             <img
               src="/icons/radio-next-icon.svg"
@@ -192,7 +205,7 @@ const RadioPlayer: React.FC = () => {
       </div>
     </div>
   );
-};
+});
 
 export default RadioPlayer;
 
@@ -200,7 +213,7 @@ interface EqualizerProps {
   isAnimating: boolean;
 }
 
-const Equalizer: React.FC<EqualizerProps> = ({ isAnimating }) => {
+const Equalizer: React.FC<EqualizerProps> = memo(({ isAnimating }) => {
   return (
     <div className="flex items-center h-5">
       {[0, 200, 400, 600].map((delay) => (
@@ -218,4 +231,4 @@ const Equalizer: React.FC<EqualizerProps> = ({ isAnimating }) => {
       ))}
     </div>
   );
-};
+});

@@ -3,7 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Wrapper } from "@/components";
 import { Toaster } from "sonner";
-import { GoogleTagManager } from "@/components/googletagmanager";
+import { GoogleTagManager } from "@/components";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -48,30 +49,32 @@ export default function RootLayout({
         {process.env.NEXT_PUBLIC_GTM_ID ? (
           <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />
         ) : null}
+        <Script
+          id="register-sw"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').then(
+                    function(registration) {
+                      console.log('Service Worker registered with scope:', registration.scope);
+                    },
+                    function(err) {
+                      console.error('Service Worker registration failed:', err);
+                    }
+                  );
+                });
+              }
+            `,
+          }}
+        />
       </head>
       <body className={`${inter.className}`}>
-        <Toaster position="bottom-center" />
+        <Toaster position="bottom-center" duration={1500} />
         <main className="w-dvw max-md:h-dvh md:h-[calc(100dvh-40px)] mx-auto md:w-[552px] md:border md:border-black-20 md:border-b-0 md:rounded-t-[20px] md:overflow-auto md:no-scrollbar">
           <Wrapper>{children}</Wrapper>
         </main>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/sw.js').then(
-            function(registration) {
-              console.log('Service Worker registration successful with scope: ', registration.scope);
-            },
-            function(err) {
-              console.log('Service Worker registration failed: ', err);
-            }
-          );
-        });
-      }
-    `,
-          }}
-        />
       </body>
     </html>
   );

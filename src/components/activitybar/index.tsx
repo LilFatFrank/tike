@@ -1,11 +1,62 @@
 "use client";
-import { FC, useEffect, useRef, useState } from "react";
+import {
+  FC,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Sidebar from "../sidebar";
 import Link from "next/link";
 import { useNeynarContext } from "@neynar/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 
-const ActivityBar: FC = () => {
+const filterItems = [
+  { name: "Image", param: "image", path: "?filter=image" },
+  { name: "Video", param: "video", path: "?filter=video" },
+  { name: "Music", param: "audio", path: "?filter=audio" },
+  { name: "Frame", param: "frame", path: "/frames" },
+];
+
+const FilterItem = memo(
+  ({
+    name,
+    icon,
+    activeIcon,
+    isActive,
+    onClick,
+  }: {
+    name: string;
+    icon: string;
+    activeIcon: string;
+    isActive: boolean;
+    onClick: () => void;
+  }) => (
+    <div
+      className="py-1 cursor-pointer flex items-center justify-start gap-1"
+      onClick={onClick}
+    >
+      <Image
+        src={isActive ? activeIcon : icon}
+        alt={name}
+        width={24}
+        height={24}
+      />
+      <p
+        className={`${
+          isActive ? "text-purple" : "text-black"
+        } text-[24px] leading-[120%] font-medium`}
+      >
+        {name}
+      </p>
+    </div>
+  )
+);
+
+const ActivityBar: FC = memo(() => {
   const { user } = useNeynarContext();
 
   const [openSidebar, setOpenSidebar] = useState(false);
@@ -22,7 +73,7 @@ const ActivityBar: FC = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const fetchAllChannels = async () => {
+  const fetchAllChannels = useCallback(async () => {
     try {
       called.current = true;
       setLoadingChannels(true);
@@ -40,11 +91,41 @@ const ActivityBar: FC = () => {
       setErrorChannels(false);
       setLoadingChannels(false);
     }
-  };
+  }, [user?.fid]);
+
+  const handleSidebarOpen = useCallback(() => setOpenSidebar(true), []);
+  const handleSidebarClose = useCallback(() => setOpenSidebar(false), []);
+
+  const renderedChannels = useMemo(
+    () =>
+      channels.map((c) => (
+        <span
+          className="py-1 flex items-center justify-start gap-1 mb-1 cursor-pointer"
+          key={c.id}
+          onClick={() => {
+            handleSidebarClose();
+            push(`/channel/${c.id}`);
+          }}
+        >
+          <Image
+            src={c.image_url}
+            alt={c.id}
+            width={22}
+            height={22}
+            className="rounded-[6px]"
+            loading="lazy"
+          />
+          <p className="text-black text-[16px] leading-[22px] font-medium">
+            {c.name}
+          </p>
+        </span>
+      )),
+    [channels, handleSidebarClose, push]
+  );
 
   useEffect(() => {
-    if (!called.current) fetchAllChannels();
-  }, [called.current]);
+    if (!called.current && user?.fid) fetchAllChannels();
+  }, [called.current, user?.fid]);
 
   useEffect(() => {
     if (pathname === "/") {
@@ -62,21 +143,23 @@ const ActivityBar: FC = () => {
           openSidebar ? "invisible" : ""
         }`}
       >
-        <img
+        <Image
           src="/icons/sidebar-icon.svg"
           alt="sidebar"
           width={32}
           height={32}
           className="cursor-pointer"
-          onClick={() => setOpenSidebar(true)}
+          loading="lazy"
+          onClick={handleSidebarOpen}
         />
         <Link href={"/updates"}>
-          <img
+          <Image
             src="/icons/bell-icon.svg"
             alt="bell"
             width={32}
             height={32}
             className="cursor-pointer"
+            loading="lazy"
           />
         </Link>
       </div>
@@ -85,13 +168,14 @@ const ActivityBar: FC = () => {
           <div className="py-3 px-4 flex items-center justify-between">
             <span
               className="py-[6px] px-2 rounded-[20px] bg-black border-none text-white font-medium leading-[120%] flex items-center cursor-pointer"
-              onClick={() => setOpenSidebar(false)}
+              onClick={handleSidebarClose}
             >
-              <img
+              <Image
                 src="/icons/close-sidebar-icon.svg"
                 alt="close"
                 width={16}
                 height={16}
+                loading="lazy"
               />
               Close
             </span>
@@ -104,7 +188,7 @@ const ActivityBar: FC = () => {
               className="py-1 cursor-pointer"
               onClick={() => {
                 push("/");
-                setOpenSidebar(false);
+                handleSidebarClose();
               }}
             >
               <p
@@ -115,139 +199,36 @@ const ActivityBar: FC = () => {
                 All
               </p>
             </div>
-            <div
-              className="py-1 cursor-pointer flex items-center justify-start gap-1"
-              onClick={() => {
-                push("?filter=image");
-                setOpenSidebar(false);
-              }}
-            >
-              <img
-                src={
-                  filter === "image"
-                    ? "/icons/image-filter-icon.svg"
-                    : "/icons/image-icon.svg"
-                }
-                alt={"image"}
-                width={24}
-                height={24}
+            {filterItems.map((item) => (
+              <FilterItem
+                key={item.param}
+                name={item.name}
+                icon={`/icons/${
+                  item.param === "audio" ? "music" : item.param
+                }-icon.svg`}
+                activeIcon={`/icons/${
+                  item.param === "audio" ? "music" : item.param
+                }-filter-icon.svg`}
+                isActive={filter === item.param}
+                onClick={() => {
+                  push(item.path);
+                  handleSidebarClose();
+                }}
               />
-              <p
-                className={`${
-                  filter === "image" ? "text-purple" : "text-black"
-                } text-[24px] leading-[120%] font-medium`}
-              >
-                Image
-              </p>
-            </div>
-            <div
-              className="py-1 cursor-pointer flex items-center justify-start gap-1"
-              onClick={() => {
-                push("?filter=video");
-                setOpenSidebar(false);
-              }}
-            >
-              <img
-                src={
-                  filter === "video"
-                    ? "/icons/video-filter-icon.svg"
-                    : "/icons/video-icon.svg"
-                }
-                alt={"video"}
-                width={24}
-                height={24}
-              />
-              <p
-                className={`${
-                  filter === "video" ? "text-purple" : "text-black"
-                } text-[24px] leading-[120%] font-medium`}
-              >
-                Video
-              </p>
-            </div>
-            <div
-              className="py-1 cursor-pointer flex items-center justify-start gap-1"
-              onClick={() => {
-                push("?filter=audio");
-                setOpenSidebar(false);
-              }}
-            >
-              <img
-                src={
-                  filter === "audio"
-                    ? "/icons/music-filter-icon.svg"
-                    : "/icons/music-icon.svg"
-                }
-                alt={"music"}
-                width={24}
-                height={24}
-              />
-              <p
-                className={`${
-                  filter === "audio" ? "text-purple" : "text-black"
-                } text-[24px] leading-[120%] font-medium`}
-              >
-                Music
-              </p>
-            </div>
-            <div
-              className="py-1 cursor-pointer flex items-center justify-start gap-1"
-              onClick={() => {
-                push("/frames");
-                setOpenSidebar(false);
-              }}
-            >
-              <img
-                src={
-                  pathname === "/frames"
-                    ? "/icons/frame-filter-icon.svg"
-                    : "/icons/frame-icon.svg"
-                }
-                alt={"frame"}
-                width={24}
-                height={24}
-              />
-              <p
-                className={`${
-                  pathname === "/frames" ? "text-purple" : "text-black"
-                } text-[24px] leading-[120%] font-medium`}
-              >
-                Frame
-              </p>
-            </div>
+            ))}
           </div>
           {loadingChannels || errorChannels ? null : (
             <div className="py-[10px] px-4">
               <p className="text-black/50 text-[14px] font-medium leading-[22px] mb-1">
                 Channel
               </p>
-              {channels.map((c) => (
-                <span
-                  className="py-1 flex items-center justify-start gap-1 mb-1 cursor-pointer"
-                  key={c.id}
-                  onClick={() => {
-                    setOpenSidebar(false);
-                    push(`/channel/${c.id}`);
-                  }}
-                >
-                  <img
-                    src={c.image_url}
-                    alt={c.id}
-                    width={22}
-                    height={22}
-                    className="rounded-[6px]"
-                  />
-                  <p className="text-black text-[16px] leading-[22px] font-medium">
-                    {c.name}
-                  </p>
-                </span>
-              ))}
+              {renderedChannels}
             </div>
           )}
         </div>
       </Sidebar>
     </>
   );
-};
+});
 
 export default ActivityBar;

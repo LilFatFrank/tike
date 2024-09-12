@@ -1,51 +1,57 @@
 const CACHE_NAME = "tike-cache-v1";
-const urlsToCache = [
-  "/",
-  "/index.html",
-  "/manifest.json",
-  "/logo/favicon.svg",
-  "/images/192x192-logo.png",
-  "/images/512x512-logo.png",
-  // Add other important assets to cache
-];
+const RUNTIME = "runtime";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
-  );
-});
-
-self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) {
-        return response;
-      }
-      return fetch(event.request).then((response) => {
-        if (!response || response.status !== 200 || response.type !== "basic") {
-          return response;
-        }
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-        return response;
-      });
-    })
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll([
+        "/",
+        "/index.html",
+        "/manifest.json",
+        "/logo/favicon.svg",
+        "/images/192x192-logo.png",
+        "/images/512x512-logo.png",
+      ]))
+      .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener("activate", (event) => {
-  const cacheWhitelist = [CACHE_NAME];
+  const currentCaches = [CACHE_NAME, RUNTIME];
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches
+      .keys()
+      .then((cacheNames) => {
+        return cacheNames.filter((cacheName) => !currentCaches.includes(cacheName));
+      })
+      .then((cachesToDelete) => {
+        return Promise.all(
+          cachesToDelete.map((cacheToDelete) => {
+            return caches.delete(cacheToDelete);
+          })
+        );
+      })
+      .then(() => self.clients.claim())
   );
+});
+
+self.addEventListener("fetch", (event) => {
+  if (event.request.url.startsWith(self.location.origin)) {
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        return caches.open(RUNTIME).then((cache) => {
+          return fetch(event.request).then((response) => {
+            return cache.put(event.request, response.clone()).then(() => {
+              return response;
+            });
+          });
+        });
+      })
+    );
+  }
 });

@@ -2,6 +2,8 @@ import { processCasts } from "@/utils/processCasts";
 import axios from "axios";
 import { NextApiRequest, NextApiResponse } from "next";
 
+const followingUrl = `https://api.neynar.com/v2/farcaster/feed?feed_type=following&filter_type=embed_url&fid=6411&embed_types=&with_recasts=true&limit=25`;
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -13,11 +15,11 @@ export default async function handler(
       const filter = JSON.parse(req.body).filter as string;
 
       const resp = await axios.get(
-        `https://api.neynar.com/v2/farcaster/feed?feed_type=filter&filter_type=embed_types&fid=${fid}&embed_types=${
-          !filter ? "image,video,audio" : filter
-        }&with_recasts=true&limit=${
-          filter === "video" ? "100" : "50"
-        }&cursor=${cursor}`,
+        !filter
+          ? `https://api.neynar.com/v2/farcaster/feed?feed_type=following&fid=${fid}&with_recasts=true&viewer_fid=${fid}&limit=${
+              filter === "video" ? "100" : "50"
+            }&cursor=${cursor}`
+          : `https://api.neynar.com/v2/farcaster/feed?feed_type=filter&filter_type=embed_types&fid=${fid}&embed_types=${filter}&with_recasts=true&limit=25&cursor=${cursor}`,
         {
           headers: {
             accept: "application/json",

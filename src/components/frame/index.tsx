@@ -2,9 +2,10 @@
 import timeAgo from "@/utils/timeAgo";
 import { useNeynarContext } from "@neynar/react";
 import { useRouter } from "next/navigation";
-import { CSSProperties, FC, useState } from "react";
+import { CSSProperties, FC, memo, useCallback, useState } from "react";
 import { toast } from "sonner";
 import StringProcessor from "../stringprocessor";
+import Image from "next/image";
 
 interface Frame {
   frame: any;
@@ -12,31 +13,17 @@ interface Frame {
   type?: "default" | "reply";
 }
 
-const Frame: FC<Frame> = ({ frame, style, type }) => {
+const Frame: FC<Frame> = memo(({ frame, style, type }) => {
   const { user } = useNeynarContext();
   const router = useRouter();
 
-  const [frameInput, setFrameInput] = useState<string>("");
   const [castOptionType, setCastOptionType] = useState<"delete" | "copy-hash">(
     "delete"
   );
   const [deleteSuccess, setDeleteSuccess] = useState(false);
   const [openCastOptions, setOpenCastOptions] = useState(false);
 
-  const postFrameAction = async (req: any) => {
-    try {
-      const resp = await fetch(`/api/post-frame`, {
-        method: "POST",
-        body: JSON.stringify(req),
-      });
-      console.log(resp);
-    } catch (error) {
-      console.log(error);
-      toast.error("Error interacting with frame!");
-    }
-  };
-
-  const deleteCast = async () => {
+  const deleteCast = useCallback(async () => {
     try {
       const res = await fetch(`/api/delete-cast`, {
         method: "POST",
@@ -54,7 +41,7 @@ const Frame: FC<Frame> = ({ frame, style, type }) => {
       console.log(error);
       toast.error("Error deleting cast!");
     }
-  };
+  }, [frame?.hash, user?.signer_uuid]);
 
   return deleteSuccess ? (
     <>
@@ -77,10 +64,14 @@ const Frame: FC<Frame> = ({ frame, style, type }) => {
               }}
               className="cursor-pointer"
             >
-              <img
+              <Image
                 className="w-[40px] h-[40px] rounded-[20px] object-cover"
                 src={frame?.author?.pfp_url}
                 alt={frame?.author?.username}
+                width={40}
+                height={40}
+                quality={100}
+                loading="lazy"
               />
             </span>
             <div className="flex flex-col items-start gap-[2px]">
@@ -115,7 +106,7 @@ const Frame: FC<Frame> = ({ frame, style, type }) => {
           </div>
           {frame?.author?.fid === user?.fid ? (
             <div className="relative">
-              <img
+              <Image
                 src="/icons/cast-more-icon.svg"
                 alt="cast-more"
                 className="w-6 h-6 cursor-pointer"
@@ -124,6 +115,10 @@ const Frame: FC<Frame> = ({ frame, style, type }) => {
                   e.preventDefault();
                   setOpenCastOptions(!openCastOptions);
                 }}
+                width={24}
+                height={24}
+                quality={100}
+                loading="lazy"
               />
               <div
                 className={`absolute right-0 top-full bg-white transition-all duration-300 ease-in-out rounded-[18px] shadow-comment-upload-media-modal w-[150px] ${
@@ -146,10 +141,14 @@ const Frame: FC<Frame> = ({ frame, style, type }) => {
                       deleteCast();
                     }}
                   >
-                    <img
+                    <Image
                       src="/icons/delete-post-icon.svg"
                       alt="delete"
                       className="w-6 h-6"
+                      width={24}
+                      height={24}
+                      quality={100}
+                      loading="lazy"
                     />
                     <span className="font-medium leading-[22px]">
                       Delete Post
@@ -169,10 +168,14 @@ const Frame: FC<Frame> = ({ frame, style, type }) => {
                       toast.success("Hash copied!");
                     }}
                   >
-                    <img
+                    <Image
                       src="/icons/copy-hash-icon.svg"
                       alt="delete"
                       className="w-6 h-6"
+                      width={24}
+                      height={24}
+                      quality={100}
+                      loading="lazy"
                     />
                     <span className="font-medium leading-[22px]">
                       Copy Hash
@@ -228,11 +231,13 @@ const Frame: FC<Frame> = ({ frame, style, type }) => {
           }}
         >
           <button className="frame-btn">
-            <img
+            <Image
               src="/icons/warpcast-icon.svg"
               alt="warpcast"
-              width={"20px"}
-              height={"20px"}
+              width={20}
+              height={20}
+              quality={100}
+              loading="lazy"
             />
             <p className="font-medium">View in Warpcast</p>
           </button>
@@ -240,6 +245,6 @@ const Frame: FC<Frame> = ({ frame, style, type }) => {
       </div>
     </>
   );
-};
+});
 
 export default Frame;

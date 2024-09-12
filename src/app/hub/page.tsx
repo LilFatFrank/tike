@@ -1,8 +1,136 @@
 "use client";
 import formatNumber from "@/utils/formatNumber";
+import Image from "next/image";
 import Link from "next/link";
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, memo, useCallback, useEffect, useMemo, useState } from "react";
 import InfiniteScroller from "react-infinite-scroller";
+
+const ProtocolItems = memo(({ protocols }: { protocols: any }) => {
+  return protocols.map((tp: any, index: number, arr: any) => (
+    <>
+      <Link key={tp.id} href={tp.url} target="_blank" className="block w-full">
+        <div className="w-full flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Image
+              src={tp.logo}
+              alt={tp.name}
+              width={38}
+              height={38}
+              className="rounded-[12px] object-cover"
+              style={{ aspectRatio: "1 / 1" }}
+              loading="lazy"
+            />
+            <div className="space-y-[2px]">
+              <p className="font-semibold leading-[120%]">{tp.name}</p>
+              <p className="font-medium text-[10px] leading-[120%] text-black-70">
+                {tp.category}
+              </p>
+            </div>
+          </div>
+          <div className="space-y-[2px] text-end">
+            <p className="font-semibold leading-[120%]">
+              ${formatNumber(tp.tvl)}
+            </p>
+            <p
+              className={`font-medium text-[10px] leading-[120%] ${
+                tp.change_1d >= 0 ? "text-good" : "text-bad"
+              }`}
+            >
+              {formatNumber(tp.change_1d)}%
+            </p>
+          </div>
+        </div>
+      </Link>
+      {index === arr.length - 1 ? null : (
+        <hr className="border-[0.5px] border-t-divider" />
+      )}
+    </>
+  ));
+});
+
+const NftItems = memo(({ nfts }: { nfts: any }) => {
+  return nfts.map((tp: any, index: number, arr: any) => (
+    <>
+      <Link
+        key={tp.collection}
+        href={tp.opensea_url}
+        target="_blank"
+        className="block w-full"
+      >
+        <div className="w-full flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Image
+              src={tp.image_url}
+              alt={tp.name}
+              width={38}
+              height={38}
+              className="rounded-[12px] object-cover"
+              style={{ aspectRatio: "1 / 1" }}
+              loading="lazy"
+            />
+            <div className="space-y-[2px]">
+              <p className="font-semibold leading-[120%]">{tp.name}</p>
+              <p className="font-medium text-[10px] leading-[120%] text-black-70 capitalize">
+                {tp.category}
+              </p>
+            </div>
+          </div>
+        </div>
+      </Link>
+      {index === arr.length - 1 ? null : (
+        <hr className="border-[0.5px] border-t-divider" />
+      )}
+    </>
+  ));
+});
+
+const TokenItems = memo(({ tokens }: { tokens: any }) => {
+  return tokens.map((tp: any, index: number, arr: any) => (
+    <>
+      <Link
+        key={tp.symbol}
+        href={tp.url}
+        target="_blank"
+        className="block w-full"
+      >
+        <div className="w-full flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Image
+              src={tp.image}
+              alt={tp.name}
+              width={38}
+              height={38}
+              className="rounded-[12px] object-cover"
+              style={{ aspectRatio: "1 / 1" }}
+              loading="lazy"
+            />
+            <div className="space-y-[2px]">
+              <p className="font-semibold leading-[120%]">{tp.name}</p>
+              <p className="font-medium text-[10px] leading-[120%] text-black-70">
+                {tp.symbol}
+              </p>
+            </div>
+          </div>
+          <div className="space-y-[2px] text-end">
+            <p className="font-semibold leading-[120%]">
+              ${formatNumber(tp.price)}
+            </p>
+            <p
+              className={`font-medium text-[10px] leading-[120%] ${
+                tp.change_1d >= 0 ? "text-good" : "text-bad"
+              }`}
+            >
+              {formatNumber(tp.change_1d)}%
+            </p>
+          </div>
+        </div>
+      </Link>
+      {index === arr.length - 1 ? null : (
+        <hr className="border-[0.5px] border-t-divider" />
+      )}
+    </>
+  ));
+});
 
 const tabs = [
   {
@@ -22,7 +150,7 @@ const tabs = [
   },
 ];
 
-const Hub: FC = () => {
+const Hub: FC = memo(() => {
   const [inputSearch, setInputSearch] = useState("");
   const [debouncedInputSearch, setDebouncedInputSearch] = useState("");
   const [changeView, setChangeView] = useState(false);
@@ -62,7 +190,7 @@ const Hub: FC = () => {
   >([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchTopProtocols = async () => {
+  const fetchTopProtocols = useCallback(async () => {
     try {
       setLoading(true);
       const resp = await fetch(`/api/top-protocols`);
@@ -73,9 +201,9 @@ const Hub: FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchTopNfts = async () => {
+  const fetchTopNfts = useCallback(async () => {
     try {
       setLoading(true);
       const resp = await fetch(`/api/top-nfts`);
@@ -86,8 +214,9 @@ const Hub: FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-  const fetchTopTokens = async () => {
+  }, []);
+
+  const fetchTopTokens = useCallback(async () => {
     try {
       setLoading(true);
       const resp = await fetch(`/api/top-tokens`);
@@ -98,16 +227,14 @@ const Hub: FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedInputSearch(inputSearch.trim());
     }, 700);
 
-    return () => {
-      clearTimeout(handler);
-    };
+    return () => clearTimeout(handler);
   }, [inputSearch]);
 
   useEffect(() => {
@@ -151,12 +278,14 @@ const Hub: FC = () => {
       <div className="flex-1 p-4 bg-white min-h-dvh">
         <div className="w-full flex items-center gap-1 mb-4">
           <div className="w-full grow items-center bg-frame-btn-bg relative rounded-[12px] py-2 pl-[42px] pr-4">
-            <img
+            <Image
               src="/icons/input-search-icon.svg"
               alt="input-search"
               width={22}
               height={22}
               className="absolute left-[16px]"
+              loading="lazy"
+              style={{ aspectRatio: "1 / 1" }}
             />
             <input
               className="p-0 outline-none border-none w-full bg-inherit placeholder:text-black-40"
@@ -213,128 +342,19 @@ const Hub: FC = () => {
         ) : (
           <InfiniteScroller pageStart={0} loadMore={() => {}}>
             <div className="flex flex-col w-full gap-3">
-              {selectedTab === "apps"
-                ? filteredProtocols.map((tp, index, arr) => (
-                    <>
-                      <Link
-                        key={tp.id}
-                        href={tp.url}
-                        target="_blank"
-                        className="block w-full"
-                      >
-                        <div className="w-full flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <img
-                              src={tp.logo}
-                              className="w-[38px] h-[38px] rounded-[12px] object-cover"
-                            />
-                            <div className="space-y-[2px]">
-                              <p className="font-semibold leading-[120%]">
-                                {tp.name}
-                              </p>
-                              <p className="font-medium text-[10px] leading-[120%] text-black-70">
-                                {tp.category}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="space-y-[2px] text-end">
-                            <p className="font-semibold leading-[120%]">
-                              ${formatNumber(tp.tvl)}
-                            </p>
-                            <p
-                              className={`font-medium text-[10px] leading-[120%] ${
-                                tp.change_1d >= 0 ? "text-good" : "text-bad"
-                              }`}
-                            >
-                              {formatNumber(tp.change_1d)}%
-                            </p>
-                          </div>
-                        </div>
-                      </Link>
-                      {index === arr.length - 1 ? null : (
-                        <hr className="border-[0.5px] border-t-divider" />
-                      )}
-                    </>
-                  ))
-                : selectedTab === "nfts"
-                ? filteredNfts.map((tp, index, arr) => (
-                    <>
-                      <Link
-                        key={tp.collection}
-                        href={tp.opensea_url}
-                        target="_blank"
-                        className="block w-full"
-                      >
-                        <div className="w-full flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <img
-                              src={tp.image_url}
-                              className="w-[38px] h-[38px] rounded-[12px] object-cover"
-                            />
-                            <div className="space-y-[2px]">
-                              <p className="font-semibold leading-[120%]">
-                                {tp.name}
-                              </p>
-                              <p className="font-medium text-[10px] leading-[120%] text-black-70 capitalize">
-                                {tp.category}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                      {index === arr.length - 1 ? null : (
-                        <hr className="border-[0.5px] border-t-divider" />
-                      )}
-                    </>
-                  ))
-                : filteredTokens.map((tp, index, arr) => (
-                    <>
-                      <Link
-                        key={tp.symbol}
-                        href={tp.url}
-                        target="_blank"
-                        className="block w-full"
-                      >
-                        <div className="w-full flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <img
-                              src={tp.image}
-                              className="w-[38px] h-[38px] rounded-[12px] object-cover"
-                            />
-                            <div className="space-y-[2px]">
-                              <p className="font-semibold leading-[120%]">
-                                {tp.name}
-                              </p>
-                              <p className="font-medium text-[10px] leading-[120%] text-black-70">
-                                {tp.symbol}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="space-y-[2px] text-end">
-                            <p className="font-semibold leading-[120%]">
-                              ${formatNumber(tp.price)}
-                            </p>
-                            <p
-                              className={`font-medium text-[10px] leading-[120%] ${
-                                tp.change_1d >= 0 ? "text-good" : "text-bad"
-                              }`}
-                            >
-                              {formatNumber(tp.change_1d)}%
-                            </p>
-                          </div>
-                        </div>
-                      </Link>
-                      {index === arr.length - 1 ? null : (
-                        <hr className="border-[0.5px] border-t-divider" />
-                      )}
-                    </>
-                  ))}
+              {selectedTab === "apps" ? (
+                <ProtocolItems protocols={filteredProtocols} />
+              ) : selectedTab === "nfts" ? (
+                <NftItems nfts={filteredNfts} />
+              ) : (
+                <TokenItems tokens={filteredTokens} />
+              )}
             </div>
           </InfiniteScroller>
         )}
       </div>
     </>
   );
-};
+});
 
 export default Hub;

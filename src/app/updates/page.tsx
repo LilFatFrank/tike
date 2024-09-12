@@ -1,7 +1,8 @@
 "use client";
-import { FC, useState } from "react";
+import { FC, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import ForYou from "./for-you";
+import Image from "next/image";
 
 const Updates: FC = () => {
   const [selectedTab, setSelectedTab] = useState<
@@ -9,18 +10,20 @@ const Updates: FC = () => {
   >("all");
 
   const { back } = useRouter();
+  const handleBack = useCallback(() => back(), [back]);
 
   return (
     <>
       <div className="flex-1 bg-white min-h-full">
         <div className="w-full py-3 px-4 flex items-center justify-start gap-1">
-          <img
+          <Image
             src="/icons/back-icon.svg"
             alt="back"
             width={24}
             height={24}
             className="cursor-pointer"
-            onClick={back}
+            onClick={handleBack}
+            loading="lazy"
           />
           <p className="text-[20px] font-medium leading-[100%]">Updates</p>
         </div>

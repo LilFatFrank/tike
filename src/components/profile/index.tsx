@@ -5,10 +5,11 @@ import {
   ButtonHTMLAttributes,
   DetailedHTMLProps,
   FC,
+  memo,
+  useCallback,
   useEffect,
   useState,
 } from "react";
-import Spinner from "../spinner";
 import { useInfiniteQuery } from "react-query";
 import { useInView } from "react-intersection-observer";
 import Cast from "../cast";
@@ -21,6 +22,105 @@ import cn from "@/utils/cn";
 import { toast } from "sonner";
 import EditProfile from "./edit-profile";
 
+const CastsList = memo(({ casts, router }: { casts: any; router: any }) => {
+  return casts.map((cast: any, castIndex: number, arr: any[]) =>
+    cast.embeds[0].url ? (
+      <span
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          router.push(`/cast/${cast.parent_hash || cast.hash}`);
+        }}
+        key={cast.hash}
+        className="cursor-pointer"
+      >
+        {cast.embedType === "frame" ? (
+          <Frame
+            frame={cast}
+            key={`profile-cast-${cast.hash}`}
+            style={{ paddingRight: 0, paddingLeft: 0 }}
+          />
+        ) : (
+          <Cast
+            cast={cast}
+            key={`profile-cast-${cast.hash}`}
+            style={{ paddingRight: 0, paddingLeft: 0 }}
+          />
+        )}
+        {castIndex === arr.length - 1 ? null : (
+          <hr className="border border-t-divider" />
+        )}
+      </span>
+    ) : null
+  );
+});
+
+const MediaList = memo(({ casts, router }: { casts: any; router: any }) => {
+  return (
+    <div className="grid grid-cols-3 gap-2 w-full py-5">
+      {casts.map((cast: any) =>
+        cast.embedType === "frame" || cast.embedType === "youtube" ? null : (
+          <span
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              router.push(`/cast/${cast.parent_hash || cast.hash}`);
+            }}
+            key={`profile-cast-${cast.hash}`}
+            className="cursor-pointer w-full aspect-square rounded-[12px]"
+          >
+            <EmbedRenderer
+              type={cast.embedType === "audio" ? "image" : cast.embedType}
+              url={
+                cast.embedType === "audio"
+                  ? cast?.embeds[1]?.url
+                  : cast?.embeds[0]?.url
+              }
+              author={cast?.author?.username}
+              className={"object-cover"}
+            />
+          </span>
+        )
+      )}
+    </div>
+  );
+});
+
+const RecastsRepliesList = memo(
+  ({ casts, router }: { casts: any; router: any }) => {
+    return casts.map((cast: any, castIndex: number, arr: any[]) =>
+      cast.embeds[0].url ? (
+        <span
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            router.push(`/cast/${cast.parent_hash || cast.hash}`);
+          }}
+          key={cast.hash}
+          className="cursor-pointer"
+        >
+          {cast.embedType === "frame" ? (
+            <Frame
+              frame={cast}
+              key={`profile-cast-${cast.hash}`}
+              style={{ paddingRight: 0, paddingLeft: 0 }}
+            />
+          ) : (
+            <Cast
+              cast={cast}
+              key={`profile-cast-${cast.hash}`}
+              style={{ paddingRight: 0, paddingLeft: 0 }}
+            />
+          )}
+          {castIndex === arr.length - 1 ? null : (
+            <hr className="border border-t-divider" />
+          )}
+        </span>
+      ) : null
+    );
+  }
+);
+
 interface Button
   extends DetailedHTMLProps<
     ButtonHTMLAttributes<HTMLButtonElement>,
@@ -29,72 +129,32 @@ interface Button
   buttonType?: "default" | "alternate" | "edit";
 }
 
-const Button: FC<Button> = ({
-  buttonType = "default",
-  className,
-  ...props
-}) => {
-  return (
-    <button
-      className={cn(
-        `py-2 px-4 text-[16px] leading-[19px] font-medium rounded-[16px] ${
-          buttonType === "edit"
-            ? "bg-[#00000005] border-[1px] border-black-20"
-            : buttonType === "alternate"
-            ? "bg-black text-white"
-            : "bg-white text-black ring-1 ring-inset ring-black"
-        }`,
-        className
-      )}
-      onClick={props.onClick}
-    >
-      {props.children}
-    </button>
-  );
-};
+const Button: FC<Button> = memo(
+  ({ buttonType = "default", className, ...props }) => {
+    return (
+      <button
+        className={cn(
+          `py-2 px-4 text-[16px] leading-[19px] font-medium rounded-[16px] ${
+            buttonType === "edit"
+              ? "bg-[#00000005] border-[1px] border-black-20"
+              : buttonType === "alternate"
+              ? "bg-black text-white"
+              : "bg-white text-black ring-1 ring-inset ring-black"
+          }`,
+          className
+        )}
+        onClick={props.onClick}
+      >
+        {props.children}
+      </button>
+    );
+  }
+);
 
 interface ApiResponse {
   casts: any;
   next: { cursor: string };
 }
-
-const fetchProfileCasts = async ({
-  pageParam = "",
-  queryKey,
-}: {
-  pageParam?: string;
-  queryKey: any;
-}): Promise<ApiResponse> => {
-  const [_key, { fid, viewerFid }] = queryKey;
-  const response = await fetch(`/api/profile-casts`, {
-    method: "POST",
-    body: JSON.stringify({ cursor: pageParam, fid, viewerFid }),
-  });
-  if (!response.ok) {
-    throw new Error("Network response was not ok");
-  }
-  const data = await response.json();
-  return data;
-};
-
-const fetchRecastsReplies = async ({
-  pageParam = "",
-  queryKey,
-}: {
-  pageParam?: string;
-  queryKey: any;
-}): Promise<ApiResponse> => {
-  const [_key, { fid, viewerFid }] = queryKey;
-  const response = await fetch(`/api/replies-recasts`, {
-    method: "POST",
-    body: JSON.stringify({ cursor: pageParam, fid, viewerFid }),
-  });
-  if (!response.ok) {
-    throw new Error("Network response was not ok");
-  }
-  const data = await response.json();
-  return data;
-};
 
 const tabs = [
   {
@@ -115,7 +175,7 @@ interface Profile {
   fid: number;
 }
 
-const Profile: FC<Profile> = ({ fid }) => {
+const Profile: FC<Profile> = memo(({ fid }) => {
   const { user, logoutUser } = useNeynarContext();
   const [selectedTab, setSelectedTab] = useState<
     "casts" | "recasts_replies" | "media"
@@ -125,6 +185,50 @@ const Profile: FC<Profile> = ({ fid }) => {
     "log-out" | "copy-profile" | ""
   >("");
   const [openEditProfile, setOpenEditProfile] = useState(false);
+
+  const fetchProfileCasts = useCallback(
+    async ({
+      pageParam = "",
+      queryKey,
+    }: {
+      pageParam?: string;
+      queryKey: any;
+    }): Promise<ApiResponse> => {
+      const [_key, { fid, viewerFid }] = queryKey;
+      const response = await fetch(`/api/profile-casts`, {
+        method: "POST",
+        body: JSON.stringify({ cursor: pageParam, fid, viewerFid }),
+      });
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data = await response.json();
+      return data;
+    },
+    []
+  );
+
+  const fetchRecastsReplies = useCallback(
+    async ({
+      pageParam = "",
+      queryKey,
+    }: {
+      pageParam?: string;
+      queryKey: any;
+    }): Promise<ApiResponse> => {
+      const [_key, { fid, viewerFid }] = queryKey;
+      const response = await fetch(`/api/replies-recasts`, {
+        method: "POST",
+        body: JSON.stringify({ cursor: pageParam, fid, viewerFid }),
+      });
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data = await response.json();
+      return data;
+    },
+    []
+  );
 
   const {
     data,
@@ -142,6 +246,8 @@ const Profile: FC<Profile> = ({ fid }) => {
         return lastPage.next?.cursor ?? false;
       },
       refetchOnWindowFocus: false,
+      staleTime: 60000,
+      cacheTime: 3600000,
     }
   );
 
@@ -162,6 +268,8 @@ const Profile: FC<Profile> = ({ fid }) => {
       },
       refetchOnWindowFocus: false,
       enabled: selectedTab === "recasts_replies",
+      staleTime: 60000,
+      cacheTime: 3600000,
     }
   );
 
@@ -177,15 +285,30 @@ const Profile: FC<Profile> = ({ fid }) => {
 
   const router = useRouter();
 
-  useEffect(() => {
+  const handleFetchNextPage = useCallback(() => {
     if (
       (selectedTab === "casts" || selectedTab === "media") &&
       (inView || mInView) &&
       hasNextPage
     ) {
       fetchNextPage();
+    } else if (selectedTab === "recasts_replies" && rrInView && rrHasNextPage) {
+      rrFetchNextPage();
     }
-  }, [inView, mInView, hasNextPage, fetchNextPage, selectedTab]);
+  }, [
+    selectedTab,
+    inView,
+    mInView,
+    hasNextPage,
+    fetchNextPage,
+    rrInView,
+    rrHasNextPage,
+    rrFetchNextPage,
+  ]);
+
+  useEffect(() => {
+    handleFetchNextPage();
+  }, [handleFetchNextPage]);
 
   useEffect(() => {
     if (selectedTab === "recasts_replies" && rrInView && rrHasNextPage) {
@@ -199,6 +322,21 @@ const Profile: FC<Profile> = ({ fid }) => {
   const [userPro, setUserPro] = useState<IUser>();
   const [errorPro, setErrorPro] = useState(false);
   const [loadingPro, setLoadingPro] = useState(false);
+
+  const handleTabChange = useCallback((tab: typeof selectedTab) => {
+    setSelectedTab(tab);
+  }, []);
+
+  const handleProfileOptionsToggle = useCallback(() => {
+    setOpenProfileOptions((prev) => !prev);
+  }, []);
+
+  const handleCopyProfileLink = useCallback(() => {
+    window.navigator.clipboard.writeText(
+      `${window.location.origin}/profile/${userPro?.fid}`
+    );
+    toast.success("Profile Link copied!");
+  }, [userPro?.fid]);
 
   const fetchUserProfile = async () => {
     try {
@@ -310,9 +448,7 @@ const Profile: FC<Profile> = ({ fid }) => {
                     <div className="relative">
                       <div
                         className="rounded-full bg-[#00000005] border-black-20 border-[1px] p-2"
-                        onClick={() =>
-                          setOpenProfileOptions(!openProfileOptions)
-                        }
+                        onClick={handleProfileOptionsToggle}
                       >
                         <img
                           src="/icons/cast-more-icon.svg"
@@ -338,10 +474,7 @@ const Profile: FC<Profile> = ({ fid }) => {
                               e.stopPropagation();
                               e.preventDefault();
                               setProfileOptionType("copy-profile");
-                              window.navigator.clipboard.writeText(
-                                `${window.location.origin}/profile/${userPro?.fid}`
-                              );
-                              toast.success("Profile Link copied!");
+                              handleCopyProfileLink();
                             }}
                           >
                             <img
@@ -428,9 +561,9 @@ const Profile: FC<Profile> = ({ fid }) => {
                         ? "text-black border-b-2 border-b-purple"
                         : "text-tab-unselected-color"
                     } pb-[2px] cursor-pointer`}
-                    onClick={() => {
-                      setSelectedTab(t.value as typeof selectedTab);
-                    }}
+                    onClick={() =>
+                      handleTabChange(t.value as typeof selectedTab)
+                    }
                   >
                     {t.label}
                   </p>
@@ -438,37 +571,7 @@ const Profile: FC<Profile> = ({ fid }) => {
               </div>
               {selectedTab === "casts" ? (
                 <>
-                  {allProfileCasts.map((cast, castIndex, arr) =>
-                    cast.embeds[0].url ? (
-                      <span
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          router.push(`/cast/${cast.parent_hash || cast.hash}`);
-                        }}
-                        key={cast.hash}
-                        className="cursor-pointer"
-                      >
-                        {cast.embedType === "frame" ? (
-                          <Frame
-                            frame={cast}
-                            key={`profile-cast-${cast.hash}`}
-                            style={{ paddingRight: 0, paddingLeft: 0 }}
-                          />
-                        ) : (
-                          <Cast
-                            cast={cast}
-                            key={`profile-cast-${cast.hash}`}
-                            style={{ paddingRight: 0, paddingLeft: 0 }}
-                          />
-                        )}
-                        {castIndex === arr.length - 1 ? null : (
-                          <hr className="border border-t-divider" />
-                        )}
-                      </span>
-                    ) : null
-                  )}
-
+                  {<CastsList casts={allProfileCasts} router={router} />}
                   {(isFetchingNextPage || isLoading) && !error ? (
                     <div className="p-2">
                       {Array.from({ length: 3 }).map((_, index) => (
@@ -485,9 +588,7 @@ const Profile: FC<Profile> = ({ fid }) => {
                       ))}
                     </div>
                   ) : null}
-
                   <div ref={ref} style={{ height: "80px" }}></div>
-
                   {allProfileCasts && allProfileCasts.length && !hasNextPage ? (
                     <p className="w-full items-center justify-center py-2 text-center">
                       End of the line!
@@ -496,43 +597,11 @@ const Profile: FC<Profile> = ({ fid }) => {
                 </>
               ) : selectedTab === "media" ? (
                 <>
-                  <div className="grid grid-cols-3 gap-2 w-full py-5">
-                    {allProfileCasts.map((cast) =>
-                      cast.embedType === "frame" ||
-                      cast.embedType === "youtube" ? null : (
-                        <span
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            router.push(
-                              `/cast/${cast.parent_hash || cast.hash}`
-                            );
-                          }}
-                          key={`profile-cast-${cast.hash}`}
-                          className="cursor-pointer w-full aspect-square rounded-[12px]"
-                        >
-                          <EmbedRenderer
-                            type={
-                              cast.embedType === "audio"
-                                ? "image"
-                                : cast.embedType
-                            }
-                            url={
-                              cast.embedType === "audio"
-                                ? cast?.embeds[1]?.url
-                                : cast?.embeds[0]?.url
-                            }
-                            author={cast?.author?.username}
-                            className={"object-cover"}
-                          />
-                        </span>
-                      )
-                    )}
-                  </div>
+                  {<MediaList casts={allProfileCasts} router={router} />}
 
                   {(isFetchingNextPage || isLoading) && !error ? (
                     <div className="grid grid-cols-3 gap-2 w-full">
-                      {Array.from({ length: 12 }).map((_, index) => (
+                      {Array.from({ length: 3 }).map((_, index) => (
                         <div
                           className="aspect-square rounded-[12px] bg-divider animate-pulse w-full"
                           key={index}
@@ -551,36 +620,12 @@ const Profile: FC<Profile> = ({ fid }) => {
                 </>
               ) : (
                 <>
-                  {allRepliesRecasts.map((cast, castIndex, arr) =>
-                    cast.embeds[0].url ? (
-                      <span
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          router.push(`/cast/${cast.parent_hash || cast.hash}`);
-                        }}
-                        key={cast.hash}
-                        className="cursor-pointer"
-                      >
-                        {cast.embedType === "frame" ? (
-                          <Frame
-                            frame={cast}
-                            key={`profile-cast-${cast.hash}`}
-                            style={{ paddingRight: 0, paddingLeft: 0 }}
-                          />
-                        ) : (
-                          <Cast
-                            cast={cast}
-                            key={`profile-cast-${cast.hash}`}
-                            style={{ paddingRight: 0, paddingLeft: 0 }}
-                          />
-                        )}
-                        {castIndex === arr.length - 1 ? null : (
-                          <hr className="border border-t-divider" />
-                        )}
-                      </span>
-                    ) : null
-                  )}
+                  {
+                    <RecastsRepliesList
+                      casts={allRepliesRecasts}
+                      router={router}
+                    />
+                  }
 
                   {(rrIsFetchingNextPage || rrIsLoading) && !rrError ? (
                     <div className="p-2">
@@ -626,6 +671,6 @@ const Profile: FC<Profile> = ({ fid }) => {
       />
     </>
   );
-};
+});
 
 export default Profile;

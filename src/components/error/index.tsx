@@ -1,4 +1,5 @@
-import React from "react";
+import Image from "next/image";
+import { memo } from "react";
 
 interface ErrorProps {
   type?: "error" | "404";
@@ -7,7 +8,7 @@ interface ErrorProps {
   buttonAction?: () => void;
 }
 
-const Error: React.FC<ErrorProps> = ({
+const Error: React.FC<ErrorProps> = memo(({
   type,
   message,
   buttonLabel,
@@ -15,12 +16,15 @@ const Error: React.FC<ErrorProps> = ({
 }) => {
   return (
     <>
-      <img
+      <Image
         src={
           type === "404" ? "/images/404-image.png" : "/images/error-image.png"
         }
         alt={type === "404" ? "404" : "error"}
         className="fixed w-full h-full md:w-[550px] md:h-[calc(100dvh-40px)] object-cover z-[-2]"
+        width={550}
+        height={550}
+        quality={100}
       />
       <div className="flex flex-col items-center justify-end gap-[10px] h-full pb-[90px] max-w-[400px] mx-auto text-center">
         <p className="text-white text-[24px] font-semibold leading-[28px]">
@@ -38,7 +42,8 @@ const Error: React.FC<ErrorProps> = ({
         }
       </div>
     </>
-  );
-};
+    );
+  }
+);
 
 export default Error;

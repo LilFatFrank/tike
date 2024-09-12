@@ -1,17 +1,45 @@
 "use client";
 import { useNeynarContext } from "@neynar/react";
-import { FC, useContext, useEffect } from "react";
+import { FC, memo, useCallback, useContext, useEffect, useMemo } from "react";
 import { useInView } from "react-intersection-observer";
 import { useInfiniteQuery } from "react-query";
-import Spinner from "../spinner";
 import { AppContext } from "@/context";
 import { SET_USER_CHANNELS } from "@/context/actions";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface ApiResponse {
   channels: any;
   next: { cursor: string };
 }
+
+const ChannelItem = memo(
+  ({
+    channel,
+    onClick,
+  }: {
+    channel: { image_url: string; name: string };
+    onClick: () => void;
+  }) => (
+    <span onClick={onClick} className="flex-shrink-0 cursor-pointer">
+      <div className="flex flex-col items-center justify-center gap-1 cursor-pointer">
+        <div className="w-[60px] h-[60px] rounded-[16px] border border-black-20 bg-frame-btn-bg">
+          <Image
+            src={channel.image_url}
+            alt={channel.name}
+            className="w-full h-full rounded-[16px] object-cover"
+            width={60}
+            height={60}
+            loading="lazy"
+          />
+        </div>
+        <p className="text-[11px] font-normal w-[9ch] text-center text-ellipsis overflow-hidden whitespace-nowrap">
+          {channel.name}
+        </p>
+      </div>
+    </span>
+  )
+);
 
 const fetchChannels = async ({
   pageParam = "",
@@ -32,9 +60,9 @@ const fetchChannels = async ({
   return data;
 };
 
-const UserChannels: FC = () => {
+const UserChannels: FC = memo(() => {
   const { user } = useNeynarContext();
-  const [state, dispatch] = useContext(AppContext);
+  const [, dispatch] = useContext(AppContext);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery(
@@ -45,6 +73,8 @@ const UserChannels: FC = () => {
           return lastPage.next?.cursor ?? false;
         },
         refetchOnWindowFocus: false,
+        staleTime: 60000,
+        cacheTime: 3600000,
       }
     );
 
@@ -54,43 +84,40 @@ const UserChannels: FC = () => {
 
   const router = useRouter();
 
-  useEffect(() => {
+  const handleFetchNextPage = useCallback(() => {
     if (inView && hasNextPage) {
       fetchNextPage();
     }
   }, [inView, hasNextPage, fetchNextPage]);
 
+  const allChannels = useMemo(
+    () => data?.pages.flatMap((page) => page.channels) ?? [],
+    [data]
+  );
+
+  useEffect(() => {
+    if (inView && hasNextPage) {
+      handleFetchNextPage();
+    }
+  }, [handleFetchNextPage]);
+
   useEffect(() => {
     dispatch({
       type: SET_USER_CHANNELS,
-      payload: data?.pages.flatMap((page) => page.channels) ?? [],
+      payload: allChannels,
     });
-  }, [data]);
+  }, [allChannels, dispatch]);
 
   return (
     <div className="pt-[10px] pb-[20px] pl-[16px] flex items-center justify-start gap-4 overflow-x-auto whitespace-nowrap no-scrollbar">
-      {state.userChannels.map((channel) => (
-        <span
-          onClick={() => router.push(`/channel/${channel.id}`)}
-          className="flex-shrink-0 cursor-pointer"
-          key={`${channel.id}`}
-        >
-          <div
-            className="flex flex-col items-center justify-center gap-1 cursor-pointer"
-            key={channel.id}
-          >
-            <div className="w-[60px] h-[60px] rounded-[16px] border border-black-20 bg-frame-btn-bg">
-              <img
-                src={channel.image_url}
-                alt={channel.name}
-                className="w-full h-full rounded-[16px] object-cover"
-              />
-            </div>
-            <p className="text-[11px] font-normal w-[9ch] text-center text-ellipsis overflow-hidden whitespace-nowrap">
-              {channel.name}
-            </p>
-          </div>
-        </span>
+      {allChannels.map((channel) => (
+        <ChannelItem
+          key={channel.id}
+          channel={channel}
+          onClick={() => {
+            router.push(`/channel/${channel.id}`);
+          }}
+        />
       ))}
 
       {isFetchingNextPage ? (
@@ -107,6 +134,6 @@ const UserChannels: FC = () => {
       <div ref={ref} style={{ width: "20px", height: "20px" }}></div>
     </div>
   );
-};
+});
 
 export default UserChannels;

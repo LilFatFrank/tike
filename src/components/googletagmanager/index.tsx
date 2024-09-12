@@ -1,35 +1,47 @@
 "use client";
-import { FC, useEffect } from "react";
-
+import { FC, useEffect, useCallback, useMemo, memo } from "react";
+import Script from "next/script";
 interface GoogleTagManager {
   gtmId: string;
 }
 
-export const GoogleTagManager: FC<GoogleTagManager> = ({ gtmId }) => {
-  useEffect(() => {
+const createGTMScript = (gtmId: string) => {
+  return `
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '${gtmId}');
+  `;
+};
+
+const GoogleTagManager: FC<GoogleTagManager> = memo(({ gtmId }) => {
+  const trackPageView = useCallback(() => {
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({
       event: "page_view",
       page: window.location.href,
     });
-  }, [gtmId]);
+  }, []);
+
+  useEffect(() => {
+    trackPageView();
+  }, [trackPageView]);
+
+  const scriptContent = useMemo(() => createGTMScript(gtmId), [gtmId]);
 
   return (
     <>
-      <script
+      <Script
         async
         src={`https://www.googletagmanager.com/gtag/js?id=${gtmId}`}
-      ></script>
-      <script
+      />
+      <Script
         dangerouslySetInnerHTML={{
-          __html: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${gtmId}');
-          `,
+          __html: scriptContent,
         }}
       />
     </>
   );
-};
+});
+
+export default GoogleTagManager;
