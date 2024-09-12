@@ -13,10 +13,14 @@ const useNotFoundEffect = () => {
 };
 
 const NotFound = memo(() => {
+  const [, dispatch] = useContext(AppContext);
   const router = useRouter();
   useNotFoundEffect();
 
-  const handleGoHome = useCallback(() => router.push("/"), [router]);
+  const handleGoHome = useCallback(() => {
+    dispatch({ type: SET_PAGE_NOT_FOUND, payload: false });
+    router.push("/");
+  }, [router, dispatch]);
 
   return (
     <Error
