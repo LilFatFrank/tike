@@ -22,7 +22,7 @@ const VideoEmbed = memo(
     return (
       <video
         controls
-        autoPlay
+        autoPlay={false}
         muted
         className={`w-full h-full object-contain rounded-[10px] ${
           className || ""
