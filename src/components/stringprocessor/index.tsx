@@ -37,11 +37,20 @@ const StringProcessor: React.FC<StringProcessorProps> = memo(
       [router]
     );
 
-    const handleReadToggle = useCallback(
+    const handleReadMore = useCallback(
       (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
         e.stopPropagation();
         e.preventDefault();
-        setExpanded(!expanded);
+        setExpanded(true);
+      },
+      []
+    );
+
+    const handleShowLess = useCallback(
+      (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+        e.stopPropagation();
+        e.preventDefault();
+        setExpanded(false);
       },
       []
     );
@@ -79,7 +88,7 @@ const StringProcessor: React.FC<StringProcessorProps> = memo(
             );
           } else {
             // This part is not a URL, process it for mentions and tags
-            const tokenRegex = /(@[\w_.-]+|(?<!\S)\/\w+(?!\S))/g;
+            const tokenRegex = /(@[\w_.-]+|(?<!\S)\/[\w-]+(?!\S))/g;
             let lastIndex = 0;
             let match;
 
@@ -190,7 +199,7 @@ const StringProcessor: React.FC<StringProcessorProps> = memo(
           {shouldTruncate ? (
             <span
               className="text-purple cursor-pointer"
-              onClick={handleReadToggle}
+              onClick={handleReadMore}
             >
               &nbsp;...Read More
             </span>
@@ -198,7 +207,7 @@ const StringProcessor: React.FC<StringProcessorProps> = memo(
           {expanded && contentLength > maxLength ? (
             <span
               className="text-purple cursor-pointer block w-fit"
-              onClick={handleReadToggle}
+              onClick={handleShowLess}
             >
               Show Less
             </span>
