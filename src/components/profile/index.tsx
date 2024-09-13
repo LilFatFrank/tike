@@ -1,15 +1,7 @@
 "use client";
 import { useNeynarContext } from "@neynar/react";
 import { IUser } from "@neynar/react/dist/types/common";
-import {
-  ButtonHTMLAttributes,
-  DetailedHTMLProps,
-  FC,
-  memo,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { FC, memo, useCallback, useEffect, useState } from "react";
 import { useInfiniteQuery } from "react-query";
 import { useInView } from "react-intersection-observer";
 import Cast from "../cast";
@@ -18,7 +10,7 @@ import Frame from "../frame";
 import StringProcessor from "../stringprocessor";
 import { useRouter } from "next/navigation";
 import EmbedRenderer from "../embedrenderer";
-import cn from "@/utils/cn";
+import ProfileButton from "../profilebutton";
 import { toast } from "sonner";
 import EditProfile from "./edit-profile";
 import Image from "next/image";
@@ -118,36 +110,6 @@ const RecastsRepliesList = memo(
           )}
         </span>
       ) : null
-    );
-  }
-);
-
-interface Button
-  extends DetailedHTMLProps<
-    ButtonHTMLAttributes<HTMLButtonElement>,
-    HTMLButtonElement
-  > {
-  buttonType?: "default" | "alternate" | "edit";
-}
-
-const Button: FC<Button> = memo(
-  ({ buttonType = "default", className, ...props }) => {
-    return (
-      <button
-        className={cn(
-          `py-2 px-4 text-[16px] leading-[19px] font-medium rounded-[16px] ${
-            buttonType === "edit"
-              ? "bg-[#00000005] border-[1px] border-black-20"
-              : buttonType === "alternate"
-              ? "bg-black text-white"
-              : "bg-white text-black ring-1 ring-inset ring-black"
-          }`,
-          className
-        )}
-        onClick={props.onClick}
-      >
-        {props.children}
-      </button>
     );
   }
 );
@@ -436,18 +398,18 @@ const Profile: FC<Profile> = memo(({ fid }) => {
               />
               <div className="flex justify-end gap-2 items-center">
                 {user?.fid === Number(fid) ? (
-                  <Button
+                  <ProfileButton
                     onClick={() => setOpenEditProfile(true)}
                     buttonType="edit"
                   >
                     Edit Profile
-                  </Button>
+                  </ProfileButton>
                 ) : userPro?.viewer_context?.following ? (
-                  <Button onClick={unfollowUser}>Unfollow</Button>
+                  <ProfileButton onClick={unfollowUser}>Unfollow</ProfileButton>
                 ) : !userPro?.viewer_context?.following ? (
-                  <Button buttonType="alternate" onClick={followUser}>
+                  <ProfileButton buttonType="alternate" onClick={followUser}>
                     Follow
-                  </Button>
+                  </ProfileButton>
                 ) : null}
                 {user?.fid === Number(fid) ? (
                   <>
@@ -515,7 +477,7 @@ const Profile: FC<Profile> = memo(({ fid }) => {
                               logoutUser();
                             }}
                           >
-                                <img
+                            <img
                               src="/icons/log-out-icon.svg"
                               alt="delete"
                               className="w-6 h-6"

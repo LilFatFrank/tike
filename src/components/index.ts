@@ -14,4 +14,5 @@ export { default as StringProcessor } from "./stringprocessor";
 export { default as EmbedRenderer } from "./embedrenderer";
 export { default as Error } from "./error";
 export { default as GoogleTagManager } from "./googletagmanager";
+export { default as ProfileButton } from "./profilebutton";
 

@@ -1,5 +1,5 @@
 "use client";
-import { Cast, Frame, StringProcessor } from "@/components";
+import { Cast, Frame, ProfileButton, StringProcessor } from "@/components";
 import formatNumber from "@/utils/formatNumber";
 import { useNeynarContext } from "@neynar/react";
 import Image from "next/image";
@@ -129,6 +129,46 @@ const Channel: FC<{ params: { channelId: number } }> = memo(({ params }) => {
     }
   };
 
+  const followChannel = async () => {
+    const res = await fetch("/api/follow-channel", {
+      method: "POST",
+      body: JSON.stringify({
+        channelId: channelPro?.id,
+        uuid: user?.signer_uuid,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setChannelPro({
+        ...channelPro,
+        ["viewer_context"]: {
+          ...channelPro?.viewer_context,
+          following: !channelPro?.viewer_context?.following,
+        },
+      });
+    }
+  };
+
+  const unfollowChannel = async () => {
+    const res = await fetch("/api/unfollow-channel", {
+      method: "POST",
+      body: JSON.stringify({
+        channelId: channelPro?.id,
+        uuid: user?.signer_uuid,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setChannelPro({
+        ...channelPro,
+        ["viewer_context"]: {
+          ...channelPro?.viewer_context,
+          following: !channelPro?.viewer_context?.following,
+        },
+      });
+    }
+  };
+
   useEffect(() => {
     if (params.channelId) fetchChannelProfile();
   }, [params.channelId]);
@@ -177,7 +217,18 @@ const Channel: FC<{ params: { channelId: number } }> = memo(({ params }) => {
               quality={100}
               loading="lazy"
             />
-            <div className="flex flex-col items-start justify-start gap-3 mt-[40px]">
+            <div className="flex justify-end gap-2 items-center">
+              {channelPro?.viewer_context?.following ? (
+                <ProfileButton onClick={unfollowChannel}>
+                  Unfollow
+                </ProfileButton>
+              ) : !channelPro?.viewer_context?.following ? (
+                <ProfileButton buttonType="alternate" onClick={followChannel}>
+                  Follow
+                </ProfileButton>
+              ) : null}
+            </div>
+            <div className="flex flex-col items-start justify-start gap-3 mt-[12px]">
               <div className="flex flex-col items-start gap-[2px]">
                 <p className="font-bold text-[18px] leading-[auto] text-black">
                   {channelPro?.name}
