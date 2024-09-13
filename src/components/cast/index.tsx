@@ -11,6 +11,7 @@ import axios from "axios";
 import StringProcessor from "../stringprocessor";
 import EmbedRenderer from "../embedrenderer";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface Cast {
   cast: any;
@@ -305,10 +306,15 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
               }}
               className="cursor-pointer"
             >
-              <img
+              <Image
                 className="w-[40px] h-[40px] rounded-[20px] object-cover"
                 src={castDet?.author?.pfp_url}
                 alt={castDet?.author?.username}
+                width={40}
+                height={40}
+                quality={100}
+                loading="lazy"
+                style={{ aspectRatio: "1/1" }}
               />
             </span>
             <div className="flex flex-col items-start gap-[2px]">
@@ -343,7 +349,7 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
           </div>
           {castDet?.author?.fid === user?.fid ? (
             <div className="relative">
-              <img
+              <Image
                 src="/icons/cast-more-icon.svg"
                 alt="cast-more"
                 className="w-6 h-6 cursor-pointer"
@@ -352,6 +358,11 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                   e.preventDefault();
                   setOpenCastOptions(!openCastOptions);
                 }}
+                width={24}
+                height={24}
+                quality={100}
+                loading="lazy"
+                style={{ aspectRatio: "1/1" }}
               />
               <div
                 className={`absolute right-0 top-full bg-white transition-all duration-300 ease-in-out rounded-[18px] shadow-comment-upload-media-modal w-[150px] ${
@@ -374,10 +385,15 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                       deleteCast();
                     }}
                   >
-                    <img
+                    <Image
                       src="/icons/delete-post-icon.svg"
                       alt="delete"
                       className="w-6 h-6"
+                      width={24}
+                      height={24}
+                      quality={100}
+                      loading="lazy"
+                      style={{ aspectRatio: "1/1" }}
                     />
                     <span className="font-medium leading-[22px]">
                       Delete Post
@@ -397,10 +413,15 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                       toast.success("Hash copied!");
                     }}
                   >
-                    <img
+                    <Image
                       src="/icons/copy-hash-icon.svg"
                       alt="delete"
                       className="w-6 h-6"
+                      width={24}
+                      height={24}
+                      quality={100}
+                      loading="lazy"
+                      style={{ aspectRatio: "1/1" }}
                     />
                     <span className="font-medium leading-[22px]">
                       Copy Hash
@@ -442,7 +463,7 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                 );
               }}
             >
-              <img
+              <Image
                 src={
                   castDet?.viewer_context?.liked
                     ? `/icons/like-filled-icon.svg`
@@ -451,6 +472,9 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                 alt="like"
                 width={24}
                 height={24}
+                quality={100}
+                loading="lazy"
+                style={{ aspectRatio: "1/1" }}
               />
               <p className="text-[14px] leading-auto font-normal">
                 {formatNumber(castDet?.reactions?.likes_count)}
@@ -464,11 +488,14 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                 setOpenCommentModal(true);
               }}
             >
-              <img
+              <Image
                 src="/icons/comment-icon.svg"
                 alt="comment"
                 width={24}
                 height={24}
+                quality={100}
+                loading="lazy"
+                style={{ aspectRatio: "1/1" }}
               />
               <p className="text-[14px] leading-auto font-normal">
                 {formatNumber(castDet?.replies?.count)}
@@ -484,7 +511,7 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                 );
               }}
             >
-              <img
+              <Image
                 src={
                   castDet?.viewer_context?.recasted
                     ? `/icons/recast-filled-icon.svg`
@@ -493,6 +520,9 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                 alt="recast"
                 width={24}
                 height={24}
+                quality={100}
+                loading="lazy"
+                style={{ aspectRatio: "1/1" }}
               />
               <p className="text-[14px] leading-auto font-normal">
                 {formatNumber(castDet?.reactions?.recasts_count)}
@@ -510,7 +540,7 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
               toast.success("Link copied!");
             }}
           >
-            <img src="/icons/share.svg" alt="share" width={24} height={24} />
+            <Image src="/icons/share.svg" alt="share" width={24} height={24} quality={100} loading="lazy" style={{ aspectRatio: "1/1" }} />
           </button>
         </div>
       </div>
@@ -531,10 +561,15 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
               setOpenCommentModal(false);
             }}
           >
-            <img
+            <Image
               src="/icons/close-upload-view-icon.svg"
               alt="close"
               className="w-8 h-8"
+              width={32}
+              height={32}
+              quality={100}
+              loading="lazy"
+              style={{ aspectRatio: "1/1" }}
             />
           </button>
         </div>
@@ -561,6 +596,7 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                           src={media.url}
                           alt="media"
                           className="w-full object-cover rounded-lg"
+                          loading="lazy"
                         />
                       ) : media.type === "video" ? (
                         <video
@@ -585,7 +621,7 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
               </div>
             </div>
             <div className="relative flex items-center justify-between pb-3">
-              <img
+              <Image
                 src="/icons/comment-upload-media-icon.svg"
                 alt="upload"
                 className={`w-12 h-[42px] ${
@@ -602,6 +638,11 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                         setOpenCommentMediaModal(!openCommentMediaModal);
                       }
                 }
+                width={48}
+                height={42}
+                quality={100}
+                loading="lazy"
+                style={{ aspectRatio: "1/1" }}
               />
               <div
                 className={`absolute bottom-full bg-white z-[99] transition-all duration-300 ease-in-out p-2 rounded-[18px] shadow-comment-upload-media-modal w-[150px] ${
@@ -622,10 +663,15 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                         : ""
                     } mb-1`}
                   >
-                    <img
+                    <Image
                       src="/icons/video-icon.svg"
                       alt="video"
                       className="w-6 h-6"
+                      width={24}
+                      height={24}
+                      quality={100}
+                      loading="lazy"
+                      style={{ aspectRatio: "1/1" }}
                     />
                     <p className="leading-[22px] capitalize">Video</p>
                   </div>
@@ -664,10 +710,15 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                           : (e) => handleMediaChange(e)
                       }
                     />
-                    <img
+                    <Image
                       src="/icons/music-icon.svg"
                       alt="music"
                       className="w-6 h-6"
+                      width={24}
+                      height={24}
+                      quality={100}
+                      loading="lazy"
+                      style={{ aspectRatio: "1/1" }}
                     />
                     <p className="leading-[22px] capitalize">Music</p>
                   </div>
@@ -696,10 +747,15 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                           : (e) => handleMediaChange(e)
                       }
                     />
-                    <img
+                    <Image
                       src="/icons/image-icon.svg"
                       alt="image"
                       className="w-6 h-6"
+                      width={24}
+                      height={24}
+                      quality={100}
+                      loading="lazy"
+                      style={{ aspectRatio: "1/1" }}
                     />
                     <p className="leading-[22px] capitalize">Image</p>
                   </div>
@@ -738,10 +794,15 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
               setOpenMusicUploadModal(false);
             }}
           >
-            <img
+            <Image
               src="/icons/close-upload-view-icon.svg"
               alt="close"
               className="w-8 h-8"
+              width={32}
+              height={32}
+              quality={100}
+              loading="lazy"
+              style={{ aspectRatio: "1/1" }}
             />
           </button>
         </div>
@@ -763,7 +824,7 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                       e.stopPropagation();
                     }}
                   >
-                    <img
+                    <Image
                       src={
                         audioThumbnailMedia
                           ? audioThumbnailMedia.url
@@ -771,6 +832,11 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                       }
                       alt="image"
                       className="flex-shrink-0 rounded-[11px] object-cover w-[70px] h-[70px]"
+                      width={70}
+                      height={70}
+                      quality={100}
+                      loading="lazy"
+                      style={{ aspectRatio: "1/1" }}
                     />
                     <input
                       type="file"
@@ -828,13 +894,18 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                         }}
                       />
                     </div>
-                    <img
+                    <Image
                       src={`/icons/music-${
                         isAudioPlaying ? "pause" : "play"
                       }-icon.svg`}
                       alt={isAudioPlaying ? "pause" : "play"}
                       className="w-[18px] h-[18px] cursor-pointer"
                       onClick={togglePlayPause}
+                      width={18}
+                      height={18}
+                      quality={100}
+                      loading="lazy"
+                      style={{ aspectRatio: "1/1" }}
                     />
                   </div>
                 </div>

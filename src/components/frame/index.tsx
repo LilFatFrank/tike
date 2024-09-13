@@ -198,6 +198,7 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
           src={frame?.frames[0]?.image}
           alt="Cast image"
           className="w-full object-contain rounded-[10px] mb-[12px]"
+          loading="lazy"
         />
         {/* {frame?.frames[0]?.input &&
         Object.keys(frame?.frames[0]?.input)?.length ? (
@@ -238,6 +239,7 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
               height={20}
               quality={100}
               loading="lazy"
+              style={{ aspectRatio: "1/1" }}
             />
             <p className="font-medium">View in Warpcast</p>
           </button>

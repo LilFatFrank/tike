@@ -2,6 +2,7 @@
 import formatTime from "@/utils/formatTime";
 import { ChangeEvent, FC, memo, useCallback, useMemo, useState } from "react";
 import StringProcessor from "../stringprocessor";
+import Image from "next/image";
 
 const ImageEmbed = memo(
   ({ url, className }: { url: string; className?: string }) => {
@@ -12,6 +13,7 @@ const ImageEmbed = memo(
         className={`w-full h-full object-contain rounded-[10px] ${
           className || ""
         }`}
+        loading="lazy"
       />
     );
   }
@@ -114,6 +116,7 @@ const AudioEmbed = memo(
               src={url[1]}
               alt="image"
               className="flex-shrink-0 rounded-[11px] object-cover"
+              loading="lazy"
             />
           </div>
         ) : null}
@@ -158,7 +161,7 @@ const AudioEmbed = memo(
                 }}
               />
             </div>
-            <img
+            <Image
               src={`/icons/music-${isAudioPlaying ? "pause" : "play"}-icon.svg`}
               alt={isAudioPlaying ? "pause" : "play"}
               className="w-[18px] h-[18px] cursor-pointer"
@@ -167,6 +170,10 @@ const AudioEmbed = memo(
                 e.preventDefault();
                 togglePlayPause();
               }}
+              width={18}
+              height={18}
+              loading="lazy"
+              quality={100}
             />
           </div>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 import { AppContext } from "@/context";
 import { useNeynarContext } from "@neynar/react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FC, useContext } from "react";
@@ -61,11 +62,14 @@ const Footer: FC = () => {
             {l.path === "/hub" ? (
               <>
                 <div className="w-6 h-6 flex items-center justify-center">
-                  <img
+                  <Image
                     src={pathname === l.path ? l.selected : l.icon}
                     alt={`${l.label}-icon`}
                     width={20}
                     height={20}
+                    quality={100}
+                    loading="lazy"
+                    style={{ aspectRatio: "1/1" }}
                   />
                 </div>
                 <p className="font-bold text-[12px] leading-[16px] text-black">
@@ -74,11 +78,14 @@ const Footer: FC = () => {
               </>
             ) : (
               <>
-                <img
+                <Image
                   src={pathname === l.path ? l.selected : l.icon}
                   alt={`${l.label}-icon`}
                   width={24}
                   height={24}
+                  quality={100}
+                  loading="lazy"
+                  style={{ aspectRatio: "1/1" }}
                 />
                 <p className="font-bold text-[12px] leading-[16px] text-black">
                   {l.label}

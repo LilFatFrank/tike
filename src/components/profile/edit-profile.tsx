@@ -4,6 +4,7 @@ import { IUser } from "@neynar/react/dist/types/common";
 import axios from "axios";
 import { toast } from "sonner";
 import { useNeynarContext } from "@neynar/react";
+import Image from "next/image";
 
 interface EditProfileProps {
   isOpen: boolean;
@@ -151,10 +152,15 @@ const EditProfile: FC<EditProfileProps> = memo(({
             className="border-none outline-none rounded-[18px] px-2 py-1 bg-frame-btn-bg"
             onClick={handleClose}
           >
-            <img
+            <Image
               src="/icons/close-upload-view-icon.svg"
               alt="close"
               className="w-8 h-8"
+              width={32}
+              height={32}
+              quality={100}
+              loading="lazy"
+              style={{ aspectRatio: "1/1" }}
             />
           </button>
           <p className="font-[500] text-[#6F6D6E] text-[16px] leading-[20px]">
@@ -174,16 +180,22 @@ const EditProfile: FC<EditProfileProps> = memo(({
               src={previewImage ?? userPro?.pfp_url}
               alt="Profile"
               className="w-full h-full object-cover rounded-full"
+              loading="lazy"
             />
             <label
               htmlFor="profile-image-upload"
               className="absolute inset-0 flex items-center justify-center cursor-pointer"
             >
               <div className="w-[82px] h-[82px] bg-black opacity-40 rounded-full absolute"></div>
-              <img
+              <Image
                 src="/icons/edit-pfp-icon.svg"
                 alt="Upload"
                 className="w-6 h-6 z-10"
+                width={24}
+                height={24}
+                quality={100}
+                loading="lazy"
+                style={{ aspectRatio: "1/1" }}
               />
             </label>
             <input

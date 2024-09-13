@@ -194,11 +194,16 @@ const RadioPlayer: React.FC = memo(() => {
               loading="lazy"
               quality={100}
             />
-            <img
+            <Image
               src="/icons/radio-next-icon.svg"
               alt="next"
               className="w-[18px] h-[18px] cursor-pointer"
               onClick={handleNext}
+              width={18}
+              height={18}
+              loading="lazy"
+              quality={100}
+              style={{ aspectRatio: "1/1" }}
             />
           </div>
         </div>

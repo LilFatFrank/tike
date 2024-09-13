@@ -21,6 +21,7 @@ import EmbedRenderer from "../embedrenderer";
 import cn from "@/utils/cn";
 import { toast } from "sonner";
 import EditProfile from "./edit-profile";
+import Image from "next/image";
 
 const CastsList = memo(({ casts, router }: { casts: any; router: any }) => {
   return casts.map((cast: any, castIndex: number, arr: any[]) =>
@@ -423,10 +424,15 @@ const Profile: FC<Profile> = memo(({ fid }) => {
             </div>
           ) : (
             <>
-              <img
-                src={userPro?.pfp_url}
-                alt={userPro?.username}
+              <Image
+                src={userPro?.pfp_url ?? ""}
+                alt={userPro?.username ?? ""}
                 className="w-[82px] h-[82px] rounded-[41px] absolute top-[-41px] left-[16px] object-cover border-4 border-white"
+                width={82}
+                height={82}
+                quality={100}
+                loading="lazy"
+                style={{ aspectRatio: "1/1" }}
               />
               <div className="flex justify-end gap-2 items-center">
                 {user?.fid === Number(fid) ? (
@@ -450,10 +456,15 @@ const Profile: FC<Profile> = memo(({ fid }) => {
                         className="rounded-full bg-[#00000005] border-black-20 border-[1px] p-2"
                         onClick={handleProfileOptionsToggle}
                       >
-                        <img
+                        <Image
                           src="/icons/cast-more-icon.svg"
                           alt="more"
                           className="w-[18px] h-[18px] cursor-pointer"
+                          width={18}
+                          height={18}
+                          quality={100}
+                          loading="lazy"
+                          style={{ aspectRatio: "1/1" }}
                         />
                       </div>
                       <div
@@ -477,10 +488,15 @@ const Profile: FC<Profile> = memo(({ fid }) => {
                               handleCopyProfileLink();
                             }}
                           >
-                            <img
+                            <Image
                               src="/icons/copy-hash-icon.svg"
                               alt="delete"
                               className="w-6 h-6"
+                              width={24}
+                              height={24}
+                              quality={100}
+                              loading="lazy"
+                              style={{ aspectRatio: "1/1" }}
                             />
                             <span className="font-medium leading-[22px]">
                               Copy Profile Link
@@ -499,7 +515,7 @@ const Profile: FC<Profile> = memo(({ fid }) => {
                               logoutUser();
                             }}
                           >
-                            <img
+                                <img
                               src="/icons/log-out-icon.svg"
                               alt="delete"
                               className="w-6 h-6"

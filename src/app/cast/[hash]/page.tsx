@@ -1,6 +1,7 @@
 "use client";
 import { Cast, Frame } from "@/components";
 import { useNeynarContext } from "@neynar/react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FC, Fragment, memo, useCallback, useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
@@ -149,13 +150,16 @@ const Page: FC<{ params: { hash: string } }> = memo(({ params }) => {
   return (
     <div className="flex-1 bg-white min-h-full">
       <div className="py-3 px-4 flex items-center gap-1">
-        <img
+        <Image
           src="/icons/back-icon.svg"
           alt="back"
           width={24}
           height={24}
           className="cursor-pointer"
           onClick={back}
+          quality={100}
+          style={{ aspectRatio: "1/1" }}
+          loading="lazy"
         />
         <p className="text-[20px] font-medium leading-[100%]">Post</p>
       </div>
