@@ -9,6 +9,7 @@ interface LikeUpdate {
   userPfp: string;
   fid: string;
   cast: {
+    parent_hash: string;
     hash: string;
     url?: string;
     text?: string;
@@ -20,8 +21,8 @@ const LikeUpdate: FC<LikeUpdate> = memo(
     const router = useRouter();
 
     const handleCastClick = useCallback(
-      () => router.push(`/cast/${cast.hash}`),
-      [router, cast.hash]
+      () => router.push(`/cast/${cast.parent_hash || cast.hash}`),
+      [router, cast.parent_hash, cast.hash]
     );
 
     const handleProfileClick = useCallback(
@@ -59,6 +60,7 @@ const LikeUpdate: FC<LikeUpdate> = memo(
                     width={40}
                     height={40}
                     loading="lazy"
+                    style={{ aspectRatio: "1 / 1" }}
                   />
                 </span>
                 <div className="flex flex-col items-start justify-start gap-[6px]">
@@ -83,6 +85,7 @@ const LikeUpdate: FC<LikeUpdate> = memo(
                   width={100}
                   height={100}
                   loading="lazy"
+                  style={{ aspectRatio: "1 / 1" }}
                 />
               ) : null}
             </div>

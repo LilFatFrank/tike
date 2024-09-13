@@ -2,9 +2,9 @@
 import { useNeynarContext } from "@neynar/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { FC, memo, useCallback, useEffect, useMemo } from "react";
-import { useInView } from "react-intersection-observer";
+import { FC, memo, useCallback, useMemo } from "react";
 import { useInfiniteQuery } from "react-query";
+import { Virtuoso } from 'react-virtuoso';
 
 const UserItem = memo(({ user, router, isLast }: { user: any; router: any; isLast: boolean }) => (
   <span
@@ -63,10 +63,8 @@ const SearchUsers: FC<SearchUsers> = memo(({ input }) => {
       throw new Error("Network response was not ok");
     }
     const data = await response.json();
-      return data;
-    },
-    []
-  );
+    return data;
+  }, []);
 
   const {
     data,
@@ -89,24 +87,51 @@ const SearchUsers: FC<SearchUsers> = memo(({ input }) => {
     }
   );
 
-  const { ref, inView } = useInView({
-    threshold: 0.3,
-  });
-
-  const handleFetchNextPage = useCallback(() => {
-    if (inView && hasNextPage) {
-      fetchNextPage();
-    }
-  }, [inView, hasNextPage, fetchNextPage]);
-  
-  useEffect(() => {
-    handleFetchNextPage();
-  }, [handleFetchNextPage]);
-
   const allUsers = useMemo(() => 
     data?.pages.flatMap((page) => page.users) ?? [],
     [data]
   );
+
+  const loadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const renderUser = useCallback((index: number) => {
+    const user = allUsers[index];
+    return (
+      <UserItem
+        key={user.fid}
+        user={user}
+        router={router}
+        isLast={index === allUsers.length - 1}
+      />
+    );
+  }, [allUsers, router]);
+
+  const Footer = useCallback(() => {
+    if (isFetchingNextPage) {
+      return (
+        <div className="flex flex-col items-start justify-start gap-2">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div
+              className="animate-pulse w-full h-[80px] rounded-lg bg-divider"
+              key={index}
+            />
+          ))}
+        </div>
+      );
+    }
+    if (allUsers.length && !hasNextPage) {
+      return (
+        <p className="w-full items-center justify-center py-2 text-center">
+          End of the line!
+        </p>
+      );
+    }
+    return null;
+  }, [isFetchingNextPage, allUsers, hasNextPage]);
 
   if (isLoading) {
     return (
@@ -127,33 +152,16 @@ const SearchUsers: FC<SearchUsers> = memo(({ input }) => {
 
   return (
     <div className="flex-1">
-      {allUsers.map((user, index, arr) => (
-        <UserItem
-          key={user.fid}
-          user={user}
-          router={router}
-          isLast={index === arr.length - 1}
-        />
-      ))}
-
-      {isFetchingNextPage ? (
-        <div className="flex flex-col items-start justify-start gap-2">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <div
-              className="animate-pulse w-full h-[80px] rounded-lg bg-divider"
-              key={index}
-            />
-          ))}
-        </div>
-      ) : null}
-
-      <div ref={ref} style={{ height: "80px" }}></div>
-
-      {allUsers && allUsers.length && !hasNextPage ? (
-        <p className="w-full items-center justify-center py-2 text-center">
-          End of the line!
-        </p>
-      ) : null}
+      <Virtuoso
+        style={{ height: '100dvh', width: '100%' }} // Adjust the height as needed
+        data={allUsers}
+        endReached={loadMore}
+        overscan={200}
+        itemContent={renderUser}
+        components={{
+          Footer,
+        }}
+      />
     </div>
   );
 });

@@ -221,12 +221,6 @@ export default function Home() {
           }}
           style={{ height: "100dvh" }}
         />
-
-        {allCasts && allCasts.length && !hasNextPage ? (
-          <p className="w-full items-center justify-center py-2 text-center">
-            End of the line!
-          </p>
-        ) : null}
       </div>
     </>
   );

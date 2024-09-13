@@ -6,6 +6,7 @@ import { useNeynarContext } from "@neynar/react";
 import SearchCasts from "./search-casts";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Virtuoso } from "react-virtuoso";
 
 const tabs = [
   {
@@ -117,8 +118,8 @@ const Search: FC = memo(() => {
     setInputSearch("");
   }, []);
 
-  const filteredChannels = useMemo(() => {
-    return allChannels.map((channel, channelIndex, arr) => (
+  const ChannelItem = memo(
+    ({ channel, isLast }: { channel: any; isLast: boolean }) => (
       <span
         onClick={() => router.push(`/channel/${channel.id}`)}
         className="cursor-pointer"
@@ -142,12 +143,26 @@ const Search: FC = memo(() => {
             </p>
           </div>
         </div>
-        {channelIndex === arr.length - 1 ? null : (
-          <hr className="border border-t-divider" />
-        )}
+        {!isLast && <hr className="border border-t-divider" />}
       </span>
-    ));
-  }, [allChannels, debouncedInputSearch]);
+    )
+  );
+
+  const Footer = useCallback(() => {
+    if (loadingChannels) {
+      return (
+        <div className="p-2 flex flex-col items-start justify-start gap-2 h-full bg-white">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div
+              className="animate-pulse w-full h-[80px] rounded-lg bg-divider"
+              key={index}
+            />
+          ))}
+        </div>
+      );
+    }
+    return null;
+  }, [loadingChannels]);
 
   const renderedTrendingChannels = useMemo(() => {
     return trendingChannels.map((tc) => (
@@ -322,7 +337,20 @@ const Search: FC = memo(() => {
                 ))}
               </div>
             ) : errorChannels ? null : (
-              filteredChannels
+              <Virtuoso
+                style={{ height: "100dvh", width: "100%" }}
+                data={allChannels}
+                itemContent={(index, channel) => (
+                  <ChannelItem
+                    key={channel.id}
+                    channel={channel}
+                    isLast={index === allChannels.length - 1}
+                  />
+                )}
+                components={{
+                  Footer,
+                }}
+              />
             )}
           </>
         ) : (

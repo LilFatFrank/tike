@@ -1,10 +1,10 @@
 "use client";
+import { Virtuoso } from "react-virtuoso";
 import { Cast, Frame } from "@/components";
 import { useNeynarContext } from "@neynar/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FC, Fragment, memo, useCallback, useEffect, useState } from "react";
-import { useInView } from "react-intersection-observer";
 import { useInfiniteQuery } from "react-query";
 
 const ReplyItem = memo(({ cast, push }: { cast: any; push: any }) => {
@@ -41,7 +41,6 @@ interface ApiResponse {
 
 const Page: FC<{ params: { hash: string } }> = memo(({ params }) => {
   const { user } = useNeynarContext();
-
   const [cast, setCast] = useState<any>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -89,10 +88,6 @@ const Page: FC<{ params: { hash: string } }> = memo(({ params }) => {
     }
   );
 
-  const { ref, inView } = useInView({
-    threshold: 0.3,
-  });
-
   const allReplies =
     data?.pages.flatMap((page) => page.conversation.cast.direct_replies) ?? [];
 
@@ -122,75 +117,110 @@ const Page: FC<{ params: { hash: string } }> = memo(({ params }) => {
 
   useEffect(() => {
     if (params.hash) fetchCast();
-  }, [params.hash]);
-
-  useEffect(() => {
-    if (params.hash) fetchCast();
   }, [params.hash, fetchCast]);
-
-  const handleFetchNextPage = useCallback(() => {
-    if (inView && hasNextPage) {
+  const loadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-  }, [inView, hasNextPage, fetchNextPage]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  useEffect(() => {
-    handleFetchNextPage();
-  }, [handleFetchNextPage]);
+  const Header = useCallback(
+    () => (
+      <>
+        <div className="py-3 px-4 flex items-center gap-1">
+          <Image
+            src="/icons/back-icon.svg"
+            alt="back"
+            width={24}
+            height={24}
+            className="cursor-pointer"
+            onClick={back}
+            quality={100}
+            style={{ aspectRatio: "1/1" }}
+            loading="lazy"
+          />
+          <p className="text-[20px] font-medium leading-[100%]">Post</p>
+        </div>
+        {cast ? (
+          cast.frames ? (
+            <Frame frame={cast} />
+          ) : (
+            <Cast cast={cast} />
+          )
+        ) : null}
+      </>
+    ),
+    [cast, back]
+  );
+
+  const Footer = useCallback(() => {
+    if (conversationError) {
+      return (
+        <p className="w-full items-center justify-center py-2 text-center text-red-500">
+          Error fetching conversation. Please try again.
+        </p>
+      );
+    }
+    return isFetchingNextPage ? <LoadingSkeleton /> : null;
+  }, [isFetchingNextPage, conversationError]);
 
   if (loading) return <LoadingSkeleton />;
 
-  if (error)
+  if (error) {
     return (
-      <p className="w-full items-start justify-center py-2 text-center h-full bg-white">
-        Could not fetch cast!
-      </p>
+      <div className="flex-1 bg-white min-h-full">
+        <div className="py-3 px-4 flex items-center gap-1">
+          <Image
+            src="/icons/back-icon.svg"
+            alt="back"
+            width={24}
+            height={24}
+            className="cursor-pointer"
+            onClick={back}
+            quality={100}
+            style={{ aspectRatio: "1/1" }}
+            loading="lazy"
+          />
+          <p className="text-[20px] font-medium leading-[100%]">Post</p>
+        </div>
+        <p className="w-full items-start justify-center py-2 text-center h-full bg-white">
+          Could not fetch cast!
+        </p>
+      </div>
     );
+  }
+
+  if (conversationError) {
+    return (
+      <div className="flex-1 bg-white min-h-full">
+        <Header />
+        <p className="w-full items-center justify-center py-2 text-center text-red-500">
+          Error fetching conversation. Please try again.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 bg-white min-h-full">
-      <div className="py-3 px-4 flex items-center gap-1">
-        <Image
-          src="/icons/back-icon.svg"
-          alt="back"
-          width={24}
-          height={24}
-          className="cursor-pointer"
-          onClick={back}
-          quality={100}
-          style={{ aspectRatio: "1/1" }}
-          loading="lazy"
-        />
-        <p className="text-[20px] font-medium leading-[100%]">Post</p>
-      </div>
-      {cast ? (
-        cast.frames ? (
-          <Frame frame={cast} />
-        ) : (
-          <Cast cast={cast} />
-        )
-      ) : null}
-
-      {conversationError ? (
-        <p className="w-full items-center justify-center py-2 text-center">
-          Error fetching conversation!
-        </p>
-      ) : (
-        <>
-          {allReplies.map((cast, castIndex, arr) => (
-            <Fragment key={cast.hash}>
-              <ReplyItem cast={cast} push={push} />
-              {castIndex === arr.length - 1 ? null : (
-                <hr className="border border-t-divider" />
-              )}
-            </Fragment>
-          ))}
-
-          {isFetchingNextPage || isLoading ? <LoadingSkeleton /> : null}
-
-          <div ref={ref} style={{ height: "20px" }}></div>
-        </>
-      )}
+      <Virtuoso
+        style={{ height: "100vh", width: "100%" }}
+        data={allReplies}
+        endReached={loadMore}
+        overscan={200}
+        components={{
+          Header,
+          Footer,
+        }}
+        itemContent={(index, reply) => (
+          <>
+            <ReplyItem cast={reply} push={push} />
+            {index < allReplies.length - 1 && (
+              <hr className="border border-t-divider" />
+            )}
+          </>
+        )}
+      />
     </div>
   );
 });

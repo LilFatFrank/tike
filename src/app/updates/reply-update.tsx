@@ -9,6 +9,7 @@ interface ReplyUpdate {
   userPfp: string;
   fid: string;
   cast: {
+    parent_hash: string;
     hash: string;
     url?: string;
     text?: string;
@@ -20,8 +21,8 @@ const ReplyUpdate: FC<ReplyUpdate> = memo(
     const router = useRouter();
 
     const handleCastClick = useCallback(
-      () => router.push(`/cast/${cast.hash}`),
-      [router, cast.hash]
+      () => router.push(`/cast/${cast.parent_hash || cast.hash}`),
+      [router, cast.parent_hash, cast.hash]
     );
 
     const handleProfileClick = useCallback(
@@ -81,6 +82,7 @@ const ReplyUpdate: FC<ReplyUpdate> = memo(
                 height={40}
                 className="rounded-full"
                 loading="lazy"
+                style={{ aspectRatio: "1 / 1" }}
               />
             </span>
             {renderedContent}
@@ -93,6 +95,7 @@ const ReplyUpdate: FC<ReplyUpdate> = memo(
               height={200}
               className="w-full rounded-[10px] object-cover"
               loading="lazy"
+              style={{ aspectRatio: "1 / 1" }}
             />
           )}
         </div>

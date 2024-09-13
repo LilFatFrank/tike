@@ -2,22 +2,12 @@
 import { EmbedRenderer, StringProcessor } from "@/components";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { FC, memo, useCallback, useEffect, useMemo } from "react";
-import { useInView } from "react-intersection-observer";
+import { FC, memo, useCallback, useMemo } from "react";
 import { useInfiniteQuery } from "react-query";
+import { Virtuoso } from 'react-virtuoso';
 
 const CastItem = memo(
-  ({
-    cast,
-    router,
-    index,
-    arr,
-  }: {
-    cast: any;
-    router: any;
-    index: number;
-    arr: any;
-  }) => (
+  ({ cast, router, index, arr }: { cast: any; router: any; index: number; arr: any }) => (
     <span
       onClick={() => router.push(`/cast/${cast.parent_hash || cast.hash}`)}
       className="cursor-pointer"
@@ -80,6 +70,8 @@ interface SearchCasts {
 }
 
 const SearchCasts: FC<SearchCasts> = memo(({ input }) => {
+  const router = useRouter();
+
   const fetchSearchCasts = useCallback(
     async ({
       pageParam = "",
@@ -119,26 +111,45 @@ const SearchCasts: FC<SearchCasts> = memo(({ input }) => {
     cacheTime: 3600000,
   });
 
-  const router = useRouter();
-
-  const { ref, inView } = useInView({
-    threshold: 0.3,
-  });
-
-  const handleFetchNextPage = useCallback(() => {
-    if (inView && hasNextPage) {
-      fetchNextPage();
-    }
-  }, [inView, hasNextPage, fetchNextPage]);
-
-  useEffect(() => {
-    handleFetchNextPage();
-  }, [handleFetchNextPage]);
-
   const allCasts = useMemo(
     () => data?.pages.flatMap((page) => page.casts) ?? [],
     [data]
   );
+
+  const loadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const renderItem = useCallback((index: number) => {
+    const cast = allCasts[index];
+    return cast?.embeds[0]?.url ? (
+      <CastItem
+        cast={cast}
+        router={router}
+        key={cast.parent_hash || cast.hash}
+        arr={allCasts}
+        index={index}
+      />
+    ) : null;
+  }, [allCasts, router]);
+
+  const Footer = useCallback(() => {
+    if (isFetchingNextPage) {
+      return (
+        <div className="p-2 flex flex-col items-start justify-start h-full gap-2 bg-white">
+          {Array.from({ length: 10 }).map((_, index) => (
+            <div
+              className="animate-pulse w-full h-[120px] rounded-lg bg-divider"
+              key={index}
+            />
+          ))}
+        </div>
+      );
+    }
+    return null;
+  }, [isFetchingNextPage, allCasts, hasNextPage]);
 
   if (isLoading) {
     return (
@@ -159,36 +170,16 @@ const SearchCasts: FC<SearchCasts> = memo(({ input }) => {
 
   return (
     <div className="flex-1 bg-white min-h-full">
-      {allCasts.map((cast, index, arr) =>
-        cast?.embeds[0]?.url ? (
-          <CastItem
-            cast={cast}
-            router={router}
-            key={cast.parent_hash || cast.hash}
-            arr={arr}
-            index={index}
-          />
-        ) : null
-      )}
-
-      {isFetchingNextPage ? (
-        <div className="p-2 flex flex-col items-start justify-start h-full gap-2 bg-white">
-          {Array.from({ length: 10 }).map((_, index) => (
-            <div
-              className="animate-pulse w-full h-[120px] rounded-lg bg-divider"
-              key={index}
-            />
-          ))}
-        </div>
-      ) : null}
-
-      <div ref={ref} style={{ height: "80px" }}></div>
-
-      {allCasts && allCasts.length && !hasNextPage ? (
-        <p className="w-full items-center justify-center py-2 text-center">
-          End of the line!
-        </p>
-      ) : null}
+      <Virtuoso
+        style={{ height: '100dvh', width: '100%' }} // Adjust the height as needed
+        data={allCasts}
+        endReached={loadMore}
+        overscan={200}
+        itemContent={renderItem}
+        components={{
+          Footer,
+        }}
+      />
     </div>
   );
 });

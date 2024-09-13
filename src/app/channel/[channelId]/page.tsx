@@ -5,6 +5,7 @@ import { useNeynarContext } from "@neynar/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FC, memo, useCallback, useEffect, useMemo, useState } from "react";
+import InfiniteScroll from "react-infinite-scroller";
 import { useInView } from "react-intersection-observer";
 import { useInfiniteQuery } from "react-query";
 
@@ -28,6 +29,19 @@ const CastItem = memo(({ cast, router }: { cast: any; router: any }) => {
         />
       )}
     </span>
+  );
+});
+
+const CastsList = memo(({ casts, router }: { casts: any; router: any }) => {
+  return casts.map((cast: any, castIndex: number, arr: any[]) =>
+    cast.embeds[0].url ? (
+      <div key={cast.hash}>
+        <CastItem cast={cast} router={router} />
+        {castIndex === arr.length - 1 ? null : (
+          <hr className="border border-t-divider" />
+        )}
+      </div>
+    ) : null
   );
 });
 
@@ -86,7 +100,7 @@ const Channel: FC<{ params: { channelId: number } }> = memo(({ params }) => {
   );
 
   const { ref, inView } = useInView({
-    threshold: 0.3,
+    threshold: 0.1,
   });
 
   const handleFetchNextPage = useCallback(() => {
@@ -173,11 +187,24 @@ const Channel: FC<{ params: { channelId: number } }> = memo(({ params }) => {
     if (params.channelId) fetchChannelProfile();
   }, [params.channelId]);
 
-  if (error) {
-    <p className="w-full items-center justify-center py-2 text-center">
-      Error fetching casts!
-    </p>;
-  }
+  const channelCastsLoader = () => {
+    return (
+      <div ref={ref}>
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div className="py-5 w-full" key={index}>
+            <div className="flex items-center flex-col justify-start w-full gap-3">
+              <div className="flex items-center gap-2 w-full">
+                <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
+                <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
+              </div>
+              <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
+              <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="w-full h-full">
@@ -192,7 +219,7 @@ const Channel: FC<{ params: { channelId: number } }> = memo(({ params }) => {
       <div className="w-full relative min-h-full top-[120px] bg-white rounded-t-[20px] py-[10px] px-[16px]">
         {errorCh ? (
           <div className="p-4 text-center">
-            <p>Could not fetch user profile</p>
+            <p>Could not fetch channel profile</p>
           </div>
         ) : loadingCh ? (
           <div className="p-4">
@@ -252,43 +279,23 @@ const Channel: FC<{ params: { channelId: number } }> = memo(({ params }) => {
                 </p>
               </div>
             </div>
-            {allChannelCasts.map((cast, castIndex, arr) =>
-              cast.embeds[0].url ? (
-                <>
-                  <CastItem cast={cast} router={router} />
-                  {castIndex === arr.length - 1 ? null : (
-                    <hr className="border border-t-divider" />
-                  )}
-                </>
-              ) : null
-            )}
-
-            {(isFetchingNextPage || isLoading) && !error ? (
-              <div className="p-2">
-                {Array.from({ length: 3 }).map((_, index) => (
-                  <div className="py-5 w-full" key={index}>
-                    <div className="flex items-center flex-col justify-start w-full gap-3">
-                      <div className="flex items-center gap-2 w-full">
-                        <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
-                        <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
-                      </div>
-                      <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
-                      <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-
-            <div ref={ref} style={{ height: "80px" }}></div>
-
-            {allChannelCasts && allChannelCasts.length && !hasNextPage ? (
-              <p className="w-full items-center justify-center py-2 text-center">
-                End of the line!
-              </p>
-            ) : null}
+            <InfiniteScroll
+              loadMore={() => {}}
+              hasMore={!!hasNextPage}
+              initialLoad
+              loader={
+                isFetchingNextPage || !error ? channelCastsLoader() : undefined
+              }
+            >
+              {isLoading ? (
+                channelCastsLoader()
+              ) : (
+                <CastsList casts={allChannelCasts} router={router} />
+              )}
+            </InfiniteScroll>
           </>
         )}
+        <div style={{ height: "80px" }} />
       </div>
     </div>
   );

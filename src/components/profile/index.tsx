@@ -14,6 +14,7 @@ import ProfileButton from "../profilebutton";
 import { toast } from "sonner";
 import EditProfile from "./edit-profile";
 import Image from "next/image";
+import InfiniteScroll from "react-infinite-scroller";
 
 const CastsList = memo(({ casts, router }: { casts: any; router: any }) => {
   return casts.map((cast: any, castIndex: number, arr: any[]) =>
@@ -196,11 +197,11 @@ const Profile: FC<Profile> = memo(({ fid }) => {
   const {
     data,
     isLoading,
-    error,
     fetchNextPage,
     hasNextPage,
-    isFetchingNextPage,
     refetch,
+    isFetchingNextPage,
+    error,
   } = useInfiniteQuery(
     ["profile-casts", { fid: fid, viewerFid: user?.fid || 3 }],
     fetchProfileCasts,
@@ -219,8 +220,8 @@ const Profile: FC<Profile> = memo(({ fid }) => {
     isLoading: rrIsLoading,
     error: rrError,
     fetchNextPage: rrFetchNextPage,
-    hasNextPage: rrHasNextPage,
     isFetchingNextPage: rrIsFetchingNextPage,
+    hasNextPage: rrHasNextPage,
     refetch: rrRefetch,
   } = useInfiniteQuery(
     ["replies-recasts", { fid: fid, viewerFid: user?.fid || 3 }],
@@ -236,22 +237,73 @@ const Profile: FC<Profile> = memo(({ fid }) => {
     }
   );
 
-  const { ref, inView } = useInView({
-    threshold: 0.3,
+  const [ref, inView] = useInView({
+    threshold: 0.1,
   });
+
   const { ref: rrRef, inView: rrInView } = useInView({
-    threshold: 0.3,
-  });
-  const { ref: mRef, inView: mInView } = useInView({
-    threshold: 0.3,
+    threshold: 0.1,
   });
 
   const router = useRouter();
 
+  const profileCastsLoader = () => {
+    return (
+      <div ref={ref}>
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div className="py-5 w-full" key={index}>
+            <div className="flex items-center flex-col justify-start w-full gap-3">
+              <div className="flex items-center gap-2 w-full">
+                <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
+                <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
+              </div>
+              <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
+              <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const profileRecastsRepliesLoader = () => {
+    return (
+      <div ref={rrRef}>
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div className="py-5 w-full" key={index}>
+            <div className="flex items-center flex-col justify-start w-full gap-3">
+              <div className="flex items-center gap-2 w-full">
+                <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
+                <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
+              </div>
+              <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
+              <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const profileMediaLoader = () => {
+    return (
+      <>
+        <div className="grid grid-cols-3 gap-2 w-full" ref={ref}>
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div
+              className="aspect-square rounded-[12px] bg-divider animate-pulse w-full"
+              key={index}
+            />
+          ))}
+        </div>
+      </>
+    );
+  };
+
   const handleFetchNextPage = useCallback(() => {
     if (
       (selectedTab === "casts" || selectedTab === "media") &&
-      (inView || mInView) &&
+      inView &&
       hasNextPage
     ) {
       fetchNextPage();
@@ -259,12 +311,11 @@ const Profile: FC<Profile> = memo(({ fid }) => {
       rrFetchNextPage();
     }
   }, [
-    selectedTab,
     inView,
-    mInView,
+    rrInView,
+    selectedTab,
     hasNextPage,
     fetchNextPage,
-    rrInView,
     rrHasNextPage,
     rrFetchNextPage,
   ]);
@@ -272,12 +323,6 @@ const Profile: FC<Profile> = memo(({ fid }) => {
   useEffect(() => {
     handleFetchNextPage();
   }, [handleFetchNextPage]);
-
-  useEffect(() => {
-    if (selectedTab === "recasts_replies" && rrInView && rrHasNextPage) {
-      rrFetchNextPage();
-    }
-  }, [rrInView, rrHasNextPage, rrFetchNextPage, selectedTab]);
 
   const allProfileCasts = data?.pages.flatMap((page) => page.casts) ?? [];
   const allRepliesRecasts = rrData?.pages.flatMap((page) => page.casts) ?? [];
@@ -550,92 +595,68 @@ const Profile: FC<Profile> = memo(({ fid }) => {
               </div>
               {selectedTab === "casts" ? (
                 <>
-                  {<CastsList casts={allProfileCasts} router={router} />}
-                  {(isFetchingNextPage || isLoading) && !error ? (
-                    <div className="p-2">
-                      {Array.from({ length: 3 }).map((_, index) => (
-                        <div className="py-5 w-full" key={index}>
-                          <div className="flex items-center flex-col justify-start w-full gap-3">
-                            <div className="flex items-center gap-2 w-full">
-                              <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
-                              <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
-                            </div>
-                            <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
-                            <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-                  <div ref={ref} style={{ height: "80px" }}></div>
-                  {allProfileCasts && allProfileCasts.length && !hasNextPage ? (
-                    <p className="w-full items-center justify-center py-2 text-center">
-                      End of the line!
-                    </p>
-                  ) : null}
+                  <InfiniteScroll
+                    loadMore={() => {}}
+                    hasMore={!!hasNextPage}
+                    initialLoad
+                    loader={
+                      isFetchingNextPage || !error
+                        ? profileCastsLoader()
+                        : undefined
+                    }
+                  >
+                    {isLoading ? (
+                      profileCastsLoader()
+                    ) : (
+                      <CastsList casts={allProfileCasts} router={router} />
+                    )}
+                  </InfiniteScroll>
                 </>
               ) : selectedTab === "media" ? (
                 <>
-                  {<MediaList casts={allProfileCasts} router={router} />}
-
-                  {(isFetchingNextPage || isLoading) && !error ? (
-                    <div className="grid grid-cols-3 gap-2 w-full">
-                      {Array.from({ length: 3 }).map((_, index) => (
-                        <div
-                          className="aspect-square rounded-[12px] bg-divider animate-pulse w-full"
-                          key={index}
-                        />
-                      ))}
-                    </div>
-                  ) : null}
-
-                  <div ref={mRef} style={{ height: "80px" }}></div>
-
-                  {allProfileCasts && allProfileCasts.length && !hasNextPage ? (
-                    <p className="w-full items-center justify-center py-2 text-center">
-                      End of the line!
-                    </p>
-                  ) : null}
+                  <InfiniteScroll
+                    loadMore={() => {}}
+                    hasMore={!!hasNextPage}
+                    initialLoad
+                    loader={
+                      isFetchingNextPage || !error
+                        ? profileMediaLoader()
+                        : undefined
+                    }
+                  >
+                    {isLoading ? (
+                      profileMediaLoader()
+                    ) : (
+                      <MediaList casts={allProfileCasts} router={router} />
+                    )}
+                  </InfiniteScroll>
                 </>
               ) : (
                 <>
-                  {
-                    <RecastsRepliesList
-                      casts={allRepliesRecasts}
-                      router={router}
-                    />
-                  }
-
-                  {(rrIsFetchingNextPage || rrIsLoading) && !rrError ? (
-                    <div className="p-2">
-                      {Array.from({ length: 3 }).map((_, index) => (
-                        <div className="py-5 w-full" key={index}>
-                          <div className="flex items-center flex-col justify-start w-full gap-3">
-                            <div className="flex items-center gap-2 w-full">
-                              <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
-                              <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
-                            </div>
-                            <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
-                            <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-
-                  <div ref={rrRef} style={{ height: "80px" }}></div>
-
-                  {allRepliesRecasts &&
-                  allRepliesRecasts.length &&
-                  !rrHasNextPage ? (
-                    <p className="w-full items-center justify-center py-2 text-center">
-                      End of the line!
-                    </p>
-                  ) : null}
+                  <InfiniteScroll
+                    loadMore={() => {}}
+                    hasMore={!!rrHasNextPage}
+                    initialLoad
+                    loader={
+                      rrIsFetchingNextPage || !rrError
+                        ? profileRecastsRepliesLoader()
+                        : undefined
+                    }
+                  >
+                    {rrIsLoading ? (
+                      profileRecastsRepliesLoader()
+                    ) : (
+                      <RecastsRepliesList
+                        casts={allRepliesRecasts}
+                        router={router}
+                      />
+                    )}
+                  </InfiniteScroll>
                 </>
               )}
             </>
           )}
+          <div style={{ height: "80px" }} />
         </div>
       </div>
       <EditProfile

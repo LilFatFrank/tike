@@ -202,12 +202,6 @@ const Frames: FC = memo(() => {
         }}
         style={{ height: "100dvh" }}
       />
-
-      {allFrames && allFrames.length && !hasNextPage ? (
-        <p className="w-full items-center justify-center py-2 text-center">
-          End of the line!
-        </p>
-      ) : null}
     </div>
   );
 });

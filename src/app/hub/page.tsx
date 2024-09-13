@@ -3,134 +3,7 @@ import formatNumber from "@/utils/formatNumber";
 import Image from "next/image";
 import Link from "next/link";
 import { FC, memo, useCallback, useEffect, useMemo, useState } from "react";
-import InfiniteScroller from "react-infinite-scroller";
-
-const ProtocolItems = memo(({ protocols }: { protocols: any }) => {
-  return protocols.map((tp: any, index: number, arr: any) => (
-    <>
-      <Link key={tp.id} href={tp.url} target="_blank" className="block w-full">
-        <div className="w-full flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Image
-              src={tp.logo}
-              alt={tp.name}
-              width={38}
-              height={38}
-              className="rounded-[12px] object-cover"
-              style={{ aspectRatio: "1 / 1" }}
-              loading="lazy"
-            />
-            <div className="space-y-[2px]">
-              <p className="font-semibold leading-[120%]">{tp.name}</p>
-              <p className="font-medium text-[10px] leading-[120%] text-black-70">
-                {tp.category}
-              </p>
-            </div>
-          </div>
-          <div className="space-y-[2px] text-end">
-            <p className="font-semibold leading-[120%]">
-              ${formatNumber(tp.tvl)}
-            </p>
-            <p
-              className={`font-medium text-[10px] leading-[120%] ${
-                tp.change_1d >= 0 ? "text-good" : "text-bad"
-              }`}
-            >
-              {formatNumber(tp.change_1d)}%
-            </p>
-          </div>
-        </div>
-      </Link>
-      {index === arr.length - 1 ? null : (
-        <hr className="border-[0.5px] border-t-divider" />
-      )}
-    </>
-  ));
-});
-
-const NftItems = memo(({ nfts }: { nfts: any }) => {
-  return nfts.map((tp: any, index: number, arr: any) => (
-    <>
-      <Link
-        key={tp.collection}
-        href={tp.opensea_url}
-        target="_blank"
-        className="block w-full"
-      >
-        <div className="w-full flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Image
-              src={tp.image_url}
-              alt={tp.name}
-              width={38}
-              height={38}
-              className="rounded-[12px] object-cover"
-              style={{ aspectRatio: "1 / 1" }}
-              loading="lazy"
-            />
-            <div className="space-y-[2px]">
-              <p className="font-semibold leading-[120%]">{tp.name}</p>
-              <p className="font-medium text-[10px] leading-[120%] text-black-70 capitalize">
-                {tp.category}
-              </p>
-            </div>
-          </div>
-        </div>
-      </Link>
-      {index === arr.length - 1 ? null : (
-        <hr className="border-[0.5px] border-t-divider" />
-      )}
-    </>
-  ));
-});
-
-const TokenItems = memo(({ tokens }: { tokens: any }) => {
-  return tokens.map((tp: any, index: number, arr: any) => (
-    <>
-      <Link
-        key={tp.symbol}
-        href={tp.url}
-        target="_blank"
-        className="block w-full"
-      >
-        <div className="w-full flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Image
-              src={tp.image}
-              alt={tp.name}
-              width={38}
-              height={38}
-              className="rounded-[12px] object-cover"
-              style={{ aspectRatio: "1 / 1" }}
-              loading="lazy"
-            />
-            <div className="space-y-[2px]">
-              <p className="font-semibold leading-[120%]">{tp.name}</p>
-              <p className="font-medium text-[10px] leading-[120%] text-black-70">
-                {tp.symbol}
-              </p>
-            </div>
-          </div>
-          <div className="space-y-[2px] text-end">
-            <p className="font-semibold leading-[120%]">
-              ${formatNumber(tp.price)}
-            </p>
-            <p
-              className={`font-medium text-[10px] leading-[120%] ${
-                tp.change_1d >= 0 ? "text-good" : "text-bad"
-              }`}
-            >
-              {formatNumber(tp.change_1d)}%
-            </p>
-          </div>
-        </div>
-      </Link>
-      {index === arr.length - 1 ? null : (
-        <hr className="border-[0.5px] border-t-divider" />
-      )}
-    </>
-  ));
-});
+import { Virtuoso } from "react-virtuoso";
 
 const tabs = [
   {
@@ -273,6 +146,143 @@ const Hub: FC = memo(() => {
       : topTokens;
   }, [selectedTab, debouncedInputSearch, topTokens]);
 
+  const ItemRenderer = memo(
+    ({
+      item,
+      type,
+      isLast,
+    }: {
+      item: any;
+      type: "apps" | "nfts" | "tokens";
+      isLast: boolean;
+    }) => {
+      switch (type) {
+        case "apps":
+          return (
+            <>
+              <Link href={item.url} target="_blank" className="block w-full">
+                <div className="w-full flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Image
+                      src={item.logo}
+                      alt={item.name}
+                      width={38}
+                      height={38}
+                      className="rounded-[12px] object-cover"
+                      style={{ aspectRatio: "1 / 1" }}
+                      loading="lazy"
+                    />
+                    <div className="space-y-[2px]">
+                      <p className="font-semibold leading-[120%]">
+                        {item.name}
+                      </p>
+                      <p className="font-medium text-[10px] leading-[120%] text-black-70">
+                        {item.category}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-[2px] text-end">
+                    <p className="font-semibold leading-[120%]">
+                      ${formatNumber(item.tvl)}
+                    </p>
+                    <p
+                      className={`font-medium text-[10px] leading-[120%] ${
+                        item.change_1d >= 0 ? "text-good" : "text-bad"
+                      }`}
+                    >
+                      {formatNumber(item.change_1d)}%
+                    </p>
+                  </div>
+                </div>
+              </Link>
+              {isLast ? null : (
+                <hr className="border-[0.5px] border-t-divider my-2" />
+              )}
+            </>
+          );
+        case "nfts":
+          return (
+            <>
+              <Link
+                href={item.opensea_url}
+                target="_blank"
+                className="block w-full"
+              >
+                <div className="w-full flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Image
+                      src={item.image_url}
+                      alt={item.name}
+                      width={38}
+                      height={38}
+                      className="rounded-[12px] object-cover"
+                      style={{ aspectRatio: "1 / 1" }}
+                      loading="lazy"
+                    />
+                    <div className="space-y-[2px]">
+                      <p className="font-semibold leading-[120%]">
+                        {item.name}
+                      </p>
+                      <p className="font-medium text-[10px] leading-[120%] text-black-70 capitalize">
+                        {item.category}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+
+              {isLast ? null : (
+                <hr className="border-[0.5px] border-t-divider my-2" />
+              )}
+            </>
+          );
+        case "tokens":
+          return (
+            <>
+              <Link href={item.url} target="_blank" className="block w-full">
+                <div className="w-full flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      width={38}
+                      height={38}
+                      className="rounded-[12px] object-cover"
+                      style={{ aspectRatio: "1 / 1" }}
+                      loading="lazy"
+                    />
+                    <div className="space-y-[2px]">
+                      <p className="font-semibold leading-[120%]">
+                        {item.name}
+                      </p>
+                      <p className="font-medium text-[10px] leading-[120%] text-black-70">
+                        {item.symbol}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-[2px] text-end">
+                    <p className="font-semibold leading-[120%]">
+                      ${formatNumber(item.price)}
+                    </p>
+                    <p
+                      className={`font-medium text-[10px] leading-[120%] ${
+                        item.change_1d >= 0 ? "text-good" : "text-bad"
+                      }`}
+                    >
+                      {formatNumber(item.change_1d)}%
+                    </p>
+                  </div>
+                </div>
+              </Link>
+              {isLast ? null : (
+                <hr className="border-[0.5px] border-t-divider my-2" />
+              )}
+            </>
+          );
+      }
+    }
+  );
+
   return (
     <>
       <div className="flex-1 p-4 bg-white min-h-dvh">
@@ -340,17 +350,44 @@ const Hub: FC = memo(() => {
             ))}
           </div>
         ) : (
-          <InfiniteScroller pageStart={0} loadMore={() => {}}>
-            <div className="flex flex-col w-full gap-3">
-              {selectedTab === "apps" ? (
-                <ProtocolItems protocols={filteredProtocols} />
-              ) : selectedTab === "nfts" ? (
-                <NftItems nfts={filteredNfts} />
-              ) : (
-                <TokenItems tokens={filteredTokens} />
-              )}
-            </div>
-          </InfiniteScroller>
+          <Virtuoso
+            style={{ height: "100dvh", width: "100%" }}
+            totalCount={
+              selectedTab === "apps"
+                ? filteredProtocols.length
+                : selectedTab === "nfts"
+                ? filteredNfts.length
+                : filteredTokens.length
+            }
+            itemContent={(index) => {
+              const item =
+                selectedTab === "apps"
+                  ? filteredProtocols[index]
+                  : selectedTab === "nfts"
+                  ? filteredNfts[index]
+                  : filteredTokens[index];
+              return (
+                <>
+                  <ItemRenderer
+                    item={item}
+                    type={selectedTab}
+                    isLast={
+                      index ===
+                      (selectedTab === "apps"
+                        ? filteredProtocols.length
+                        : selectedTab === "nfts"
+                        ? filteredNfts.length
+                        : filteredTokens.length) -
+                        1
+                    }
+                  />
+                </>
+              );
+            }}
+            components={{
+
+            }}
+          />
         )}
       </div>
     </>
