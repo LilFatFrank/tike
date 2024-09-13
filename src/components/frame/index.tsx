@@ -72,6 +72,7 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
                 height={40}
                 quality={100}
                 loading="lazy"
+                style={{ aspectRatio: "1 / 1" }}
               />
             </span>
             <div className="flex flex-col items-start gap-[2px]">
@@ -119,6 +120,7 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
                 height={24}
                 quality={100}
                 loading="lazy"
+                style={{ aspectRatio: "1 / 1" }}
               />
               <div
                 className={`absolute right-0 top-full bg-white transition-all duration-300 ease-in-out rounded-[18px] shadow-comment-upload-media-modal w-[150px] ${
@@ -149,6 +151,7 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
                       height={24}
                       quality={100}
                       loading="lazy"
+                      style={{ aspectRatio: "1 / 1" }}
                     />
                     <span className="font-medium leading-[22px]">
                       Delete Post
@@ -176,6 +179,7 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
                       height={24}
                       quality={100}
                       loading="lazy"
+                      style={{ aspectRatio: "1 / 1" }}
                     />
                     <span className="font-medium leading-[22px]">
                       Copy Hash

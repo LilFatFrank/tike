@@ -179,6 +179,7 @@ const RadioPlayer: React.FC = memo(() => {
               height={18}
               loading="lazy"
               quality={100}
+              style={{ aspectRatio: "1 / 1" }}
             />
             <Image
               src={
@@ -193,6 +194,7 @@ const RadioPlayer: React.FC = memo(() => {
               height={18}
               loading="lazy"
               quality={100}
+              style={{ aspectRatio: "1/1" }}
             />
             <Image
               src="/icons/radio-next-icon.svg"

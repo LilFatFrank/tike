@@ -31,6 +31,7 @@ const ChannelItem = memo(
             width={60}
             height={60}
             loading="lazy"
+            style={{ aspectRatio: "1/1" }}
           />
         </div>
         <p className="text-[11px] font-normal w-[9ch] text-center text-ellipsis overflow-hidden whitespace-nowrap">

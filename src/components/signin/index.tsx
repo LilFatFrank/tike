@@ -14,6 +14,7 @@ const AuthButton = memo(() => (
         height={24}
         loading="lazy"
         quality={100}
+        style={{ aspectRatio: "1/1" }}
       />
     }
     className="login-btn backdrop-blur-(10px) rounded-[100px] font-grotesk z-20"

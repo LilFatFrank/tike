@@ -235,6 +235,7 @@ const MusicUploadModal: FC<MusicUploadModalProps> = memo(
                         ? "w-full h-full object-cover rounded-[12px]"
                         : "w-8 h-8"
                     }
+                    loading="lazy"
                   />
                 </div>
                 <div className="grow">

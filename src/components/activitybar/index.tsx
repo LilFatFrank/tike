@@ -44,6 +44,8 @@ const FilterItem = memo(
         alt={name}
         width={24}
         height={24}
+        loading="lazy"
+        style={{ aspectRatio: "1 / 1" }}
       />
       <p
         className={`${
@@ -114,6 +116,7 @@ const ActivityBar: FC = memo(() => {
             height={22}
             className="rounded-[6px]"
             loading="lazy"
+            style={{ aspectRatio: "1 / 1" }}
           />
           <p className="text-black text-[16px] leading-[22px] font-medium">
             {c.name}
@@ -151,6 +154,7 @@ const ActivityBar: FC = memo(() => {
           className="cursor-pointer"
           loading="lazy"
           onClick={handleSidebarOpen}
+          style={{ aspectRatio: "1 / 1" }}
         />
         <Link href={"/updates"}>
           <Image
@@ -160,6 +164,7 @@ const ActivityBar: FC = memo(() => {
             height={32}
             className="cursor-pointer"
             loading="lazy"
+            style={{ aspectRatio: "1 / 1" }}
           />
         </Link>
       </div>
@@ -176,6 +181,7 @@ const ActivityBar: FC = memo(() => {
                 width={16}
                 height={16}
                 loading="lazy"
+                style={{ aspectRatio: "1 / 1" }}
               />
               Close
             </span>

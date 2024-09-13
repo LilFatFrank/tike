@@ -526,6 +526,7 @@ const Profile: FC<Profile> = memo(({ fid }) => {
                               src="/icons/log-out-icon.svg"
                               alt="delete"
                               className="w-6 h-6"
+                              loading="lazy"
                             />
                             <span className="font-medium leading-[22px]">
                               Log out

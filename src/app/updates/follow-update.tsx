@@ -25,6 +25,7 @@ const FollowItem = memo(
             height={40}
             className="rounded-full aspect-square"
             style={{ aspectRatio: "1 / 1" }}
+            loading="lazy"
           />
           <div className="grow flex items-center justify-start gap-[10px]">
             <span
@@ -38,6 +39,7 @@ const FollowItem = memo(
                 height={40}
                 className="rounded-full aspect-square"
                 style={{ aspectRatio: "1 / 1" }}
+                loading="lazy"
               />
             </span>
             <p className="font-bold text-[18px] leading-[22px] flex flex-col items-start">

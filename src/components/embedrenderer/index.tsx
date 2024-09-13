@@ -174,6 +174,7 @@ const AudioEmbed = memo(
               height={18}
               loading="lazy"
               quality={100}
+              style={{ aspectRatio: "1 / 1" }}
             />
           </div>
         </div>
@@ -185,7 +186,7 @@ const AudioEmbed = memo(
 const getYouTubeVideoId = (url: string): string | null => {
   const regex =
     /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-  const match = url.match(regex);
+  const match = url?.match(regex);
   return match ? match[1] : null;
 };
 

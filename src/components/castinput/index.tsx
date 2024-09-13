@@ -296,6 +296,7 @@ const CastInput: FC = memo(() => {
                 height={32}
                 quality={100}
                 loading="lazy"
+                style={{ aspectRatio: "1 / 1" }}
               />
             </button>
             <button
@@ -315,6 +316,7 @@ const CastInput: FC = memo(() => {
               height={40}
               quality={100}
               loading="lazy"
+              style={{ aspectRatio: "1 / 1" }}
             />
             <div>
               <p className="font-[800] text-black text-[18px] leading-[21.6px]">
@@ -335,6 +337,7 @@ const CastInput: FC = memo(() => {
                   height={14}
                   quality={100}
                   loading="lazy"
+                  style={{ aspectRatio: "1 / 1" }}
                 />
               </div>
             </div>
@@ -390,6 +393,7 @@ const CastInput: FC = memo(() => {
                 height={32}
                 quality={100}
                 loading="lazy"
+                style={{ aspectRatio: "1 / 1" }}
               />
               <input
                 type="file"
@@ -416,6 +420,7 @@ const CastInput: FC = memo(() => {
                 height={32}
                 quality={100}
                 loading="lazy"
+                style={{ aspectRatio: "1 / 1" }}
               />
               <input
                 type="file"
@@ -442,6 +447,7 @@ const CastInput: FC = memo(() => {
                 height={32}
                 quality={100}
                 loading="lazy"
+                style={{ aspectRatio: "1 / 1" }}
               />
               <input
                 type="file"
@@ -484,6 +490,7 @@ const CastInput: FC = memo(() => {
                       height={70}
                       loading="lazy"
                       quality={100}
+                      style={{ aspectRatio: "1 / 1" }}
                     />
                     <input
                       type="file"
@@ -546,6 +553,7 @@ const CastInput: FC = memo(() => {
                       height={18}
                       loading="lazy"
                       quality={100}
+                      style={{ aspectRatio: "1 / 1" }}
                     />
                   </div>
                 </div>
@@ -644,6 +652,7 @@ const CastInput: FC = memo(() => {
               className="absolute left-[16px]"
               loading="lazy"
               quality={100}
+              style={{ aspectRatio: "1 / 1" }}
             />
             <input
               className="p-0 outline-none border-none w-full bg-inherit placeholder:text-black-40"
@@ -671,6 +680,7 @@ const CastInput: FC = memo(() => {
               loading="lazy"
               quality={100}
               alt={"none"}
+              style={{ aspectRatio: "1 / 1" }}
             />
             <p className="font-medium leading-[22px]">None</p>
           </div>
@@ -698,6 +708,7 @@ const CastInput: FC = memo(() => {
                       loading="lazy"
                       quality={100}
                       alt={channel.id}
+                      style={{ aspectRatio: "1 / 1" }}
                     />
                     <p className="font-medium leading-[22px]">
                       {channel.id}&nbsp;
@@ -729,6 +740,7 @@ const CastInput: FC = memo(() => {
                       height={24}
                       loading="lazy"
                       quality={100}
+                      style={{ aspectRatio: "1 / 1" }}
                     />
                     <p className="font-medium leading-[22px]">
                       {channel.id}&nbsp;
