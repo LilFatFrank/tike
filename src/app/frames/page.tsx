@@ -12,9 +12,56 @@ interface ApiResponse {
   next: { cursor: string };
 }
 
+interface UserChannelsResponse {
+  channels: any;
+  next: { cursor: string };
+}
+
 const Frames: FC = memo(() => {
   const { user } = useNeynarContext();
   const router = useRouter();
+
+  const fetchUserChannels = useCallback(
+    async ({
+      pageParam = "",
+      queryKey,
+    }: {
+      pageParam?: string;
+      queryKey: any;
+    }): Promise<UserChannelsResponse> => {
+      const [_key, { fid }] = queryKey;
+      const response = await fetch(`/api/user-channels`, {
+        method: "POST",
+        body: JSON.stringify({ cursor: pageParam, fid }),
+      });
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return await response.json();
+    },
+    []
+  );
+
+  const {
+    data: userChannelsData,
+    fetchNextPage: fetchNextUserChannels,
+    hasNextPage: hasNextUserChannels,
+    isFetchingNextPage: isFetchingNextUserChannels,
+  } = useInfiniteQuery(
+    ["user-channels", { fid: user?.fid || 3 }],
+    fetchUserChannels,
+    {
+      getNextPageParam: (lastPage) => lastPage.next?.cursor ?? false,
+      refetchOnWindowFocus: false,
+      staleTime: 60000,
+      cacheTime: 3600000,
+    }
+  );
+
+  const allUserChannels = useMemo(
+    () => userChannelsData?.pages.flatMap((page) => page.channels) ?? [],
+    [userChannelsData]
+  );
 
   const fetchFrames = useCallback(
     async ({
@@ -105,7 +152,12 @@ const Frames: FC = memo(() => {
     <div className="flex-1 bg-white min-h-full">
       <ActivityBar />
 
-      <UserChannels />
+      <UserChannels
+        channels={allUserChannels}
+        onLoadMore={fetchNextUserChannels}
+        hasNextPage={!!hasNextUserChannels}
+        isFetchingNextPage={isFetchingNextUserChannels}
+      />
       {allFrames.map((frame, frameIndex, arr) =>
         frame.embeds[0].url ? (
           <span
