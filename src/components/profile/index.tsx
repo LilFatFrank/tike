@@ -514,6 +514,7 @@ const Profile: FC<Profile> = memo(({ fid }) => {
                   <StringProcessor
                     inputString={userPro?.profile.bio.text ?? ""}
                     mentionedProfiles={[]}
+                    maxLength={120}
                   />
                 </p>
                 <div className="flex items-center justify-start gap-[12px]">

@@ -23,6 +23,7 @@
     "react-infinite-scroller": "^1.2.6",
     "react-intersection-observer": "^9.10.3",
     "react-query": "^3.39.3",
+    "react-virtuoso": "^4.10.4",
     "react-youtube": "^10.1.0",
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.3.0"

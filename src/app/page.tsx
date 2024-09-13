@@ -6,6 +6,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import { useInfiniteQuery } from "react-query";
+import { Virtuoso } from "react-virtuoso";
 
 interface ApiResponse {
   casts: any;
@@ -103,28 +104,15 @@ export default function Home() {
     cacheTime: 3600000,
   });
 
-  const { ref, inView } = useInView({
-    threshold: 0.3,
-  });
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  useEffect(() => {
-    if (inView && hasNextPage) {
-      fetchNextPage();
-    }
-  }, [inView, hasNextPage, fetchNextPage]);
-
   const handleFetchNextPage = useCallback(() => {
-    if (inView && hasNextPage && !isFetchingNextPage) {
+    if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-  }, [inView, hasNextPage, fetchNextPage, isFetchingNextPage]);
-
-  useEffect(() => {
-    handleFetchNextPage();
-  }, [data, handleFetchNextPage]);
+  }, [hasNextPage, fetchNextPage, isFetchingNextPage]);
 
   useEffect(() => {
     if (pathname === "/") {
@@ -163,30 +151,32 @@ export default function Home() {
     </p>
   );
 
-  const renderCasts = () => (
-    <>
-      {allCasts.map((cast, castIndex, arr) =>
-        cast.embeds[0].url ? (
-          <span
-            onClick={() =>
-              router.push(`/cast/${cast.parent_hash || cast.hash}`)
-            }
-            key={`${cast.parent_hash || cast.hash}`}
-            className="cursor-pointer"
-          >
-            {cast.embedType === "frame" ? (
-              <MemoizedFrame frame={cast} key={`cast-${cast.hash}`} />
-            ) : (
-              <MemoizedCast cast={cast} key={`cast-${cast.hash}`} />
-            )}
-            {castIndex === arr.length - 1 ? null : (
-              <hr className="border border-t-divider" />
-            )}
-          </span>
-        ) : null
-      )}
-    </>
+  const renderItem = useCallback(
+    (index: number) => {
+      const cast = allCasts[index];
+      return (
+        <span
+          onClick={() => router.push(`/cast/${cast.parent_hash || cast.hash}`)}
+          key={`${cast.parent_hash || cast.hash}`}
+          className="cursor-pointer"
+        >
+          {cast.embedType === "frame" ? (
+            <MemoizedFrame frame={cast} key={`cast-${cast.hash}`} />
+          ) : (
+            <MemoizedCast cast={cast} key={`cast-${cast.hash}`} />
+          )}
+          {index === allCasts.length - 1 ? null : (
+            <hr className="border border-t-divider" />
+          )}
+        </span>
+      );
+    },
+    [allCasts, router]
   );
+
+  const Footer = useCallback(() => {
+    return isFetchingNextPage ? renderLoadingMore() : null;
+  }, [isFetchingNextPage]);
 
   const renderLoadingMore = () => (
     <div className="p-2">
@@ -214,18 +204,23 @@ export default function Home() {
       <div className="flex-1 bg-white min-h-full">
         <ActivityBar />
 
-        <UserChannels
-          channels={allUserChannels}
-          onLoadMore={fetchNextUserChannels}
-          hasNextPage={!!hasNextUserChannels}
-          isFetchingNextPage={isFetchingNextUserChannels}
+        <Virtuoso
+          data={allCasts}
+          endReached={handleFetchNextPage}
+          itemContent={renderItem}
+          components={{
+            Footer,
+            Header: () => (
+              <UserChannels
+                channels={allUserChannels}
+                onLoadMore={fetchNextUserChannels}
+                hasNextPage={!!hasNextUserChannels}
+                isFetchingNextPage={isFetchingNextUserChannels}
+              />
+            ),
+          }}
+          style={{ height: "100dvh" }}
         />
-
-        {renderCasts()}
-
-        {isFetchingNextPage ? renderLoadingMore() : null}
-
-        <div ref={ref} style={{ height: "20px" }}></div>
 
         {allCasts && allCasts.length && !hasNextPage ? (
           <p className="w-full items-center justify-center py-2 text-center">

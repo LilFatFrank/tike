@@ -3,9 +3,9 @@ import { ActivityBar, Frame, UserChannels } from "@/components";
 import { useNeynarContext } from "@neynar/react";
 import { useRouter } from "next/navigation";
 import React from "react";
-import { FC, memo, useCallback, useEffect, useMemo } from "react";
-import { useInView } from "react-intersection-observer";
+import { FC, memo, useCallback, useMemo } from "react";
 import { useInfiniteQuery } from "react-query";
+import { Virtuoso } from "react-virtuoso";
 
 interface ApiResponse {
   casts: any;
@@ -101,45 +101,78 @@ const Frames: FC = memo(() => {
     cacheTime: 3600000,
   });
 
-  const { ref, inView } = useInView({
-    threshold: 0.3,
-  });
-
   const handleFetchNextPage = useCallback(() => {
-    if (inView && hasNextPage) {
+    if (hasNextPage) {
       fetchNextPage();
     }
-  }, [inView, hasNextPage, fetchNextPage]);
-
-  useEffect(() => {
-    handleFetchNextPage();
-  }, [data, handleFetchNextPage]);
+  }, [hasNextPage, fetchNextPage]);
 
   const allFrames = useMemo(
     () => data?.pages.flatMap((page) => page.casts) ?? [],
     [data]
   );
 
-  if (isLoading) {
-    return (
-      <div className="p-2 flex items-start justify-center h-full bg-white">
-        <div className="p-2 flex flex-col items-start justify-start min-h-full bg-white w-full">
-          <div className="animate-pulse w-full h-[70px] bg-divider rounded-lg" />
-          {Array.from({ length: 3 }).map((_, index) => (
-            <div className="py-5 w-full" key={index}>
-              <div className="flex items-center flex-col justify-start w-full gap-3">
-                <div className="flex items-center gap-2 w-full">
-                  <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
-                  <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
-                </div>
-                <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
-                <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
-              </div>
+  const MemoizedFrame = memo(Frame);
+
+  const renderItem = useCallback(
+    (index: number) => {
+      const cast = allFrames[index];
+      return (
+        <span
+          onClick={() => router.push(`/cast/${cast.parent_hash || cast.hash}`)}
+          key={`${cast.parent_hash || cast.hash}`}
+          className="cursor-pointer"
+        >
+          {<MemoizedFrame frame={cast} key={`cast-${cast.hash}`} />}
+          {index === allFrames.length - 1 ? null : (
+            <hr className="border border-t-divider" />
+          )}
+        </span>
+      );
+    },
+    [allFrames, router]
+  );
+
+  const renderLoadingMore = () => (
+    <div className="p-2">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <div className="py-5 w-full" key={index}>
+          <div className="flex items-center flex-col justify-start w-full gap-3">
+            <div className="flex items-center gap-2 w-full">
+              <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
+              <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
             </div>
-          ))}
+            <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
+            <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
+          </div>
         </div>
-      </div>
-    );
+      ))}
+    </div>
+  );
+
+  const Footer = useCallback(() => {
+    return isFetchingNextPage ? renderLoadingMore() : null;
+  }, [isFetchingNextPage]);
+
+  const renderLoadingState = () => (
+    <div className="p-2 flex flex-col items-start justify-start min-h-full bg-white w-full">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <div className="py-5 w-full" key={index}>
+          <div className="flex items-center flex-col justify-start w-full gap-3">
+            <div className="flex items-center gap-2 w-full">
+              <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
+              <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
+            </div>
+            <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
+            <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  if (isLoading) {
+    return renderLoadingState();
   }
 
   if (error) {
@@ -152,47 +185,23 @@ const Frames: FC = memo(() => {
     <div className="flex-1 bg-white min-h-full">
       <ActivityBar />
 
-      <UserChannels
-        channels={allUserChannels}
-        onLoadMore={fetchNextUserChannels}
-        hasNextPage={!!hasNextUserChannels}
-        isFetchingNextPage={isFetchingNextUserChannels}
+      <Virtuoso
+        data={allFrames}
+        endReached={handleFetchNextPage}
+        itemContent={renderItem}
+        components={{
+          Footer,
+          Header: () => (
+            <UserChannels
+              channels={allUserChannels}
+              onLoadMore={fetchNextUserChannels}
+              hasNextPage={!!hasNextUserChannels}
+              isFetchingNextPage={isFetchingNextUserChannels}
+            />
+          ),
+        }}
+        style={{ height: "100dvh" }}
       />
-      {allFrames.map((frame, frameIndex, arr) =>
-        frame.embeds[0].url ? (
-          <span
-            onClick={() =>
-              router.push(`/cast/${frame.parent_hash || frame.hash}`)
-            }
-            key={`${frame.parent_hash || frame.hash}`}
-            className="cursor-pointer"
-          >
-            <Frame frame={frame} key={`frame-${frame.hash}`} />
-            {frameIndex === arr.length - 1 ? null : (
-              <hr className="border border-t-divider" />
-            )}
-          </span>
-        ) : null
-      )}
-
-      {isFetchingNextPage ? (
-        <div className="p-2">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <div className="py-5 w-full" key={index}>
-              <div className="flex items-center flex-col justify-start w-full gap-3">
-                <div className="flex items-center gap-2 w-full">
-                  <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
-                  <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
-                </div>
-                <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
-                <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : null}
-
-      <div ref={ref} style={{ height: "20px" }}></div>
 
       {allFrames && allFrames.length && !hasNextPage ? (
         <p className="w-full items-center justify-center py-2 text-center">
