@@ -1,7 +1,7 @@
 "use client";
 import { useNeynarContext } from "@neynar/react";
 import { IUser } from "@neynar/react/dist/types/common";
-import { FC, memo, useCallback, useEffect, useState } from "react";
+import { FC, memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useInfiniteQuery } from "react-query";
 import { useInView } from "react-intersection-observer";
 import Cast from "../cast";
@@ -324,8 +324,8 @@ const Profile: FC<Profile> = memo(({ fid }) => {
     handleFetchNextPage();
   }, [handleFetchNextPage]);
 
-  const allProfileCasts = data?.pages.flatMap((page) => page.casts) ?? [];
-  const allRepliesRecasts = rrData?.pages.flatMap((page) => page.casts) ?? [];
+  const allProfileCasts = useMemo(() => data?.pages.flatMap((page) => page.casts) ?? [], [data]);
+  const allRepliesRecasts = useMemo(() => rrData?.pages.flatMap((page) => page.casts) ?? [], [rrData]);
 
   const [userPro, setUserPro] = useState<IUser>();
   const [errorPro, setErrorPro] = useState(false);
@@ -632,10 +632,11 @@ const Profile: FC<Profile> = memo(({ fid }) => {
                     )}
                   </InfiniteScroll>
                 </>
-              ) : (
+              ) : selectedTab === "recasts_replies" ? (
                 <>
                   <InfiniteScroll
                     loadMore={() => {}}
+                    pageStart={0}
                     hasMore={!!rrHasNextPage}
                     initialLoad
                     loader={
@@ -654,7 +655,7 @@ const Profile: FC<Profile> = memo(({ fid }) => {
                     )}
                   </InfiniteScroll>
                 </>
-              )}
+              ) : null}
             </>
           )}
           <div style={{ height: "80px" }} />
