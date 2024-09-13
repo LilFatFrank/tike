@@ -1,17 +1,25 @@
 "use client";
 import formatNumber from "@/utils/formatNumber";
-import formatTime from "@/utils/formatTime";
 import timeAgo from "@/utils/timeAgo";
 import { useNeynarContext } from "@neynar/react";
-import { ChangeEvent, CSSProperties, FC, memo, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ChangeEvent,
+  CSSProperties,
+  FC,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
-import Modal from "../modal";
-import { AiOutlineClose } from "react-icons/ai";
 import axios from "axios";
 import StringProcessor from "../stringprocessor";
 import EmbedRenderer from "../embedrenderer";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import MusicUploadModal from "./musicuploadmodal";
+import CommentModal from "./commentmodal";
 
 interface Cast {
   cast: any;
@@ -53,32 +61,33 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
 
   const router = useRouter();
 
-  const postReaction = useCallback(async (type: "like" | "recast") => {
-    const res = await fetch(`/api/post-reaction`, {
-      method: "POST",
-      body: JSON.stringify({
-        reactionType: type,
-        uuid: user?.signer_uuid as string,
-        hash: castDet.hash as string,
-      }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      setCastDet({
-        ...castDet,
-        viewer_context: {
-          ...castDet?.viewer_context,
-          [type === "like" ? "liked" : "recasted"]:
-            !castDet?.viewer_context[type === "like" ? "liked" : "recasted"],
-        },
-        reactions: {
-          ...castDet?.reactions,
-          [type === "like" ? "likes_count" : "recasts_count"]:
-            castDet?.reactions[
-              type === "like" ? "likes_count" : "recasts_count"
-            ] + 1,
-        },
+  const postReaction = useCallback(
+    async (type: "like" | "recast") => {
+      const res = await fetch(`/api/post-reaction`, {
+        method: "POST",
+        body: JSON.stringify({
+          reactionType: type,
+          uuid: user?.signer_uuid as string,
+          hash: castDet.hash as string,
+        }),
       });
+      const data = await res.json();
+      if (data.success) {
+        setCastDet({
+          ...castDet,
+          viewer_context: {
+            ...castDet?.viewer_context,
+            [type === "like" ? "liked" : "recasted"]:
+              !castDet?.viewer_context[type === "like" ? "liked" : "recasted"],
+          },
+          reactions: {
+            ...castDet?.reactions,
+            [type === "like" ? "likes_count" : "recasts_count"]:
+              castDet?.reactions[
+                type === "like" ? "likes_count" : "recasts_count"
+              ] + 1,
+          },
+        });
       }
     },
     [castDet, user?.signer_uuid]
@@ -86,31 +95,31 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
 
   const deleteReaction = useCallback(
     async (type: "like" | "recast") => {
-    const res = await fetch(`/api/delete-reaction`, {
-      method: "POST",
-      body: JSON.stringify({
-        reactionType: type,
-        uuid: user?.signer_uuid as string,
-        hash: castDet.hash as string,
-      }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      setCastDet({
-        ...cast,
-        viewer_context: {
-          ...cast.viewer_context,
-          [type === "like" ? "liked" : "recasted"]:
-            !cast.viewer_context[type === "like" ? "liked" : "recasted"],
-        },
-        reactions: {
-          ...castDet?.reactions,
-          [type === "like" ? "likes_count" : "recasts_count"]:
-            castDet?.reactions[
-              type === "like" ? "likes_count" : "recasts_count"
-            ] - 1,
-        },
+      const res = await fetch(`/api/delete-reaction`, {
+        method: "POST",
+        body: JSON.stringify({
+          reactionType: type,
+          uuid: user?.signer_uuid as string,
+          hash: castDet.hash as string,
+        }),
       });
+      const data = await res.json();
+      if (data.success) {
+        setCastDet({
+          ...cast,
+          viewer_context: {
+            ...cast.viewer_context,
+            [type === "like" ? "liked" : "recasted"]:
+              !cast.viewer_context[type === "like" ? "liked" : "recasted"],
+          },
+          reactions: {
+            ...castDet?.reactions,
+            [type === "like" ? "likes_count" : "recasts_count"]:
+              castDet?.reactions[
+                type === "like" ? "likes_count" : "recasts_count"
+              ] - 1,
+          },
+        });
       }
     },
     [castDet, user?.signer_uuid]
@@ -133,10 +142,8 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
     } catch (error) {
       console.log(error);
       toast.error("Error deleting cast!");
-      }
-    },
-    [castDet, user?.signer_uuid]
-  );
+    }
+  }, [castDet, user?.signer_uuid]);
 
   const recastOperation = (type: "post" | "delete") => {
     if (type === "post") postReaction("recast");
@@ -163,18 +170,17 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
       }
       setMedia({ type, url, file });
       setOpenCommentMediaModal(false);
-      }
-    },
-    []
-  );
+    }
+  }, []);
 
-  const handleAudioThumbnailMedia = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      setAudioThumbnailMedia({
-        url: URL.createObjectURL(files[0]),
-        file: files[0],
-      });
+  const handleAudioThumbnailMedia = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        setAudioThumbnailMedia({
+          url: URL.createObjectURL(files[0]),
+          file: files[0],
+        });
       }
     },
     []
@@ -200,10 +206,8 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
       console.log("Error uploading to pinata", error);
       toast.error("Error uploading media");
       return "";
-      }
-    },
-    []
-  );
+    }
+  }, []);
 
   const handlePost = useCallback(async () => {
     setIsUploading(true);
@@ -239,21 +243,16 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
       setIsUploading(false);
       setCommentText("");
       setMedia(null);
-      }
-    },
-    [castDet, user?.signer_uuid, media, audioThumbnailMedia, musicTitle]
-  );
+    }
+  }, [castDet, user?.signer_uuid, media, audioThumbnailMedia, musicTitle]);
 
   const handleTimeUpdate = useCallback(() => {
     const audio = document.getElementById("audio-element") as HTMLAudioElement;
     setCurrentAudioTime(audio.currentTime);
-      setAudioDuration(audio.duration);
-      },
-    []
-  );
+    setAudioDuration(audio.duration);
+  }, []);
 
-  const handleSeek = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
+  const handleSeek = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const audio = document.getElementById("audio-element") as HTMLAudioElement;
     audio.currentTime = parseFloat(e.target.value);
     setCurrentAudioTime(audio.currentTime);
@@ -540,462 +539,55 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
               toast.success("Link copied!");
             }}
           >
-            <Image src="/icons/share.svg" alt="share" width={24} height={24} quality={100} loading="lazy" style={{ aspectRatio: "1/1" }} />
+            <Image
+              src="/icons/share.svg"
+              alt="share"
+              width={24}
+              height={24}
+              quality={100}
+              loading="lazy"
+              style={{ aspectRatio: "1/1" }}
+            />
           </button>
         </div>
       </div>
-      <Modal
-        isOpen={openCommentModal}
-        closeModal={(e) => {
-          setOpenCommentModal(false);
-          e?.stopPropagation();
-        }}
-        style={{ padding: 8, height: "100%", maxHeight: "85vh" }}
-      >
-        <div className="flex justify-end">
-          <button
-            className="border-none outline-none rounded-[18px] px-2 py-1 bg-frame-btn-bg"
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              setOpenCommentModal(false);
-            }}
-          >
-            <Image
-              src="/icons/close-upload-view-icon.svg"
-              alt="close"
-              className="w-8 h-8"
-              width={32}
-              height={32}
-              quality={100}
-              loading="lazy"
-              style={{ aspectRatio: "1/1" }}
-            />
-          </button>
-        </div>
-        <div className="pt-[8px] h-full relative">
-          <div className="flex flex-col flex-1 h-full">
-            <div className="grow mb-2">
-              <textarea
-                className="w-full px-2 outline-none resize-none placeholder:text-black-40"
-                placeholder="Write your reply here..."
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                rows={3}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-              />
-              <div className="flex flex-wrap gap-2 mt-1 w-full">
-                {media && media.type !== "audio" ? (
-                  <div className="flex flex-wrap gap-2 mt-2 w-full">
-                    <div key={media.url} className="relative w-full">
-                      {media.type === "image" ? (
-                        <img
-                          src={media.url}
-                          alt="media"
-                          className="w-full object-cover rounded-lg"
-                          loading="lazy"
-                        />
-                      ) : media.type === "video" ? (
-                        <video
-                          src={media.url}
-                          controls
-                          className="w-full object-cover rounded-lg"
-                        />
-                      ) : null}
-                      <button
-                        className="absolute top-1 right-1 bg-black text-white rounded-full p-1"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setMedia(null);
-                        }}
-                      >
-                        <AiOutlineClose />
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-            <div className="relative flex items-center justify-between pb-3">
-              <Image
-                src="/icons/comment-upload-media-icon.svg"
-                alt="upload"
-                className={`w-12 h-[42px] ${
-                  media
-                    ? "opacity-40 cursor-not-allowed"
-                    : "cursor-pointer opacity-100"
-                }`}
-                onClick={
-                  media
-                    ? undefined
-                    : (e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        setOpenCommentMediaModal(!openCommentMediaModal);
-                      }
-                }
-                width={48}
-                height={42}
-                quality={100}
-                loading="lazy"
-                style={{ aspectRatio: "1/1" }}
-              />
-              <div
-                className={`absolute bottom-full bg-white z-[99] transition-all duration-300 ease-in-out p-2 rounded-[18px] shadow-comment-upload-media-modal w-[150px] ${
-                  openCommentMediaModal
-                    ? "opacity-100 visible"
-                    : "opacity-0 invisible"
-                }`}
-              >
-                <label
-                  className="cursor-pointer"
-                  htmlFor="video"
-                  onClick={() => setSelectedCommentMediaType("video")}
-                >
-                  <div
-                    className={`w-full px-2 py-[10px] flex items-center justify-start gap-[2px] rounded-[12px] hover:bg-frame-btn-bg ${
-                      selectedCommentMediaType === "video"
-                        ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
-                        : ""
-                    } mb-1`}
-                  >
-                    <Image
-                      src="/icons/video-icon.svg"
-                      alt="video"
-                      className="w-6 h-6"
-                      width={24}
-                      height={24}
-                      quality={100}
-                      loading="lazy"
-                      style={{ aspectRatio: "1/1" }}
-                    />
-                    <p className="leading-[22px] capitalize">Video</p>
-                  </div>
-                  <input
-                    id="video"
-                    type="file"
-                    accept="video/*"
-                    multiple
-                    className="hidden"
-                    onChange={(e) => {
-                      handleMediaChange(e);
-                    }}
-                  />
-                </label>
-                <label
-                  className="cursor-pointer"
-                  htmlFor="music"
-                  onClick={() => setSelectedCommentMediaType("music")}
-                >
-                  <div
-                    className={`w-full px-2 py-[10px] flex items-center justify-start gap-[2px] rounded-[12px] hover:bg-frame-btn-bg ${
-                      selectedCommentMediaType === "music"
-                        ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
-                        : ""
-                    } mb-1`}
-                  >
-                    <input
-                      id="music"
-                      type="file"
-                      accept="audio/*"
-                      multiple
-                      className="hidden"
-                      onChange={
-                        isUploading || media
-                          ? undefined
-                          : (e) => handleMediaChange(e)
-                      }
-                    />
-                    <Image
-                      src="/icons/music-icon.svg"
-                      alt="music"
-                      className="w-6 h-6"
-                      width={24}
-                      height={24}
-                      quality={100}
-                      loading="lazy"
-                      style={{ aspectRatio: "1/1" }}
-                    />
-                    <p className="leading-[22px] capitalize">Music</p>
-                  </div>
-                </label>
-                <label
-                  className="cursor-pointer"
-                  htmlFor="image"
-                  onClick={() => setSelectedCommentMediaType("image")}
-                >
-                  <div
-                    className={`w-full px-2 py-[10px] flex items-center justify-start gap-[2px] rounded-[12px] hover:bg-frame-btn-bg ${
-                      selectedCommentMediaType === "image"
-                        ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
-                        : ""
-                    } mb-1`}
-                  >
-                    <input
-                      id="image"
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      className="hidden"
-                      onChange={
-                        isUploading || media
-                          ? undefined
-                          : (e) => handleMediaChange(e)
-                      }
-                    />
-                    <Image
-                      src="/icons/image-icon.svg"
-                      alt="image"
-                      className="w-6 h-6"
-                      width={24}
-                      height={24}
-                      quality={100}
-                      loading="lazy"
-                      style={{ aspectRatio: "1/1" }}
-                    />
-                    <p className="leading-[22px] capitalize">Image</p>
-                  </div>
-                </label>
-              </div>
-              <button
-                className="border-none outline-none rounded-[22px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
-                disabled={!(media || commentText) || isUploading}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handlePost();
-                }}
-              >
-                {isUploading ? "Uploading..." : "Post"}
-              </button>
-            </div>
-          </div>
-        </div>
-      </Modal>
-      <Modal
-        isOpen={openMusicUploadModal}
-        closeModal={(e) => {
-          setOpenMusicUploadModal(false);
-          setMedia(null);
-          setAudioThumbnailMedia(null);
-          e?.stopPropagation();
-        }}
-      >
-        <div className="flex justify-end">
-          <button
-            className="border-none outline-none rounded-[18px] px-2 py-1 bg-frame-btn-bg"
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              setOpenMusicUploadModal(false);
-            }}
-          >
-            <Image
-              src="/icons/close-upload-view-icon.svg"
-              alt="close"
-              className="w-8 h-8"
-              width={32}
-              height={32}
-              quality={100}
-              loading="lazy"
-              style={{ aspectRatio: "1/1" }}
-            />
-          </button>
-        </div>
-        <div
-          className="pt-2 px-2 pb-8 relative"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <p className="text-center text-[18px] leading-[22px] font-semibold mb-2">
-            Music Upload
-          </p>
-          <div className="flex flex-col w-full gap-5">
-            {media ? (
-              <div className="p-2 rounded-[12px] bg-music-upload-color/60 flex items-center gap-2">
-                <label className={`cursor-pointer`}>
-                  <div
-                    className="rounded-[11px] w-[70px] h-[70px]"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                  >
-                    <Image
-                      src={
-                        audioThumbnailMedia
-                          ? audioThumbnailMedia.url
-                          : "/icons/thumbnail-upload-icon.svg"
-                      }
-                      alt="image"
-                      className="flex-shrink-0 rounded-[11px] object-cover w-[70px] h-[70px]"
-                      width={70}
-                      height={70}
-                      quality={100}
-                      loading="lazy"
-                      style={{ aspectRatio: "1/1" }}
-                    />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      className="hidden"
-                      onChange={handleAudioThumbnailMedia}
-                    />
-                  </div>
-                </label>
-                <div className="grow flex flex-col items-start justify-between">
-                  <div className="mb-1">
-                    <p className="text-[12px] leading-[120%] tracking-[0.3px] font-semibold text-white">
-                      {musicTitle || "Song Name"}
-                    </p>
-                    <p className="text-[10px] leading-[120%] tracking-[0.3px] font-semibold text-white/60">
-                      @{user?.username}
-                    </p>
-                    <div
-                      className={`py-[2px] px-1 rounded-[2px] bg-white/20 ${
-                        currentAudioTime ? "visible" : "invisible"
-                      } w-fit`}
-                    >
-                      <p className="text-[10px] leading-[120%] tracking-[0.3px] font-semibold text-white">
-                        {formatTime(currentAudioTime)}
-                      </p>
-                    </div>
-                  </div>
-                  <div
-                    className="flex items-center gap-2 w-full"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                  >
-                    <audio
-                      id="audio-element"
-                      src={media.url}
-                      className="hidden"
-                      onTimeUpdate={handleTimeUpdate}
-                    />
-                    <input
-                      type="range"
-                      min="0"
-                      max={audioDuration}
-                      value={currentAudioTime}
-                      onChange={handleSeek}
-                      className="hidden"
-                    />
-                    <div className="bg-music-progress-bg w-full h-[4px] rounded-[2px]">
-                      <div
-                        className={`bg-white rounded-[2px] h-[4px]`}
-                        style={{
-                          width: `${audioProgressWidth}%`,
-                        }}
-                      />
-                    </div>
-                    <Image
-                      src={`/icons/music-${
-                        isAudioPlaying ? "pause" : "play"
-                      }-icon.svg`}
-                      alt={isAudioPlaying ? "pause" : "play"}
-                      className="w-[18px] h-[18px] cursor-pointer"
-                      onClick={togglePlayPause}
-                      width={18}
-                      height={18}
-                      quality={100}
-                      loading="lazy"
-                      style={{ aspectRatio: "1/1" }}
-                    />
-                  </div>
-                </div>
-              </div>
-            ) : null}
-            <div className="flex flex-col items-start gap-1 w-full">
-              <label
-                className="text-[18px] leading-[22px] font-semibold"
-                htmlFor="songname"
-              >
-                Title
-              </label>
-              <input
-                id="songname"
-                name="songname"
-                type="text"
-                placeholder="Heartless"
-                className="w-full border outline-none py-[10px] px-4 rounded-[12px] border-black/10 placeholder:text-black-20 text-black"
-                value={musicTitle}
-                onChange={(e) => setMusicTitle(e.target.value)}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-              />
-            </div>
-            <label
-              className="flex flex-col items-start gap-1 w-full"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-            >
-              <label
-                className="text-[18px] leading-[22px] font-semibold"
-                htmlFor="artist"
-              >
-                Cover Image
-              </label>
-              <div className="p-[6px] rounded-[12px] border border-black/10 flex w-full gap-1 items-center justify-start cursor-pointer">
-                <div
-                  className={`rounded-[12px] border border-black/10 ${
-                    audioThumbnailMedia ? "w-14 h-14" : "p-3"
-                  } bg-frame-btn-bg`}
-                >
-                  <img
-                    src={
-                      audioThumbnailMedia
-                        ? audioThumbnailMedia.url
-                        : "/icons/upload-music-thumbnail-icon.svg"
-                    }
-                    alt="thumbnail"
-                    className={
-                      audioThumbnailMedia
-                        ? "w-full h-full object-cover rounded-[12px]"
-                        : "w-8 h-8"
-                    }
-                  />
-                </div>
-                <div className="grow">
-                  <p className="leading-[22px] mv-1">Select File</p>
-                  <span className="text-[14px] text-black-50 leading-[22px]">
-                    PNG,JPG and GIF supported. Max size 5MB.
-                  </span>
-                </div>
-              </div>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={handleAudioThumbnailMedia}
-              />
-            </label>
-            <button
-              className="w-full border-none outline-none rounded-[12px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
-              disabled={
-                !audioThumbnailMedia || !media || isUploading || !musicTitle
-              }
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handlePost();
-              }}
-            >
-              {isUploading ? "Uploading..." : "Post"}
-            </button>
-          </div>
-        </div>
-      </Modal>
+      <CommentModal
+        openCommentModal={openCommentModal}
+        setOpenCommentModal={setOpenCommentModal}
+        commentText={commentText}
+        setCommentText={setCommentText}
+        handleMediaChange={handleMediaChange}
+        isUploading={isUploading}
+        handlePost={handlePost}
+        media={media}
+        setMedia={setMedia}
+        openCommentMediaModal={openCommentMediaModal}
+        setOpenCommentMediaModal={setOpenCommentMediaModal}
+        selectedCommentMediaType={selectedCommentMediaType}
+        setSelectedCommentMediaType={(value: "video" | "image" | "music") =>
+          setSelectedCommentMediaType(value)
+        }
+      />
+      <MusicUploadModal
+        openMusicUploadModal={openMusicUploadModal}
+        setOpenMusicUploadModal={setOpenMusicUploadModal}
+        media={media}
+        setMedia={setMedia}
+        audioThumbnailMedia={audioThumbnailMedia}
+        setAudioThumbnailMedia={setAudioThumbnailMedia}
+        musicTitle={musicTitle}
+        setMusicTitle={setMusicTitle}
+        isUploading={isUploading}
+        handlePost={handlePost}
+        handleAudioThumbnailMedia={handleAudioThumbnailMedia}
+        handleTimeUpdate={handleTimeUpdate}
+        handleSeek={handleSeek}
+        audioDuration={audioDuration}
+        currentAudioTime={currentAudioTime}
+        audioProgressWidth={audioProgressWidth}
+        isAudioPlaying={isAudioPlaying}
+        togglePlayPause={togglePlayPause}
+      />
     </>
   );
 });
