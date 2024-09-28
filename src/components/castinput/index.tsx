@@ -288,13 +288,12 @@ const CastInput: FC = memo(() => {
               className="border-none outline-none rounded-[18px] px-2 py-1 bg-frame-btn-bg"
               onClick={() => router.back()}
             >
-              <Image
+              <img
                 src="/icons/close-upload-view-icon.svg"
                 alt="close"
                 className="w-8 h-8"
                 width={32}
                 height={32}
-                quality={100}
                 loading="lazy"
                 style={{ aspectRatio: "1 / 1" }}
               />
@@ -308,13 +307,12 @@ const CastInput: FC = memo(() => {
             </button>
           </div>
           <div className={`flex items-center justify-start gap-2 mb-[12px]`}>
-            <Image
+            <img
               src={user?.pfp_url ?? ""}
               alt={user?.display_name ?? ""}
               className="w-10 h-10 rounded-full object-cover flex-shrink-0"
               width={40}
               height={40}
-              quality={100}
               loading="lazy"
               style={{ aspectRatio: "1 / 1" }}
             />
@@ -329,13 +327,12 @@ const CastInput: FC = memo(() => {
                 <span className="text-purple font-bold text-[14px] leading-[120%]">
                   {selectedChannel ? `/${selectedChannel}` : "Select Channel"}
                 </span>
-                <Image
+                <img
                   src="/icons/channel-chevron-down-icon.svg"
                   alt="channel-down"
                   className="w-[14px] h-[14px]"
                   width={14}
                   height={14}
-                  quality={100}
                   loading="lazy"
                   style={{ aspectRatio: "1 / 1" }}
                 />
@@ -385,13 +382,12 @@ const CastInput: FC = memo(() => {
             }`}
           >
             <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
-              <Image
+              <img
                 src="/icons/image-upload-icon.svg"
                 alt="image"
                 className="w-8 h-8"
                 width={32}
                 height={32}
-                quality={100}
                 loading="lazy"
                 style={{ aspectRatio: "1 / 1" }}
               />
@@ -412,13 +408,12 @@ const CastInput: FC = memo(() => {
             }`}
           >
             <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
-              <Image
+              <img
                 src="/icons/video-upload-icon.svg"
                 alt="video"
                 className="w-8 h-8"
                 width={32}
                 height={32}
-                quality={100}
                 loading="lazy"
                 style={{ aspectRatio: "1 / 1" }}
               />
@@ -439,13 +434,12 @@ const CastInput: FC = memo(() => {
             }`}
           >
             <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
-              <Image
+              <img
                 src="/icons/music-upload-icon.svg"
                 alt="music"
                 className="w-8 h-8"
                 width={32}
                 height={32}
-                quality={100}
                 loading="lazy"
                 style={{ aspectRatio: "1 / 1" }}
               />
@@ -478,7 +472,7 @@ const CastInput: FC = memo(() => {
               <div className="p-2 rounded-[12px] bg-music-upload-color/60 flex items-center gap-2">
                 <label className={`cursor-pointer`}>
                   <div className="rounded-[11px] w-[70px] h-[70px]">
-                    <Image
+                    <img
                       src={
                         audioThumbnailMedia
                           ? audioThumbnailMedia.url
@@ -489,7 +483,6 @@ const CastInput: FC = memo(() => {
                       width={70}
                       height={70}
                       loading="lazy"
-                      quality={100}
                       style={{ aspectRatio: "1 / 1" }}
                     />
                     <input
@@ -542,7 +535,7 @@ const CastInput: FC = memo(() => {
                         }}
                       />
                     </div>
-                    <Image
+                    <img
                       src={`/icons/music-${
                         isAudioPlaying ? "pause" : "play"
                       }-icon.svg`}
@@ -552,7 +545,6 @@ const CastInput: FC = memo(() => {
                       width={18}
                       height={18}
                       loading="lazy"
-                      quality={100}
                       style={{ aspectRatio: "1 / 1" }}
                     />
                   </div>
@@ -589,7 +581,7 @@ const CastInput: FC = memo(() => {
                     audioThumbnailMedia ? "w-14 h-14" : "p-3"
                   } bg-frame-btn-bg`}
                 >
-                  <Image
+                  <img
                     src={
                       audioThumbnailMedia
                         ? audioThumbnailMedia.url
@@ -604,7 +596,6 @@ const CastInput: FC = memo(() => {
                     width={32}
                     height={32}
                     loading="lazy"
-                    quality={100}
                   />
                 </div>
                 <div className="grow">
@@ -644,14 +635,13 @@ const CastInput: FC = memo(() => {
             Select Channel
           </p>
           <div className="w-full items-center bg-frame-btn-bg relative rounded-[12px] py-2 pl-[42px] pr-4 mb-1">
-            <Image
+            <img
               src="/icons/input-search-icon.svg"
               alt="input-search"
               width={22}
               height={22}
               className="absolute left-[16px]"
               loading="lazy"
-              quality={100}
               style={{ aspectRatio: "1 / 1" }}
             />
             <input
@@ -672,13 +662,12 @@ const CastInput: FC = memo(() => {
               setOpenChannelModal(false);
             }}
           >
-            <Image
+            <img
               src={"/icons/home-icon.svg"}
               className="w-[24px] h-[24px] rounded-[20px] object-cover"
               width={24}
               height={24}
               loading="lazy"
-              quality={100}
               alt={"none"}
               style={{ aspectRatio: "1 / 1" }}
             />
@@ -700,13 +689,12 @@ const CastInput: FC = memo(() => {
                       setOpenChannelModal(false);
                     }}
                   >
-                    <Image
+                    <img
                       src={channel.image_url}
                       className="w-[24px] h-[24px] rounded-[20px] object-cover"
                       width={24}
                       height={24}
                       loading="lazy"
-                      quality={100}
                       alt={channel.id}
                       style={{ aspectRatio: "1 / 1" }}
                     />
@@ -732,14 +720,13 @@ const CastInput: FC = memo(() => {
                       setOpenChannelModal(false);
                     }}
                   >
-                    <Image
+                    <img
                       src={channel.image_url}
                       className="w-[24px] h-[24px] rounded-[20px] object-cover"
                       alt={channel.id}
                       width={24}
                       height={24}
                       loading="lazy"
-                      quality={100}
                       style={{ aspectRatio: "1 / 1" }}
                     />
                     <p className="font-medium leading-[22px]">

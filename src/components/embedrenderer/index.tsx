@@ -2,7 +2,6 @@
 import formatTime from "@/utils/formatTime";
 import { ChangeEvent, FC, memo, useCallback, useMemo, useState } from "react";
 import StringProcessor from "../stringprocessor";
-import Image from "next/image";
 
 const ImageEmbed = memo(
   ({ url, className }: { url: string; className?: string }) => {
@@ -161,7 +160,7 @@ const AudioEmbed = memo(
                 }}
               />
             </div>
-            <Image
+            <img
               src={`/icons/music-${isAudioPlaying ? "pause" : "play"}-icon.svg`}
               alt={isAudioPlaying ? "pause" : "play"}
               className="w-[18px] h-[18px] cursor-pointer"
@@ -173,7 +172,6 @@ const AudioEmbed = memo(
               width={18}
               height={18}
               loading="lazy"
-              quality={100}
               style={{ aspectRatio: "1 / 1" }}
             />
           </div>

@@ -1,4 +1,4 @@
-import Image from "next/image";
+"use client";
 import { memo } from "react";
 
 interface ErrorProps {
@@ -16,7 +16,7 @@ const Error: React.FC<ErrorProps> = memo(({
 }) => {
   return (
     <>
-      <Image
+      <img
         src={
           type === "404" ? "/images/404-image.png" : "/images/error-image.png"
         }
@@ -24,7 +24,6 @@ const Error: React.FC<ErrorProps> = memo(({
         className="fixed w-full h-full md:w-[550px] md:h-[calc(100dvh-40px)] object-cover z-[-2]"
         width={550}
         height={550}
-        quality={100}
       />
       <div className="flex flex-col items-center justify-end gap-[10px] h-full pb-[90px] max-w-[400px] mx-auto text-center">
         <p className="text-white text-[24px] font-semibold leading-[28px]">

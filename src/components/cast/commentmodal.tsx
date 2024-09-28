@@ -1,4 +1,4 @@
-import Image from "next/image";
+"use client";
 import Modal from "../modal";
 import { FC, memo } from "react";
 import { AiOutlineClose } from "react-icons/ai";
@@ -53,13 +53,12 @@ const CommentModal: FC<CommentModalProps> = memo(
               setOpenCommentModal(false);
             }}
           >
-            <Image
+            <img
               src="/icons/close-upload-view-icon.svg"
               alt="close"
               className="w-8 h-8"
               width={32}
               height={32}
-              quality={100}
               loading="lazy"
               style={{ aspectRatio: "1/1" }}
             />
@@ -113,7 +112,7 @@ const CommentModal: FC<CommentModalProps> = memo(
               </div>
             </div>
             <div className="relative flex items-center justify-between pb-3">
-              <Image
+              <img
                 src="/icons/comment-upload-media-icon.svg"
                 alt="upload"
                 className={`w-12 h-[42px] ${
@@ -130,11 +129,7 @@ const CommentModal: FC<CommentModalProps> = memo(
                         setOpenCommentMediaModal(!openCommentMediaModal);
                       }
                 }
-                width={48}
-                height={42}
-                quality={100}
                 loading="lazy"
-                style={{ aspectRatio: "1/1" }}
               />
               <div
                 className={`absolute bottom-full bg-white z-[99] transition-all duration-300 ease-in-out p-2 rounded-[18px] shadow-comment-upload-media-modal w-[150px] ${
@@ -155,13 +150,12 @@ const CommentModal: FC<CommentModalProps> = memo(
                         : ""
                     } mb-1`}
                   >
-                    <Image
+                    <img
                       src="/icons/video-icon.svg"
                       alt="video"
                       className="w-6 h-6"
                       width={24}
                       height={24}
-                      quality={100}
                       loading="lazy"
                       style={{ aspectRatio: "1/1" }}
                     />
@@ -202,13 +196,12 @@ const CommentModal: FC<CommentModalProps> = memo(
                           : (e) => handleMediaChange(e)
                       }
                     />
-                    <Image
+                    <img
                       src="/icons/music-icon.svg"
                       alt="music"
                       className="w-6 h-6"
                       width={24}
                       height={24}
-                      quality={100}
                       loading="lazy"
                       style={{ aspectRatio: "1/1" }}
                     />
@@ -239,13 +232,12 @@ const CommentModal: FC<CommentModalProps> = memo(
                           : (e) => handleMediaChange(e)
                       }
                     />
-                    <Image
+                    <img
                       src="/icons/image-icon.svg"
                       alt="image"
                       className="w-6 h-6"
                       width={24}
                       height={24}
-                      quality={100}
                       loading="lazy"
                       style={{ aspectRatio: "1/1" }}
                     />

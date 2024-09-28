@@ -3,8 +3,7 @@ import { ActivityBar, Cast, Frame, UserChannels } from "@/components";
 import { useNeynarContext } from "@neynar/react";
 import { useRouter } from "next/navigation";
 import { usePathname, useSearchParams } from "next/navigation";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useInView } from "react-intersection-observer";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useInfiniteQuery } from "react-query";
 import { Virtuoso } from "react-virtuoso";
 
@@ -194,8 +193,6 @@ export default function Home() {
       ))}
     </div>
   );
-
-  console.log(process.env.NEXT_PUBLIC_CLIENT_ID);
 
   if (isLoading) return renderLoadingState();
 

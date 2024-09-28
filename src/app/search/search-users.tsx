@@ -1,6 +1,5 @@
 "use client";
 import { useNeynarContext } from "@neynar/react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FC, memo, useCallback, useMemo } from "react";
 import { useInfiniteQuery } from "react-query";
@@ -12,7 +11,7 @@ const UserItem = memo(({ user, router, isLast }: { user: any; router: any; isLas
     className="cursor-pointer"
   >
     <div className="w-full px-[16px] py-[20px] flex items-center justify-start gap-[10px]">
-      <Image
+      <img
         className="w-[40px] h-[40px] rounded-[20px] object-cover"
         src={user.pfp_url}
         alt={user.username}

@@ -1,4 +1,4 @@
-import Image from "next/image";
+"use client";
 import Modal from "../modal";
 import { FC, memo } from "react";
 import { useNeynarContext } from "@neynar/react";
@@ -66,13 +66,12 @@ const MusicUploadModal: FC<MusicUploadModalProps> = memo(
               setOpenMusicUploadModal(false);
             }}
           >
-            <Image
+            <img
               src="/icons/close-upload-view-icon.svg"
               alt="close"
               className="w-8 h-8"
               width={32}
               height={32}
-              quality={100}
               loading="lazy"
               style={{ aspectRatio: "1/1" }}
             />
@@ -96,7 +95,7 @@ const MusicUploadModal: FC<MusicUploadModalProps> = memo(
                       e.stopPropagation();
                     }}
                   >
-                    <Image
+                    <img
                       src={
                         audioThumbnailMedia
                           ? audioThumbnailMedia.url
@@ -106,7 +105,6 @@ const MusicUploadModal: FC<MusicUploadModalProps> = memo(
                       className="flex-shrink-0 rounded-[11px] object-cover w-[70px] h-[70px]"
                       width={70}
                       height={70}
-                      quality={100}
                       loading="lazy"
                       style={{ aspectRatio: "1/1" }}
                     />
@@ -166,7 +164,7 @@ const MusicUploadModal: FC<MusicUploadModalProps> = memo(
                         }}
                       />
                     </div>
-                    <Image
+                    <img
                       src={`/icons/music-${
                         isAudioPlaying ? "pause" : "play"
                       }-icon.svg`}
@@ -175,7 +173,6 @@ const MusicUploadModal: FC<MusicUploadModalProps> = memo(
                       onClick={togglePlayPause}
                       width={18}
                       height={18}
-                      quality={100}
                       loading="lazy"
                       style={{ aspectRatio: "1/1" }}
                     />

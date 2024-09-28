@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import React, { useState, memo, useCallback } from "react";
 import YouTube from "react-youtube";
 import { toast } from "sonner";
@@ -170,7 +169,7 @@ const RadioPlayer: React.FC = memo(() => {
             </p>
           </div>
           <div className="flex space-x-[6px]">
-            <Image
+            <img
               src="/icons/radio-prev-icon.svg"
               alt="prev"
               className="w-[18px] h-[18px] cursor-pointer"
@@ -178,10 +177,9 @@ const RadioPlayer: React.FC = memo(() => {
               width={18}
               height={18}
               loading="lazy"
-              quality={100}
               style={{ aspectRatio: "1 / 1" }}
             />
-            <Image
+            <img
               src={
                 isPlaying
                   ? "/icons/radio-pause-icon.svg"
@@ -193,10 +191,9 @@ const RadioPlayer: React.FC = memo(() => {
               width={18}
               height={18}
               loading="lazy"
-              quality={100}
               style={{ aspectRatio: "1/1" }}
             />
-            <Image
+            <img
               src="/icons/radio-next-icon.svg"
               alt="next"
               className="w-[18px] h-[18px] cursor-pointer"
@@ -204,7 +201,6 @@ const RadioPlayer: React.FC = memo(() => {
               width={18}
               height={18}
               loading="lazy"
-              quality={100}
               style={{ aspectRatio: "1/1" }}
             />
           </div>

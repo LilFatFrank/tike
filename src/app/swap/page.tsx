@@ -9,7 +9,6 @@ import {
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import type { Token } from "@coinbase/onchainkit/token";
 import { setOnchainKitConfig } from "@coinbase/onchainkit";
-import Image from "next/image";
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { coinbaseWallet } from "wagmi/connectors";
@@ -49,7 +48,7 @@ export default function SwapComponents() {
         <>
           <div className="w-full flex items-center justify-between">
             <div className="flex items-center justify-start gap-2">
-              <Image
+              <img
                 src="/icons/back-icon.svg"
                 alt="back"
                 width={24}
@@ -64,7 +63,7 @@ export default function SwapComponents() {
             </div>
             {address ? (
               <>
-                <Image
+                <img
                   src={"/icons/disconnect-icon.svg"}
                   alt="disconnect"
                   width={24}

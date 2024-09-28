@@ -2,9 +2,8 @@
 import { Virtuoso } from "react-virtuoso";
 import { Cast, Frame } from "@/components";
 import { useNeynarContext } from "@neynar/react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { FC, Fragment, memo, useCallback, useEffect, useState } from "react";
+import { FC, memo, useCallback, useEffect, useState } from "react";
 import { useInfiniteQuery } from "react-query";
 
 const ReplyItem = memo(({ cast, push }: { cast: any; push: any }) => {
@@ -128,14 +127,13 @@ const Page: FC<{ params: { hash: string } }> = memo(({ params }) => {
     () => (
       <>
         <div className="py-3 px-4 flex items-center gap-1">
-          <Image
+          <img
             src="/icons/back-icon.svg"
             alt="back"
             width={24}
             height={24}
             className="cursor-pointer"
             onClick={back}
-            quality={100}
             style={{ aspectRatio: "1/1" }}
             loading="lazy"
           />
@@ -170,14 +168,13 @@ const Page: FC<{ params: { hash: string } }> = memo(({ params }) => {
     return (
       <div className="flex-1 bg-white min-h-full">
         <div className="py-3 px-4 flex items-center gap-1">
-          <Image
+          <img
             src="/icons/back-icon.svg"
             alt="back"
             width={24}
             height={24}
             className="cursor-pointer"
             onClick={back}
-            quality={100}
             style={{ aspectRatio: "1/1" }}
             loading="lazy"
           />

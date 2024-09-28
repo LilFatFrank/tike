@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { CSSProperties, FC, memo, useCallback, useState } from "react";
 import { toast } from "sonner";
 import StringProcessor from "../stringprocessor";
-import Image from "next/image";
 
 interface Frame {
   frame: any;
@@ -64,13 +63,12 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
               }}
               className="cursor-pointer"
             >
-              <Image
+              <img
                 className="w-[40px] h-[40px] rounded-[20px] object-cover"
                 src={frame?.author?.pfp_url}
                 alt={frame?.author?.username}
                 width={40}
                 height={40}
-                quality={100}
                 loading="lazy"
                 style={{ aspectRatio: "1 / 1" }}
               />
@@ -107,7 +105,7 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
           </div>
           {frame?.author?.fid === user?.fid ? (
             <div className="relative">
-              <Image
+              <img
                 src="/icons/cast-more-icon.svg"
                 alt="cast-more"
                 className="w-6 h-6 cursor-pointer"
@@ -118,7 +116,6 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
                 }}
                 width={24}
                 height={24}
-                quality={100}
                 loading="lazy"
                 style={{ aspectRatio: "1 / 1" }}
               />
@@ -143,13 +140,12 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
                       deleteCast();
                     }}
                   >
-                    <Image
+                    <img
                       src="/icons/delete-post-icon.svg"
                       alt="delete"
                       className="w-6 h-6"
                       width={24}
                       height={24}
-                      quality={100}
                       loading="lazy"
                       style={{ aspectRatio: "1 / 1" }}
                     />
@@ -171,13 +167,12 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
                       toast.success("Hash copied!");
                     }}
                   >
-                    <Image
+                    <img
                       src="/icons/copy-hash-icon.svg"
                       alt="delete"
                       className="w-6 h-6"
                       width={24}
                       height={24}
-                      quality={100}
                       loading="lazy"
                       style={{ aspectRatio: "1 / 1" }}
                     />
@@ -236,12 +231,11 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
           }}
         >
           <button className="frame-btn">
-            <Image
+            <img
               src="/icons/warpcast-icon.svg"
               alt="warpcast"
               width={20}
               height={20}
-              quality={100}
               loading="lazy"
               style={{ aspectRatio: "1/1" }}
             />

@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FC, memo, useCallback } from "react";
 
@@ -39,7 +38,7 @@ const RecastUpdate: FC<RecastUpdate> = memo(
         <div className={`w-full py-5 px-4`}>
           <div className="w-full flex items-start justify-start gap-[10px]">
             <div className="w-full flex items-start justify-start gap-[10px]">
-              <Image
+              <img
                 src={icon}
                 alt={"recast"}
                 className="w-10 h-10 rounded-full"
@@ -53,7 +52,7 @@ const RecastUpdate: FC<RecastUpdate> = memo(
                   onClick={handleCastClick}
                   className="w-10 h-10 flex-shrink-0 cursor-pointer"
                 >
-                  <Image
+                  <img
                     src={userPfp}
                     alt={userName}
                     className="w-full h-full rounded-full"
@@ -83,7 +82,7 @@ const RecastUpdate: FC<RecastUpdate> = memo(
                 </div>
               </div>
               {cast.url ? (
-                <Image
+                <img
                   src={cast.url}
                   alt={"media"}
                   className="w-full rounded-[10px] object-cover"

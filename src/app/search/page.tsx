@@ -5,7 +5,6 @@ import formatNumber from "@/utils/formatNumber";
 import { useNeynarContext } from "@neynar/react";
 import SearchCasts from "./search-casts";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Virtuoso } from "react-virtuoso";
 
 const tabs = [
@@ -125,7 +124,7 @@ const Search: FC = memo(() => {
         className="cursor-pointer"
       >
         <div className="w-full px-[16px] py-[20px] flex items-center justify-start gap-[10px]">
-          <Image
+          <img
             className="w-[40px] h-[40px] rounded-[20px] object-cover"
             src={channel.image_url}
             alt={channel.id}
@@ -172,7 +171,7 @@ const Search: FC = memo(() => {
         className="cursor-pointer"
       >
         <div className="flex items-center gap-3 w-[160px]">
-          <Image
+          <img
             src={tc.channel.image_url}
             alt={tc.channel.id}
             className="w-[70px] h-[70px] rounded-[20px] border-none object-cover"
@@ -207,7 +206,7 @@ const Search: FC = memo(() => {
         className="cursor-pointer"
       >
         <div className="flex flex-col items-center w-[90px] gap-[6px]">
-          <Image
+          <img
             src={pu.pfp_url}
             alt={pu.username}
             className={
@@ -281,7 +280,7 @@ const Search: FC = memo(() => {
       <div className="flex-1 p-4 bg-white min-h-dvh">
         <div className="w-full flex items-center gap-1 mb-4">
           <div className="w-full grow items-center bg-frame-btn-bg relative rounded-[12px] py-2 pl-[42px] pr-4">
-            <Image
+            <img
               src="/icons/input-search-icon.svg"
               alt="input-search"
               width={22}
@@ -359,7 +358,7 @@ const Search: FC = memo(() => {
               {trendingChannels.length ? (
                 <div className="w-full flex flex-col items-start justify-start gap-2">
                   <div className="flex items-center gap-[6px]">
-                    <Image
+                    <img
                       src="/icons/trending-channels-icon.svg"
                       alt="trending-channels"
                       width={22}
@@ -381,7 +380,7 @@ const Search: FC = memo(() => {
               {powerUsers.length ? (
                 <div className="w-full flex flex-col items-start justify-start gap-2">
                   <div className="flex items-center gap-[6px]">
-                    <Image
+                    <img
                       src="/icons/power-users-icon.svg"
                       alt="power-users"
                       width={22}

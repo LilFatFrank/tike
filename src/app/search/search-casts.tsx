@@ -1,6 +1,5 @@
 "use client";
 import { EmbedRenderer, StringProcessor } from "@/components";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FC, memo, useCallback, useMemo } from "react";
 import { useInfiniteQuery } from "react-query";
@@ -23,7 +22,7 @@ const CastItem = memo(
             className="cursor-pointer"
           >
             <div className="flex items-center justify-start gap-1">
-              <Image
+              <img
                 src={cast?.author?.pfp_url}
                 alt={cast?.author?.username}
                 className="w-[22px] h-[22px] rounded-full object-cover"

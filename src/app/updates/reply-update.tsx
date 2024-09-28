@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FC, memo, useCallback, useMemo } from "react";
 
@@ -61,7 +60,7 @@ const ReplyUpdate: FC<ReplyUpdate> = memo(
         className="w-full py-5 px-4 cursor-pointer"
       >
         <div className="flex items-start gap-[10px]">
-          <Image
+          <img
             src={icon}
             alt="reply"
             width={40}
@@ -75,7 +74,7 @@ const ReplyUpdate: FC<ReplyUpdate> = memo(
               onClick={handleProfileClick}
               className="flex-shrink-0 cursor-pointer"
             >
-              <Image
+              <img
                 src={userPfp}
                 alt={userName}
                 width={40}
@@ -88,7 +87,7 @@ const ReplyUpdate: FC<ReplyUpdate> = memo(
             {renderedContent}
           </div>
           {cast.url && (
-            <Image
+            <img
               src={cast.url}
               alt="media"
               width={200}

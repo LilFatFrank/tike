@@ -12,7 +12,6 @@ import Sidebar from "../sidebar";
 import Link from "next/link";
 import { useNeynarContext } from "@neynar/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
 
 const filterItems = [
   { name: "Image", param: "image", path: "?filter=image" },
@@ -39,7 +38,7 @@ const FilterItem = memo(
       className="py-1 cursor-pointer flex items-center justify-start gap-1"
       onClick={onClick}
     >
-      <Image
+      <img
         src={isActive ? activeIcon : icon}
         alt={name}
         width={24}
@@ -109,7 +108,7 @@ const ActivityBar: FC = memo(() => {
             push(`/channel/${c.id}`);
           }}
         >
-          <Image
+          <img
             src={c.image_url}
             alt={c.id}
             width={22}
@@ -146,7 +145,7 @@ const ActivityBar: FC = memo(() => {
           openSidebar ? "invisible" : ""
         }`}
       >
-        <Image
+        <img
           src="/icons/sidebar-icon.svg"
           alt="sidebar"
           width={32}
@@ -158,7 +157,7 @@ const ActivityBar: FC = memo(() => {
         />
         <div className="flex items-center gap-2">
           <Link href={"/swap"}>
-            <Image
+            <img
               src="/icons/swap-icon.svg"
               alt="back"
               width={24}
@@ -168,7 +167,7 @@ const ActivityBar: FC = memo(() => {
             />
           </Link>
           <Link href={"/updates"}>
-            <Image
+            <img
               src="/icons/bell-icon.svg"
               alt="bell"
               width={32}
@@ -187,7 +186,7 @@ const ActivityBar: FC = memo(() => {
               className="py-[6px] px-2 rounded-[20px] bg-black border-none text-white font-medium leading-[120%] flex items-center cursor-pointer"
               onClick={handleSidebarClose}
             >
-              <Image
+              <img
                 src="/icons/close-sidebar-icon.svg"
                 alt="close"
                 width={16}

@@ -1,10 +1,10 @@
+"use client";
 import { FC, memo, useCallback, useEffect, useMemo, useState } from "react";
 import Modal from "../modal";
 import { IUser } from "@neynar/react/dist/types/common";
 import axios from "axios";
 import { toast } from "sonner";
 import { useNeynarContext } from "@neynar/react";
-import Image from "next/image";
 
 interface EditProfileProps {
   isOpen: boolean;
@@ -152,13 +152,12 @@ const EditProfile: FC<EditProfileProps> = memo(({
             className="border-none outline-none rounded-[18px] px-2 py-1 bg-frame-btn-bg"
             onClick={handleClose}
           >
-            <Image
+            <img
               src="/icons/close-upload-view-icon.svg"
               alt="close"
               className="w-8 h-8"
               width={32}
               height={32}
-              quality={100}
               loading="lazy"
               style={{ aspectRatio: "1/1" }}
             />
@@ -187,13 +186,12 @@ const EditProfile: FC<EditProfileProps> = memo(({
               className="absolute inset-0 flex items-center justify-center cursor-pointer"
             >
               <div className="w-[82px] h-[82px] bg-black opacity-40 rounded-full absolute"></div>
-              <Image
+              <img
                 src="/icons/edit-pfp-icon.svg"
                 alt="Upload"
                 className="w-6 h-6 z-10"
                 width={24}
                 height={24}
-                quality={100}
                 loading="lazy"
                 style={{ aspectRatio: "1/1" }}
               />

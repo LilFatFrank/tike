@@ -2,7 +2,6 @@
 import { Cast, Frame, ProfileButton, StringProcessor } from "@/components";
 import formatNumber from "@/utils/formatNumber";
 import { useNeynarContext } from "@neynar/react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FC, memo, useCallback, useEffect, useMemo, useState } from "react";
 import InfiniteScroll from "react-infinite-scroller";
@@ -208,13 +207,12 @@ const Channel: FC<{ params: { channelId: number } }> = memo(({ params }) => {
 
   return (
     <div className="w-full h-full">
-      <Image
+      <img
         className="w-full h-full object-cover z-[-1] fixed md:w-[550px] md:rounded-[20px]"
         src="/images/profile-background.png"
         alt="background"
         width={550}
         height={550}
-        quality={100}
       />
       <div className="w-full relative min-h-full top-[120px] bg-white rounded-t-[20px] py-[10px] px-[16px]">
         {errorCh ? (
@@ -235,13 +233,13 @@ const Channel: FC<{ params: { channelId: number } }> = memo(({ params }) => {
           </div>
         ) : (
           <>
-            <Image
+            <img
               src={channelPro?.image_url}
               alt={channelPro?.id}
               className="w-[82px] h-[82px] rounded-[18px] absolute top-[-41px] left-[16px] object-cover border-4 border-white"
               width={82}
               height={82}
-              quality={100}
+              style={{ aspectRatio: "1/1" }}
               loading="lazy"
             />
             <div className="flex justify-end gap-2 items-center">

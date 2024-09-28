@@ -1,19 +1,18 @@
 "use client";
 import { NeynarAuthButton, SIWN_variant } from "@neynar/react";
-import Image from "next/image";
 import { FC, memo } from "react";
 
 const AuthButton = memo(() => (
   <NeynarAuthButton
     variant={SIWN_variant.FARCASTER}
     icon={
-      <Image
+      <img
         src="/icons/farcaster-sign-in-icon.svg"
         alt="sign-in-farcaster"
         width={24}
         height={24}
         loading="lazy"
-        quality={100}
+        className="w-[24px] h-[24px]"
         style={{ aspectRatio: "1/1" }}
       />
     }

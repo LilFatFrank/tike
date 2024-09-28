@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FC, memo, useCallback } from "react";
 
@@ -18,7 +17,7 @@ const FollowItem = memo(
     <>
       <div className="w-full py-5 px-4" key={follow.fid}>
         <div className="w-full flex items-start justify-start gap-[10px]">
-          <Image
+          <img
             src={icon}
             alt="follow"
             width={40}
@@ -32,7 +31,7 @@ const FollowItem = memo(
               onClick={handleProfileClick(follow.fid)}
               className="w-10 h-10 flex-shrink-0 cursor-pointer"
             >
-              <Image
+              <img
                 src={follow.pfp}
                 alt={follow.display_name}
                 width={40}

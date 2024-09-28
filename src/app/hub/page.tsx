@@ -1,6 +1,5 @@
 "use client";
 import formatNumber from "@/utils/formatNumber";
-import Image from "next/image";
 import Link from "next/link";
 import { FC, memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
@@ -163,7 +162,7 @@ const Hub: FC = memo(() => {
               <Link href={item.url} target="_blank" className="block w-full">
                 <div className="w-full flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Image
+                    <img
                       src={item.logo}
                       alt={item.name}
                       width={38}
@@ -210,7 +209,7 @@ const Hub: FC = memo(() => {
               >
                 <div className="w-full flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Image
+                    <img
                       src={item.image_url}
                       alt={item.name}
                       width={38}
@@ -242,7 +241,7 @@ const Hub: FC = memo(() => {
               <Link href={item.url} target="_blank" className="block w-full">
                 <div className="w-full flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Image
+                    <img
                       src={item.image}
                       alt={item.name}
                       width={38}
@@ -288,7 +287,7 @@ const Hub: FC = memo(() => {
       <div className="flex-1 p-4 bg-white min-h-dvh">
         <div className="w-full flex items-center gap-1 mb-4">
           <div className="w-full grow items-center bg-frame-btn-bg relative rounded-[12px] py-2 pl-[42px] pr-4">
-            <Image
+            <img
               src="/icons/input-search-icon.svg"
               alt="input-search"
               width={22}

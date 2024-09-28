@@ -17,7 +17,6 @@ import axios from "axios";
 import StringProcessor from "../stringprocessor";
 import EmbedRenderer from "../embedrenderer";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import MusicUploadModal from "./musicuploadmodal";
 import CommentModal from "./commentmodal";
 
@@ -305,13 +304,12 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
               }}
               className="cursor-pointer"
             >
-              <Image
+              <img
                 className="w-[40px] h-[40px] rounded-[20px] object-cover"
                 src={castDet?.author?.pfp_url}
                 alt={castDet?.author?.username}
                 width={40}
                 height={40}
-                quality={100}
                 loading="lazy"
                 style={{ aspectRatio: "1/1" }}
               />
@@ -348,7 +346,7 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
           </div>
           {castDet?.author?.fid === user?.fid ? (
             <div className="relative">
-              <Image
+              <img
                 src="/icons/cast-more-icon.svg"
                 alt="cast-more"
                 className="w-6 h-6 cursor-pointer"
@@ -359,7 +357,6 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                 }}
                 width={24}
                 height={24}
-                quality={100}
                 loading="lazy"
                 style={{ aspectRatio: "1/1" }}
               />
@@ -384,13 +381,12 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                       deleteCast();
                     }}
                   >
-                    <Image
+                    <img
                       src="/icons/delete-post-icon.svg"
                       alt="delete"
                       className="w-6 h-6"
                       width={24}
                       height={24}
-                      quality={100}
                       loading="lazy"
                       style={{ aspectRatio: "1/1" }}
                     />
@@ -412,13 +408,12 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                       toast.success("Hash copied!");
                     }}
                   >
-                    <Image
+                    <img
                       src="/icons/copy-hash-icon.svg"
                       alt="delete"
                       className="w-6 h-6"
                       width={24}
                       height={24}
-                      quality={100}
                       loading="lazy"
                       style={{ aspectRatio: "1/1" }}
                     />
@@ -462,7 +457,7 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                 );
               }}
             >
-              <Image
+              <img
                 src={
                   castDet?.viewer_context?.liked
                     ? `/icons/like-filled-icon.svg`
@@ -471,7 +466,6 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                 alt="like"
                 width={24}
                 height={24}
-                quality={100}
                 loading="lazy"
                 style={{ aspectRatio: "1/1" }}
               />
@@ -487,12 +481,11 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                 setOpenCommentModal(true);
               }}
             >
-              <Image
+              <img
                 src="/icons/comment-icon.svg"
                 alt="comment"
                 width={24}
                 height={24}
-                quality={100}
                 loading="lazy"
                 style={{ aspectRatio: "1/1" }}
               />
@@ -510,7 +503,7 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                 );
               }}
             >
-              <Image
+              <img
                 src={
                   castDet?.viewer_context?.recasted
                     ? `/icons/recast-filled-icon.svg`
@@ -519,7 +512,6 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
                 alt="recast"
                 width={24}
                 height={24}
-                quality={100}
                 loading="lazy"
                 style={{ aspectRatio: "1/1" }}
               />
@@ -539,12 +531,12 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
               toast.success("Link copied!");
             }}
           >
-            <Image
+            <img
               src="/icons/share.svg"
               alt="share"
               width={24}
               height={24}
-              quality={100}
+              className="w-6 h-6"
               loading="lazy"
               style={{ aspectRatio: "1/1" }}
             />

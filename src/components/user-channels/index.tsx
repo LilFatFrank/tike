@@ -1,10 +1,9 @@
 "use client";
-import { FC, memo, useCallback, useContext, useEffect, useMemo } from "react";
+import { FC, memo, useContext, useEffect, useMemo } from "react";
 import { useInView } from "react-intersection-observer";
 import { AppContext } from "@/context";
 import { SET_USER_CHANNELS } from "@/context/actions";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
 interface UserChannelsProps {
   channels: any[];
@@ -24,7 +23,7 @@ const ChannelItem = memo(
     <span onClick={onClick} className="flex-shrink-0 cursor-pointer">
       <div className="flex flex-col items-center justify-center gap-1 cursor-pointer">
         <div className="w-[60px] h-[60px] rounded-[16px] border border-black-20 bg-frame-btn-bg">
-          <Image
+          <img
             src={channel.image_url}
             alt={channel.name}
             className="w-full h-full rounded-[16px] object-cover"

@@ -9,9 +9,6 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (req.method === "POST") {
-
-    console.log(process.env.NEYNAR_API_KEY);
-
     try {
       const cursor = JSON.parse(req.body).cursor as string;
       const fid = JSON.parse(req.body).fid as string;

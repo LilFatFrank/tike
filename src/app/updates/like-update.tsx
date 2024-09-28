@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FC, memo, useCallback } from "react";
 
@@ -39,7 +38,7 @@ const LikeUpdate: FC<LikeUpdate> = memo(
         <div className={`w-full py-5 px-4`}>
           <div className="w-full flex items-start justify-start gap-[10px]">
             <div className="w-full flex items-start justify-start gap-[10px]">
-              <Image
+              <img
                 src={icon}
                 alt={"like"}
                 className="w-10 h-10 rounded-full"
@@ -53,7 +52,7 @@ const LikeUpdate: FC<LikeUpdate> = memo(
                   onClick={handleProfileClick}
                   className="w-10 h-10 flex-shrink-0"
                 >
-                  <Image
+                  <img
                     src={userPfp}
                     alt={userName}
                     className="w-full h-full rounded-full"
@@ -78,7 +77,7 @@ const LikeUpdate: FC<LikeUpdate> = memo(
                 </div>
               </div>
               {cast.url ? (
-                <Image
+                <img
                   src={cast.url}
                   alt={"media"}
                   className="w-full rounded-[10px] object-cover"
