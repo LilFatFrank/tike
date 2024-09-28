@@ -195,11 +195,11 @@ export default function Home() {
     </div>
   );
 
+  console.log(process.env.NEXT_PUBLIC_CLIENT_ID);
+
   if (isLoading) return renderLoadingState();
 
   if (error) return renderError();
-
-  console.log(process.env.NEXT_PUBLIC_CLIENT_ID);
 
   return (
     <>
