@@ -14,15 +14,9 @@ export const metadata: Metadata = {
     icon: [
       {
         rel: "icon",
-        url: "/images/192x192-logo.png",
-        sizes: "192x192",
-        type: "image/png",
-      },
-      {
-        rel: "icon",
-        url: "/images/64x64-logo.png",
-        sizes: "64x64",
-        type: "image/png",
+        url: "/logo/favicon.svg",
+        sizes: "any",
+        type: "image/svg+xml",
       },
     ],
   },
@@ -46,6 +40,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="apple-touch-icon" href="/logo/favicon.svg" />
+        <link rel="icon" href="/logo/favicon.svg" type="image/svg+xml" />
+      </head>
       <body className={inter.className}>
         {process.env.NEXT_PUBLIC_GTM_ID && (
           <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />

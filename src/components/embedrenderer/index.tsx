@@ -6,7 +6,7 @@ import Image from "next/image";
 
 const ImageEmbed = memo(
   ({ url, className }: { url: string; className?: string }) => {
-    return (
+    return url ? (
       <img
         src={url}
         alt="Cast image"
@@ -15,7 +15,7 @@ const ImageEmbed = memo(
         }`}
         loading="lazy"
       />
-    );
+    ) : null;
   }
 );
 

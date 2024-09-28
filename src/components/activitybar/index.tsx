@@ -156,17 +156,29 @@ const ActivityBar: FC = memo(() => {
           onClick={handleSidebarOpen}
           style={{ aspectRatio: "1 / 1" }}
         />
-        <Link href={"/updates"}>
-          <Image
-            src="/icons/bell-icon.svg"
-            alt="bell"
-            width={32}
-            height={32}
-            className="cursor-pointer"
-            loading="lazy"
-            style={{ aspectRatio: "1 / 1" }}
-          />
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href={"/swap"}>
+            <Image
+              src="/icons/swap-icon.svg"
+              alt="back"
+              width={24}
+              height={24}
+              className="cursor-pointer"
+              loading="lazy"
+            />
+          </Link>
+          <Link href={"/updates"}>
+            <Image
+              src="/icons/bell-icon.svg"
+              alt="bell"
+              width={32}
+              height={32}
+              className="cursor-pointer"
+              loading="lazy"
+              style={{ aspectRatio: "1 / 1" }}
+            />
+          </Link>
+        </div>
       </div>
       <Sidebar isOpen={openSidebar}>
         <div className="flex flex-col w-fit h-full">

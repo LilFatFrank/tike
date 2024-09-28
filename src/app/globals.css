@@ -40,6 +40,56 @@ body {
     @apply bg-frame-btn-bg rounded-[12px] py-[8px] px-[16px] flex items-center w-full gap-[6px] justify-center;
     contain: content;
   }
+
+  .swap {
+    @apply relative;
+  }
+  .swap > div:nth-child(3) {
+    @apply h-[4px];
+  }
+  .swap > div:nth-child(6) {
+    @apply w-full items-center justify-center;
+  }
+
+  .swap-toggle-btn {
+    @apply rounded-[8px] border-[4px] border-white bg-[#F7F7F8] p-4 w-[auto] h-1;
+    svg {
+      @apply fill-black w-4 h-4 flex-shrink-0;
+    }
+  }
+
+  .swap-amount-input {
+    @apply w-full py-2 px-4 rounded-[16px] bg-[#F7F7F8];
+  }
+  .swap-amount-input > div:last-child {
+    @apply m-0;
+  }
+  .swap-amount-input > div:last-child > div:first-child > span,
+  .swap-amount-input > div:last-child > div:last-child > span,
+  .swap-amount-input > div:first-child > span {
+    @apply text-[14px] leading-[auto] font-normal text-[#4B5563];
+  }
+  .swap-amount-input > div:last-child > div:last-child > button {
+    @apply text-[14px] leading-[auto] font-bold text-[#4192EF];
+  }
+  .swap-amount-input > div:nth-child(2) > input {
+    @apply outline-none focus:outline-none border-none p-0 font-medium text-[36px] leading-[auto] bg-inherit remove-arrow;
+  }
+  .swap-amount-input > div:nth-child(2) > button {
+    @apply flex-shrink-0 flex items-center justify-center gap-2 py-1 px-2 rounded-[60px] border border-black/[6%] bg-white;
+  }
+}
+
+@layer base {
+  .remove-arrow::-webkit-outer-spin-button,
+  .remove-arrow::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .remove-arrow {
+    -moz-appearance: textfield;
+  }
 }
 
 @keyframes bounce {

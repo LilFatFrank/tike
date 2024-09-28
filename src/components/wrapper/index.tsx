@@ -1,8 +1,8 @@
 "use client";
 import { NeynarContextProvider, Theme } from "@neynar/react";
-import { FC, ReactNode/* , useEffect, useState */ } from "react";
+import { FC, ReactNode /* , useEffect, useState */ } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { /* Error, */ Footer, Platform } from "@/components";
+import { /* Error, */ Footer, OnchainProviders, Platform } from "@/components";
 import { AppContextProvider } from "@/context";
 
 const queryClient = new QueryClient();
@@ -31,19 +31,21 @@ const Wrapper: FC<Wrapper> = ({ children }) => {
   } */
 
   return (
-    <NeynarContextProvider
-      settings={{
-        clientId: process.env.NEXT_PUBLIC_CLIENT_ID || "",
-        defaultTheme: Theme.Dark,
-      }}
-    >
-      <QueryClientProvider client={queryClient}>
-        <AppContextProvider>
-          <Platform>{children}</Platform>
-          <Footer />
-        </AppContextProvider>
-      </QueryClientProvider>
-    </NeynarContextProvider>
+    <OnchainProviders>
+      <NeynarContextProvider
+        settings={{
+          clientId: process.env.NEXT_PUBLIC_CLIENT_ID || "",
+          defaultTheme: Theme.Dark,
+        }}
+      >
+        <QueryClientProvider client={queryClient}>
+          <AppContextProvider>
+            <Platform>{children}</Platform>
+            <Footer />
+          </AppContextProvider>
+        </QueryClientProvider>
+      </NeynarContextProvider>
+    </OnchainProviders>
   );
 };
 

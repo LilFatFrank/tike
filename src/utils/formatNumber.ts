@@ -1,6 +1,7 @@
 function formatNumber(
   value: number,
   locale: string = 'en-US',
+  showFullValueForThousands: boolean = false
 ): string {
   if (value === undefined || value === null) {
     return '';
@@ -39,7 +40,7 @@ function formatNumber(
     } else if (Math.abs(value) >= 1e6) {
       divider = 1e6;
       suffix = 'M';
-    } else if (Math.abs(value) >= 1000) {
+    } else if (Math.abs(value) >= 1000 && !showFullValueForThousands) {
       divider = 1000;
       suffix = 'K';
     } else {

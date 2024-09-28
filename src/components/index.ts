@@ -15,4 +15,4 @@ export { default as EmbedRenderer } from "./embedrenderer";
 export { default as Error } from "./error";
 export { default as GoogleTagManager } from "./googletagmanager";
 export { default as ProfileButton } from "./profilebutton";
-
+export { default as OnchainProviders } from "./onchainproviders";
