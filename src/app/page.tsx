@@ -199,6 +199,8 @@ export default function Home() {
 
   if (error) return renderError();
 
+  console.log(process.env.NEXT_PUBLIC_CLIENT_ID);
+
   return (
     <>
       <div className="flex-1 bg-white min-h-full">
