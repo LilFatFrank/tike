@@ -146,7 +146,7 @@ export default function Home() {
   );
 
   const renderError = () => (
-    <p className="w-full items-center justify-center py-2 text-center">
+    <p className="w-full py-2 text-center bg-white min-h-full">
       Error fetching casts!
     </p>
   );
