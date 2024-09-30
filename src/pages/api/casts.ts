@@ -2,8 +2,6 @@ import { processCasts } from "@/utils/processCasts";
 import axios from "axios";
 import { NextApiRequest, NextApiResponse } from "next";
 
-const followingUrl = `https://api.neynar.com/v2/farcaster/feed?feed_type=following&filter_type=embed_url&fid=6411&embed_types=&with_recasts=true&limit=25`;
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse

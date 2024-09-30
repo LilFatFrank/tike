@@ -24,7 +24,7 @@ const CastsList = memo(({ casts, router }: { casts: any; router: any }) => {
           e.preventDefault();
           router.push(`/cast/${cast.parent_hash || cast.hash}`);
         }}
-        key={cast.hash}
+        key={`cast-${cast.hash}`}
         className="cursor-pointer"
       >
         {cast.embedType === "frame" ? (
@@ -41,7 +41,10 @@ const CastsList = memo(({ casts, router }: { casts: any; router: any }) => {
           />
         )}
         {castIndex === arr.length - 1 ? null : (
-          <hr className="border border-t-divider" />
+          <hr
+            className="border border-t-divider"
+            key={`profile-cast-hr-${cast.hash}`}
+          />
         )}
       </span>
     ) : null
@@ -54,12 +57,12 @@ const MediaList = memo(({ casts, router }: { casts: any; router: any }) => {
       {casts.map((cast: any) =>
         cast.embedType === "frame" || cast.embedType === "youtube" ? null : (
           <span
+            key={`media-${cast.hash}`}
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
               router.push(`/cast/${cast.parent_hash || cast.hash}`);
             }}
-            key={`profile-cast-${cast.hash}`}
             className="cursor-pointer w-full aspect-square rounded-[12px]"
           >
             <EmbedRenderer
@@ -71,6 +74,7 @@ const MediaList = memo(({ casts, router }: { casts: any; router: any }) => {
               }
               author={cast?.author?.username}
               className={"object-cover"}
+              key={`profile-cast-embed-${cast.hash}`}
             />
           </span>
         )
@@ -84,12 +88,12 @@ const RecastsRepliesList = memo(
     return casts.map((cast: any, castIndex: number, arr: any[]) =>
       cast.embeds[0].url ? (
         <span
+          key={`recasts-replies-${cast.hash}`}
           onClick={(e) => {
             e.stopPropagation();
             e.preventDefault();
             router.push(`/cast/${cast.parent_hash || cast.hash}`);
           }}
-          key={cast.hash}
           className="cursor-pointer"
         >
           {cast.embedType === "frame" ? (
@@ -106,7 +110,10 @@ const RecastsRepliesList = memo(
             />
           )}
           {castIndex === arr.length - 1 ? null : (
-            <hr className="border border-t-divider" />
+            <hr
+              className="border border-t-divider"
+              key={`recasts-replies-hr-${cast.hash}`}
+            />
           )}
         </span>
       ) : null
@@ -248,9 +255,9 @@ const Profile: FC<Profile> = memo(({ fid }) => {
 
   const profileCastsLoader = () => {
     return (
-      <div ref={ref}>
+      <div ref={ref} key={`profile-casts-loader`}>
         {Array.from({ length: 3 }).map((_, index) => (
-          <div className="py-5 w-full" key={index}>
+          <div className="py-5 w-full" key={`profile-casts-loader-${index}`}>
             <div className="flex items-center flex-col justify-start w-full gap-3">
               <div className="flex items-center gap-2 w-full">
                 <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
@@ -267,9 +274,12 @@ const Profile: FC<Profile> = memo(({ fid }) => {
 
   const profileRecastsRepliesLoader = () => {
     return (
-      <div ref={rrRef}>
+      <div ref={rrRef} key={`profile-recasts-replies-loader`}>
         {Array.from({ length: 3 }).map((_, index) => (
-          <div className="py-5 w-full" key={index}>
+          <div
+            className="py-5 w-full"
+            key={`profile-recasts-replies-loader-${index}`}
+          >
             <div className="flex items-center flex-col justify-start w-full gap-3">
               <div className="flex items-center gap-2 w-full">
                 <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
@@ -287,7 +297,10 @@ const Profile: FC<Profile> = memo(({ fid }) => {
   const profileMediaLoader = () => {
     return (
       <>
-        <div className="grid grid-cols-3 gap-2 w-full" ref={ref}>
+        <div
+          className="grid grid-cols-3 gap-2 w-full"
+          key={`profile-media-loader-${selectedTab}`}
+        >
           {Array.from({ length: 3 }).map((_, index) => (
             <div
               className="aspect-square rounded-[12px] bg-divider animate-pulse w-full"
@@ -323,8 +336,14 @@ const Profile: FC<Profile> = memo(({ fid }) => {
     handleFetchNextPage();
   }, [handleFetchNextPage]);
 
-  const allProfileCasts = useMemo(() => data?.pages.flatMap((page) => page.casts) ?? [], [data]);
-  const allRepliesRecasts = useMemo(() => rrData?.pages.flatMap((page) => page.casts) ?? [], [rrData]);
+  const allProfileCasts = useMemo(
+    () => data?.pages.flatMap((page) => page.casts) ?? [],
+    [data]
+  );
+  const allRepliesRecasts = useMemo(
+    () => rrData?.pages.flatMap((page) => page.casts) ?? [],
+    [rrData]
+  );
 
   const [userPro, setUserPro] = useState<IUser>();
   const [errorPro, setErrorPro] = useState(false);
@@ -585,72 +604,87 @@ const Profile: FC<Profile> = memo(({ fid }) => {
                     onClick={() =>
                       handleTabChange(t.value as typeof selectedTab)
                     }
+                    key={t.value}
                   >
                     {t.label}
                   </p>
                 ))}
               </div>
               {selectedTab === "casts" ? (
-                <>
-                  <InfiniteScroll
-                    loadMore={() => {}}
-                    hasMore={!!hasNextPage}
-                    initialLoad
-                    loader={
-                      isFetchingNextPage || !error
-                        ? profileCastsLoader()
-                        : undefined
-                    }
-                  >
-                    {isLoading ? (
-                      profileCastsLoader()
-                    ) : (
-                      <CastsList casts={allProfileCasts} router={router} />
-                    )}
-                  </InfiniteScroll>
-                </>
+                <InfiniteScroll
+                  loadMore={() => {}}
+                  hasMore={!!hasNextPage}
+                  initialLoad
+                  loader={
+                    isFetchingNextPage || !error
+                      ? profileCastsLoader()
+                      : undefined
+                  }
+                  key={`profile-casts-infinite-scroll`}
+                >
+                  {isLoading ? (
+                    profileCastsLoader()
+                  ) : allProfileCasts.length > 0 ? (
+                    <CastsList
+                      casts={allProfileCasts}
+                      router={router}
+                      key={`profile-casts`}
+                    />
+                  ) : (
+                    <div key="no-casts">No casts available</div>
+                  )}
+                </InfiniteScroll>
               ) : selectedTab === "media" ? (
-                <>
-                  <InfiniteScroll
-                    loadMore={() => {}}
-                    hasMore={!!hasNextPage}
-                    initialLoad
-                    loader={
-                      isFetchingNextPage || !error
-                        ? profileMediaLoader()
-                        : undefined
-                    }
-                  >
-                    {isLoading ? (
-                      profileMediaLoader()
-                    ) : (
-                      <MediaList casts={allProfileCasts} router={router} />
-                    )}
-                  </InfiniteScroll>
-                </>
+                <InfiniteScroll
+                  loadMore={() => {}}
+                  hasMore={!!hasNextPage}
+                  initialLoad
+                  loader={
+                    isFetchingNextPage || !error
+                      ? profileMediaLoader()
+                      : undefined
+                  }
+                  key={`profile-media-infinite-scroll`}
+                >
+                  {isLoading ? (
+                    profileMediaLoader()
+                  ) : allProfileCasts.length > 0 ? (
+                    <MediaList
+                      casts={allProfileCasts}
+                      router={router}
+                      key={`profile-media`}
+                    />
+                  ) : (
+                    <div key="no-media">No media available</div>
+                  )}
+                </InfiniteScroll>
               ) : selectedTab === "recasts_replies" ? (
-                <>
-                  <InfiniteScroll
-                    loadMore={() => {}}
-                    pageStart={0}
-                    hasMore={!!rrHasNextPage}
-                    initialLoad
-                    loader={
-                      rrIsFetchingNextPage || !rrError
-                        ? profileRecastsRepliesLoader()
-                        : undefined
-                    }
-                  >
-                    {rrIsLoading ? (
-                      profileRecastsRepliesLoader()
-                    ) : (
-                      <RecastsRepliesList
-                        casts={allRepliesRecasts}
-                        router={router}
-                      />
-                    )}
-                  </InfiniteScroll>
-                </>
+                <InfiniteScroll
+                  loadMore={() => {}}
+                  pageStart={0}
+                  hasMore={!!rrHasNextPage}
+                  initialLoad
+                  loader={
+                    rrIsFetchingNextPage || !rrError
+                      ? profileRecastsRepliesLoader()
+                      : undefined
+                  }
+                  key={`profile-recasts-replies-infinite-scroll`}
+                >
+                  {rrIsLoading ? (
+                    profileRecastsRepliesLoader()
+                  ) : allRepliesRecasts.length > 0 ? (
+                    <RecastsRepliesList
+                      casts={allRepliesRecasts}
+                      router={router}
+                      key={`profile-recasts-replies`}
+                    />
+                  ) : (
+                    <div key="no-recasts-replies">
+                      No recasts or replies available
+                    </div>
+                  )}
+                </InfiniteScroll>
               ) : null}
             </>
           )}
