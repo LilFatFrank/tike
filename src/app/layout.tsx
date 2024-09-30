@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   openGraph: {
     images: [
       {
-        url: "/images/opengraph-image.jpg",
+        url: "https://tike-assets.s3.ap-south-1.amazonaws.com/opengraph-image.jpg",
         width: 1200,
         height: 630,
         alt: "Broadcast your fun",

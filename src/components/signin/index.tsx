@@ -26,7 +26,7 @@ const SignIn: FC = memo(() => {
       <div className="w-full h-full relative flex flex-col items-center justify-end">
         <div className="fixed w-full h-full bg-sign-in-bg z-[-2] md:w-[550px] md:rounded-t-[20px] md:h-[calc(100dvh-40px)]" />
         <img
-          src="/images/signin-background.png"
+          src="https://tike-assets.s3.ap-south-1.amazonaws.com/signin-background.png"
           alt="signin"
           className="fixed z-[-1] object-cover w-full h-full md:w-[550px] md:rounded-t-[20px] md:h-[calc(100dvh-40px)]"
         />

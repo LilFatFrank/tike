@@ -209,7 +209,7 @@ const Channel: FC<{ params: { channelId: number } }> = memo(({ params }) => {
     <div className="w-full h-full">
       <img
         className="w-full h-full object-cover z-[-1] fixed md:w-[550px] md:rounded-[20px]"
-        src="/images/profile-background.png"
+        src="https://tike-assets.s3.ap-south-1.amazonaws.com/profile-background.png"
         alt="background"
         width={550}
         height={550}

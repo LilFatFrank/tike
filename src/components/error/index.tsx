@@ -18,7 +18,7 @@ const Error: React.FC<ErrorProps> = memo(({
     <>
       <img
         src={
-          type === "404" ? "/images/404-image.png" : "/images/error-image.png"
+          type === "404" ? "https://tike-assets.s3.ap-south-1.amazonaws.com/404-image.png" : "https://tike-assets.s3.ap-south-1.amazonaws.com/error-image.png"
         }
         alt={type === "404" ? "404" : "error"}
         className="fixed w-full h-full md:w-[550px] md:h-[calc(100dvh-40px)] object-cover z-[-2]"

@@ -11,7 +11,7 @@ const BackgroundImage = memo(() => {
 
   return (
     <img
-      src="/images/desktop-bg.png"
+      src="https://tike-assets.s3.ap-south-1.amazonaws.com/desktop-bg.png"
       alt="desktop-bg"
       className={bgImageClass}
     />

@@ -255,7 +255,7 @@ const Profile: FC<Profile> = memo(({ fid }) => {
 
   const profileCastsLoader = () => {
     return (
-      <div ref={ref} key={`profile-casts-loader`}>
+      <div ref={ref}>
         {Array.from({ length: 3 }).map((_, index) => (
           <div className="py-5 w-full" key={`profile-casts-loader-${index}`}>
             <div className="flex items-center flex-col justify-start w-full gap-3">
@@ -427,7 +427,7 @@ const Profile: FC<Profile> = memo(({ fid }) => {
       <div className="w-full h-full">
         <img
           className="w-full h-full object-cover z-[-1] fixed md:w-[550px] md:rounded-[20px]"
-          src="/images/profile-background.png"
+          src="https://tike-assets.s3.ap-south-1.amazonaws.com/profile-background.png"
           alt="background"
         />
         <div className="w-full relative min-h-full top-[120px] bg-white rounded-t-[20px] py-[10px] px-[16px]">
