@@ -40,6 +40,9 @@ const CommentModal: FC<CommentModalProps> = memo(
         isOpen={openCommentModal}
         closeModal={(e) => {
           setOpenCommentModal(false);
+          setOpenCommentMediaModal(false);
+          setMedia(null);
+          setSelectedCommentMediaType("image");
           e?.stopPropagation();
         }}
         style={{ padding: 8, height: "100%", maxHeight: "85vh" }}

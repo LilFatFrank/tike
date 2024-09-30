@@ -51,7 +51,7 @@ const Modal: React.FC<ModalProps> = memo(
               : direction === "top"
               ? "-translate-y-full"
               : "translate-y-full"
-          } border border-gray-text-1 mx-auto`}
+          } border border-gray-text-1 mx-auto z-[99]`}
           style={{ maxHeight: "80dvh", overflowY: "auto", ...style }}
           onClick={handleContentClick}
         >
