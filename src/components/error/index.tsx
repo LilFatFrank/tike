@@ -1,5 +1,7 @@
 "use client";
-import { memo } from "react";
+import { AppContext } from "@/context";
+import { SET_ERROR } from "@/context/actions";
+import { memo, useContext, useEffect } from "react";
 
 interface ErrorProps {
   type?: "error" | "404";
@@ -14,6 +16,17 @@ const Error: React.FC<ErrorProps> = memo(({
   buttonLabel,
   buttonAction,
 }) => {
+  const [, dispatch] = useContext(AppContext);
+
+  useEffect(() => {
+    dispatch({ type: SET_ERROR, payload: true });
+  }, [dispatch]);
+
+  const handleButtonAction = () => {
+    dispatch({ type: SET_ERROR, payload: false });
+    buttonAction && buttonAction();
+  };
+
   return (
     <>
       <img
@@ -31,7 +44,7 @@ const Error: React.FC<ErrorProps> = memo(({
         </p>
         {
           <button
-            onClick={buttonAction}
+            onClick={handleButtonAction}
             className={`${
               buttonAction && buttonLabel ? "visible" : "invisible"
             } h-[64px] w-full border-none outline-none rounded-[100px] px-4 py-2 bg-black text-white leading-[120%] font-medium`}

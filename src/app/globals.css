@@ -11,7 +11,8 @@
 
 @font-face {
   font-family: "ClashGrotesk";
-  src: url("https://tike-assets.s3.ap-south-1.amazonaws.com/ClashGrotesk-Medium.ttf") format("truetype");
+  src: url("https://tike-assets.s3.ap-south-1.amazonaws.com/ClashGrotesk-Medium.ttf")
+    format("truetype");
 }
 
 html,
@@ -39,6 +40,12 @@ body {
   .frame-btn {
     @apply bg-frame-btn-bg rounded-[12px] py-[8px] px-[16px] flex items-center w-full gap-[6px] justify-center;
     contain: content;
+  }
+
+  .media-profile-list > div > div {
+    @apply grid grid-cols-3 gap-2 w-full;
+    padding-top: 32px !important;
+    padding-bottom: 32px !important;
   }
 
   .swap {

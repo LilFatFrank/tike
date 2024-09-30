@@ -1,5 +1,5 @@
 import { Action } from "./action";
-import { SET_USER_CHANNELS, SET_PAGE_NOT_FOUND } from "./actions";
+import { SET_USER_CHANNELS, SET_PAGE_NOT_FOUND, SET_ERROR } from "./actions";
 import State from "./statemodel";
 
 const reducer = (state: State, action: Action): State => {
@@ -13,6 +13,11 @@ const reducer = (state: State, action: Action): State => {
       return {
         ...state,
         pageNotFound: action.payload,
+      };
+    case SET_ERROR:
+      return {
+        ...state,
+        appError: action.payload,
       };
     default:
       return state;
