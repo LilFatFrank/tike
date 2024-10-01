@@ -6,29 +6,16 @@ import {
   memo,
   useCallback,
   useEffect,
-  useMemo,
   useState,
 } from "react";
-import { useInfiniteQuery } from "react-query";
-import Cast from "../cast";
 import formatNumber from "@/utils/formatNumber";
-import Frame from "../frame";
 import StringProcessor from "../stringprocessor";
-import { useRouter } from "next/navigation";
-import EmbedRenderer from "../embedrenderer";
 import ProfileButton from "../profilebutton";
 import { toast } from "sonner";
 import EditProfile from "./edit-profile";
-import { Virtuoso, VirtuosoGrid } from "react-virtuoso";
-import { useIsMobile } from "@/hooks/useIsMobile";
-
-const MemoizedCast = memo(Cast);
-const MemoizedFrame = memo(Frame);
-
-interface ApiResponse {
-  casts: any;
-  next: { cursor: string };
-}
+import ProfileCasts from "./profile-casts";
+import RepliesRecasts from "./replies-recasts";
+import MediaCasts from "./media-casts";
 
 const tabs = [
   {
@@ -39,10 +26,10 @@ const tabs = [
     label: "Recasts + Replies",
     value: "recasts_replies",
   },
-  /* {
+  {
     label: "Media",
     value: "media",
-  }, */
+  },
 ];
 
 interface Profile {
@@ -59,187 +46,6 @@ const Profile: FC<Profile> = memo(({ fid }) => {
     "log-out" | "copy-profile" | ""
   >("");
   const [openEditProfile, setOpenEditProfile] = useState(false);
-
-  const fetchProfileCasts = useCallback(
-    async ({
-      pageParam = "",
-      queryKey,
-    }: {
-      pageParam?: string;
-      queryKey: any;
-    }): Promise<ApiResponse> => {
-      const [_key, { fid, viewerFid }] = queryKey;
-      const response = await fetch(`/api/profile-casts`, {
-        method: "POST",
-        body: JSON.stringify({ cursor: pageParam, fid, viewerFid }),
-      });
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      const data = await response.json();
-      return data;
-    },
-    []
-  );
-
-  const fetchRecastsReplies = useCallback(
-    async ({
-      pageParam = "",
-      queryKey,
-    }: {
-      pageParam?: string;
-      queryKey: any;
-    }): Promise<ApiResponse> => {
-      const [_key, { fid, viewerFid }] = queryKey;
-      const response = await fetch(`/api/replies-recasts`, {
-        method: "POST",
-        body: JSON.stringify({ cursor: pageParam, fid, viewerFid }),
-      });
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      const data = await response.json();
-      return data;
-    },
-    []
-  );
-  const {
-    data,
-    isLoading,
-    fetchNextPage,
-    hasNextPage,
-    refetch,
-    isFetchingNextPage,
-    error,
-  } = useInfiniteQuery(
-    ["profile-casts", { fid: fid, viewerFid: user?.fid || 3 }],
-    fetchProfileCasts,
-    {
-      getNextPageParam: (lastPage) => {
-        return lastPage.next?.cursor ?? false;
-      },
-      refetchOnWindowFocus: false,
-      staleTime: 60000,
-      cacheTime: 3600000,
-    }
-  );
-
-  const {
-    data: rrData,
-    isLoading: rrIsLoading,
-    error: rrError,
-    fetchNextPage: rrFetchNextPage,
-    isFetchingNextPage: rrIsFetchingNextPage,
-    hasNextPage: rrHasNextPage,
-    refetch: rrRefetch,
-  } = useInfiniteQuery(
-    ["replies-recasts", { fid: fid, viewerFid: user?.fid || 3 }],
-    fetchRecastsReplies,
-    {
-      getNextPageParam: (lastPage) => {
-        return lastPage.next?.cursor ?? false;
-      },
-      refetchOnWindowFocus: false,
-      enabled: selectedTab === "recasts_replies",
-      staleTime: 60000,
-      cacheTime: 3600000,
-    }
-  );
-
-  const router = useRouter();
-
-  const profileCastsLoader = () => {
-    return (
-      <div>
-        {Array.from({ length: 3 }).map((_, index) => (
-          <div className="py-5 w-full" key={`profile-casts-loader-${index}`}>
-            <div className="flex items-center flex-col justify-start w-full gap-3">
-              <div className="flex items-center gap-2 w-full">
-                <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
-                <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
-              </div>
-              <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
-              <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const profileMediaLoader = () => {
-    return (
-      <>
-        <div
-          className="grid grid-cols-3 gap-2 w-full"
-          key={`profile-media-loader-${selectedTab}`}
-        >
-          {Array.from({ length: 3 }).map((_, index) => (
-            <div
-              className="aspect-square rounded-[12px] bg-divider animate-pulse w-full"
-              key={index}
-            />
-          ))}
-        </div>
-      </>
-    );
-  };
-
-  const profileRecastsRepliesLoader = () => {
-    return (
-      <div key={`profile-recasts-replies-loader`}>
-        {Array.from({ length: 3 }).map((_, index) => (
-          <div
-            className="py-5 w-full"
-            key={`profile-recasts-replies-loader-${index}`}
-          >
-            <div className="flex items-center flex-col justify-start w-full gap-3">
-              <div className="flex items-center gap-2 w-full">
-                <div className="h-[40px] w-[40px] rounded-full bg-divider animate-pulse flex-shrink-0" />
-                <div className="animate-pulse grow h-[36px] bg-divider rounded-lg" />
-              </div>
-              <div className="animate-pulse w-full h-[360px] bg-divider rounded-lg" />
-              <div className="animate-pulse w-full h-[20px] bg-divider rounded-lg" />
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const handleFetchNextPage = useCallback(() => {
-    if (
-      (selectedTab === "casts" || selectedTab === "media") &&
-      hasNextPage &&
-      !isFetchingNextPage
-    ) {
-      fetchNextPage();
-    } else if (
-      selectedTab === "recasts_replies" &&
-      rrHasNextPage &&
-      !rrIsFetchingNextPage
-    ) {
-      rrFetchNextPage();
-    }
-  }, [
-    selectedTab,
-    hasNextPage,
-    fetchNextPage,
-    rrHasNextPage,
-    rrFetchNextPage,
-    isFetchingNextPage,
-    rrIsFetchingNextPage,
-  ]);
-
-  const allProfileCasts = useMemo(
-    () => data?.pages.flatMap((page) => page.casts) ?? [],
-    [data]
-  );
-  const allRepliesRecasts = useMemo(
-    () => rrData?.pages.flatMap((page) => page.casts) ?? [],
-    [rrData]
-  );
-
   const [userPro, setUserPro] = useState<IUser>();
   const [errorPro, setErrorPro] = useState(false);
   const [loadingPro, setLoadingPro] = useState(false);
@@ -316,115 +122,6 @@ const Profile: FC<Profile> = memo(({ fid }) => {
   useEffect(() => {
     if (user) fetchUserProfile();
   }, [user]);
-
-  const isMobile = useIsMobile();
-
-  const ProfileCastFooter = useCallback(() => {
-    return isFetchingNextPage ? profileCastsLoader() : null;
-  }, [isFetchingNextPage]);
-
-  const ProfileRecastsRepliesFooter = useCallback(() => {
-    return rrIsFetchingNextPage ? profileRecastsRepliesLoader() : null;
-  }, [rrIsFetchingNextPage]);
-
-  const ProfileMediaFooter = useCallback(() => {
-    return isFetchingNextPage ? profileMediaLoader() : null;
-  }, [isFetchingNextPage]);
-
-  const renderCastItem = (index: number) => {
-    const cast = allProfileCasts[index];
-    if (!cast || !cast.embeds[0].url) return null;
-
-    return (
-      <div key={`cast-${cast.hash}`}>
-        <span
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            router.push(`/cast/${cast.parent_hash || cast.hash}`);
-          }}
-          className="cursor-pointer"
-        >
-          {cast.embedType === "frame" ? (
-            <MemoizedFrame
-              frame={cast}
-              style={{ paddingRight: 0, paddingLeft: 0 }}
-            />
-          ) : (
-            <MemoizedCast
-              cast={cast}
-              style={{ paddingRight: 0, paddingLeft: 0 }}
-            />
-          )}
-        </span>
-        {index < allProfileCasts.length - 1 && (
-          <hr className="border border-t-divider" />
-        )}
-      </div>
-    );
-  };
-
-  const renderMediaItem = (index: number) => {
-    const cast = allProfileCasts[index];
-    if (!cast || !cast.embeds[0].url) return null;
-
-    return cast.embedType === "frame" || cast.embedType === "youtube" ? null : (
-      <div
-        key={`media-${cast.hash}`}
-        onClick={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          router.push(`/cast/${cast.parent_hash || cast.hash}`);
-        }}
-        className="cursor-pointer w-full aspect-square rounded-[12px]"
-      >
-        <EmbedRenderer
-          type={cast.embedType === "audio" ? "image" : cast.embedType}
-          url={
-            cast.embedType === "audio"
-              ? cast?.embeds[1]?.url
-              : cast?.embeds[0]?.url
-          }
-          author={cast?.author?.username}
-          className={"object-cover"}
-          key={`profile-cast-embed-${cast.hash}`}
-        />
-      </div>
-    );
-  };
-
-  const renderRecastsRepliesItem = (index: number) => {
-    const cast = allRepliesRecasts[index];
-    if (!cast || !cast.embeds[0].url) return null;
-
-    return (
-      <div key={`recast-reply-${cast.hash}`}>
-        <span
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            router.push(`/cast/${cast.parent_hash || cast.hash}`);
-          }}
-          className="cursor-pointer"
-        >
-          {cast.embedType === "frame" ? (
-            <MemoizedFrame
-              frame={cast}
-              style={{ paddingRight: 0, paddingLeft: 0 }}
-            />
-          ) : (
-            <MemoizedCast
-              cast={cast}
-              style={{ paddingRight: 0, paddingLeft: 0 }}
-            />
-          )}
-        </span>
-        {index < allProfileCasts.length - 1 && (
-          <hr className="border border-t-divider" />
-        )}
-      </div>
-    );
-  };
 
   return (
     <>
@@ -615,65 +312,11 @@ const Profile: FC<Profile> = memo(({ fid }) => {
                 ))}
               </div>
               {selectedTab === "casts" ? (
-                isLoading ? (
-                  profileCastsLoader()
-                ) : error ? (
-                  <div className="py-2 text-center">
-                    <p>Error fetching casts!</p>
-                  </div>
-                ) : (
-                  <Virtuoso
-                    data={allProfileCasts}
-                    endReached={handleFetchNextPage}
-                    itemContent={renderCastItem}
-                    components={{
-                      Footer: ProfileCastFooter,
-                    }}
-                    useWindowScroll={isMobile}
-                    style={{ height: "100dvh", scrollbarWidth: "none" }}
-                  />
-                )
+                <ProfileCasts fid={fid.toString()} />
               ) : selectedTab === "media" ? (
-                isLoading ? (
-                  <div className="py-5">{profileMediaLoader()}</div>
-                ) : error ? (
-                  <div className="py-2 text-center">
-                    <p>Error fetching media!</p>
-                  </div>
-                ) : (
-                  <div className="py-5">
-                    <VirtuosoGrid
-                      data={allProfileCasts}
-                      endReached={() => console.log("endReached")}
-                      overscan={200}
-                      useWindowScroll={isMobile}
-                      listClassName="grid grid-cols-3 gap-2"
-                      itemContent={renderMediaItem}
-                      components={{
-                        Footer: ProfileMediaFooter,
-                      }}
-                    />
-                  </div>
-                )
+                <MediaCasts fid={fid.toString()} />
               ) : selectedTab === "recasts_replies" ? (
-                rrIsLoading ? (
-                  profileRecastsRepliesLoader()
-                ) : rrError ? (
-                  <div className="py-2 text-center">
-                    <p>Error fetching recasts and replies!</p>
-                  </div>
-                ) : (
-                  <Virtuoso
-                    data={allRepliesRecasts}
-                    endReached={handleFetchNextPage}
-                    itemContent={renderRecastsRepliesItem}
-                    components={{
-                      Footer: ProfileRecastsRepliesFooter,
-                    }}
-                    useWindowScroll={isMobile}
-                    style={{ height: "100dvh", scrollbarWidth: "none" }}
-                  />
-                )
+                <RepliesRecasts fid={fid.toString()} />
               ) : null}
             </>
           )}
@@ -686,8 +329,6 @@ const Profile: FC<Profile> = memo(({ fid }) => {
         userPro={userPro}
         refetch={() => {
           fetchUserProfile();
-          refetch();
-          rrRefetch();
         }}
       />
     </>
