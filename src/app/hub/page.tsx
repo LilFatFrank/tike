@@ -1,4 +1,5 @@
 "use client";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import formatNumber from "@/utils/formatNumber";
 import Link from "next/link";
 import { FC, memo, useCallback, useEffect, useMemo, useState } from "react";
@@ -120,6 +121,8 @@ const Hub: FC = memo(() => {
       fetchTopTokens();
     }
   }, [selectedTab]);
+
+  const isMobile = useIsMobile();
 
   const filteredProtocols = useMemo(() => {
     return selectedTab === "apps" && debouncedInputSearch
@@ -350,7 +353,7 @@ const Hub: FC = memo(() => {
           </div>
         ) : (
           <Virtuoso
-            style={{ height: "100dvh", width: "100%" }}
+            style={{ height: "100dvh", width: "100%", scrollbarWidth: "none" }}
             totalCount={
               selectedTab === "apps"
                 ? filteredProtocols.length
@@ -358,6 +361,7 @@ const Hub: FC = memo(() => {
                 ? filteredNfts.length
                 : filteredTokens.length
             }
+            useWindowScroll={isMobile}
             itemContent={(index) => {
               const item =
                 selectedTab === "apps"

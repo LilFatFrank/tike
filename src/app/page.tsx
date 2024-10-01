@@ -1,9 +1,10 @@
 "use client";
 import { ActivityBar, Cast, Frame, UserChannels } from "@/components";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { useNeynarContext } from "@neynar/react";
 import { useRouter } from "next/navigation";
 import { usePathname, useSearchParams } from "next/navigation";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery } from "react-query";
 import { Virtuoso } from "react-virtuoso";
 
@@ -194,6 +195,8 @@ export default function Home() {
     </div>
   );
 
+  const isMobile = useIsMobile();
+
   if (isLoading) return renderLoadingState();
 
   if (error) return renderError();
@@ -207,6 +210,7 @@ export default function Home() {
           data={allCasts}
           endReached={handleFetchNextPage}
           itemContent={renderItem}
+          useWindowScroll={isMobile}
           components={{
             Footer,
             Header: () => (
@@ -218,7 +222,7 @@ export default function Home() {
               />
             ),
           }}
-          style={{ height: "100dvh" }}
+          style={{ height: "100dvh", scrollbarWidth: "none" }}
         />
       </div>
     </>

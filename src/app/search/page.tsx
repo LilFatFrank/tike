@@ -6,6 +6,7 @@ import { useNeynarContext } from "@neynar/react";
 import SearchCasts from "./search-casts";
 import { useRouter } from "next/navigation";
 import { Virtuoso } from "react-virtuoso";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 const tabs = [
   {
@@ -233,6 +234,8 @@ const Search: FC = memo(() => {
     ));
   }, [powerUsers]);
 
+  const isMobile = useIsMobile();
+
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedInputSearch(inputSearch.trim());
@@ -337,7 +340,7 @@ const Search: FC = memo(() => {
               </div>
             ) : errorChannels ? null : (
               <Virtuoso
-                style={{ height: "100dvh", width: "100%" }}
+                style={{ height: "100dvh", width: "100%", scrollbarWidth: "none" }}
                 data={allChannels}
                 itemContent={(index, channel) => (
                   <ChannelItem
@@ -346,6 +349,7 @@ const Search: FC = memo(() => {
                     isLast={index === allChannels.length - 1}
                   />
                 )}
+                useWindowScroll={isMobile}
                 components={{
                   Footer,
                 }}

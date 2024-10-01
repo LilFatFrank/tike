@@ -5,6 +5,7 @@ import { useNeynarContext } from "@neynar/react";
 import { useRouter } from "next/navigation";
 import { FC, memo, useCallback, useEffect, useState } from "react";
 import { useInfiniteQuery } from "react-query";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 const ReplyItem = memo(({ cast, push }: { cast: any; push: any }) => {
   return (
@@ -44,6 +45,7 @@ const Page: FC<{ params: { hash: string } }> = memo(({ params }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const { back, push } = useRouter();
+  const isMobile = useIsMobile();
 
   const fetchConversation = useCallback(
     async ({
@@ -201,7 +203,7 @@ const Page: FC<{ params: { hash: string } }> = memo(({ params }) => {
   return (
     <div className="flex-1 bg-white min-h-full">
       <Virtuoso
-        style={{ height: "100vh", width: "100%" }}
+        style={{ height: "100vh", width: "100%", scrollbarWidth: "none" }}
         data={allReplies}
         endReached={loadMore}
         overscan={200}
@@ -209,6 +211,7 @@ const Page: FC<{ params: { hash: string } }> = memo(({ params }) => {
           Header,
           Footer,
         }}
+        useWindowScroll={isMobile}
         itemContent={(index, reply) => (
           <>
             <ReplyItem cast={reply} push={push} />

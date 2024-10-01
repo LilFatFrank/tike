@@ -7,6 +7,7 @@ import ReplyUpdate from "./reply-update";
 import RecastUpdate from "./recast-update";
 import FollowUpdate from "./follow-update";
 import { Virtuoso } from "react-virtuoso";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 const NotificationItem = memo(
   ({
@@ -178,6 +179,8 @@ const ForYou: FC = memo(() => {
     </div>
   );
 
+  const isMobile = useIsMobile();
+
   if (isLoading) {
     return (
       <div className="p-2 flex flex-col items-start justify-start gap-2 h-full bg-white">
@@ -202,7 +205,7 @@ const ForYou: FC = memo(() => {
   return (
     <>
       <Virtuoso
-        style={{ height: "100dvh" }}
+        style={{ height: "100dvh", width: "100%", scrollbarWidth: "none" }}
         data={allNotifications}
         endReached={handleFetchNextPage}
         itemContent={(index, notification) => (
@@ -212,6 +215,7 @@ const ForYou: FC = memo(() => {
             arr={allNotifications}
           />
         )}
+        useWindowScroll={isMobile}
         components={{ Footer }}
       />
     </>

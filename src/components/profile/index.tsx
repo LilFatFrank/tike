@@ -3,7 +3,6 @@ import { useNeynarContext } from "@neynar/react";
 import { IUser } from "@neynar/react/dist/types/common";
 import {
   FC,
-  forwardRef,
   memo,
   useCallback,
   useEffect,
@@ -21,6 +20,7 @@ import ProfileButton from "../profilebutton";
 import { toast } from "sonner";
 import EditProfile from "./edit-profile";
 import { Virtuoso, VirtuosoGrid } from "react-virtuoso";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 const MemoizedCast = memo(Cast);
 const MemoizedFrame = memo(Frame);
@@ -316,6 +316,8 @@ const Profile: FC<Profile> = memo(({ fid }) => {
   useEffect(() => {
     if (user) fetchUserProfile();
   }, [user]);
+
+  const isMobile = useIsMobile();
 
   const ProfileCastFooter = useCallback(() => {
     return isFetchingNextPage ? profileCastsLoader() : null;
@@ -624,10 +626,11 @@ const Profile: FC<Profile> = memo(({ fid }) => {
                     data={allProfileCasts}
                     endReached={handleFetchNextPage}
                     itemContent={renderCastItem}
-                    useWindowScroll
                     components={{
                       Footer: ProfileCastFooter,
                     }}
+                    useWindowScroll={isMobile}
+                    style={{ height: "100dvh", scrollbarWidth: "none" }}
                   />
                 )
               ) : selectedTab === "media" ? (
@@ -639,16 +642,15 @@ const Profile: FC<Profile> = memo(({ fid }) => {
                   </div>
                 ) : (
                   <div className="py-5">
-                  <VirtuosoGrid
-                    data={allProfileCasts}
-                    endReached={() => console.log("endReached")}
-                    overscan={200}
-                    style={{ height: "1000px" }}
-                    useWindowScroll
-                    listClassName="grid grid-cols-3 gap-2"
-                    itemContent={renderMediaItem}
-                    components={{
-                      Footer: ProfileMediaFooter,
+                    <VirtuosoGrid
+                      data={allProfileCasts}
+                      endReached={() => console.log("endReached")}
+                      overscan={200}
+                      useWindowScroll={isMobile}
+                      listClassName="grid grid-cols-3 gap-2"
+                      itemContent={renderMediaItem}
+                      components={{
+                        Footer: ProfileMediaFooter,
                       }}
                     />
                   </div>
@@ -665,10 +667,11 @@ const Profile: FC<Profile> = memo(({ fid }) => {
                     data={allRepliesRecasts}
                     endReached={handleFetchNextPage}
                     itemContent={renderRecastsRepliesItem}
-                    useWindowScroll
                     components={{
                       Footer: ProfileRecastsRepliesFooter,
                     }}
+                    useWindowScroll={isMobile}
+                    style={{ height: "100dvh", scrollbarWidth: "none" }}
                   />
                 )
               ) : null}

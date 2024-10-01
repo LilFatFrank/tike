@@ -1,5 +1,6 @@
 "use client";
 import { ActivityBar, Frame, UserChannels } from "@/components";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { useNeynarContext } from "@neynar/react";
 import { useRouter } from "next/navigation";
 import React from "react";
@@ -171,6 +172,8 @@ const Frames: FC = memo(() => {
     </div>
   );
 
+  const isMobile = useIsMobile();
+
   if (isLoading) {
     return renderLoadingState();
   }
@@ -189,6 +192,7 @@ const Frames: FC = memo(() => {
         data={allFrames}
         endReached={handleFetchNextPage}
         itemContent={renderItem}
+        useWindowScroll={isMobile}
         components={{
           Footer,
           Header: () => (
@@ -200,7 +204,7 @@ const Frames: FC = memo(() => {
             />
           ),
         }}
-        style={{ height: "100dvh" }}
+        style={{ height: "100dvh", scrollbarWidth: "none" }}
       />
     </div>
   );

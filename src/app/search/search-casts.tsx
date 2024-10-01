@@ -1,5 +1,6 @@
 "use client";
 import { EmbedRenderer, StringProcessor } from "@/components";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { useRouter } from "next/navigation";
 import { FC, memo, useCallback, useMemo } from "react";
 import { useInfiniteQuery } from "react-query";
@@ -150,6 +151,8 @@ const SearchCasts: FC<SearchCasts> = memo(({ input }) => {
     return null;
   }, [isFetchingNextPage, allCasts, hasNextPage]);
 
+  const isMobile = useIsMobile();
+
   if (isLoading) {
     return (
       <div className="p-2 flex flex-col items-start justify-start h-full gap-2 bg-white">
@@ -170,11 +173,12 @@ const SearchCasts: FC<SearchCasts> = memo(({ input }) => {
   return (
     <div className="flex-1 bg-white min-h-full">
       <Virtuoso
-        style={{ height: '100dvh', width: '100%' }} // Adjust the height as needed
+        style={{ height: "100dvh", width: "100%", scrollbarWidth: "none" }}
         data={allCasts}
         endReached={loadMore}
         overscan={200}
         itemContent={renderItem}
+        useWindowScroll={isMobile}
         components={{
           Footer,
         }}

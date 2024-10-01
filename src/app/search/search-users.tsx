@@ -1,4 +1,5 @@
 "use client";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { useNeynarContext } from "@neynar/react";
 import { useRouter } from "next/navigation";
 import { FC, memo, useCallback, useMemo } from "react";
@@ -132,6 +133,8 @@ const SearchUsers: FC<SearchUsers> = memo(({ input }) => {
     return null;
   }, [isFetchingNextPage, allUsers, hasNextPage]);
 
+  const isMobile = useIsMobile();
+
   if (isLoading) {
     return (
       <div className="p-2 flex flex-col items-start justify-start gap-2 h-full bg-white">
@@ -152,11 +155,12 @@ const SearchUsers: FC<SearchUsers> = memo(({ input }) => {
   return (
     <div className="flex-1">
       <Virtuoso
-        style={{ height: '100dvh', width: '100%' }} // Adjust the height as needed
+        style={{ height: "100dvh", width: "100%", scrollbarWidth: "none" }}
         data={allUsers}
         endReached={loadMore}
         overscan={200}
         itemContent={renderUser}
+        useWindowScroll={isMobile}
         components={{
           Footer,
         }}

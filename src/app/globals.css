@@ -46,6 +46,9 @@ body {
     @apply grid grid-cols-3 gap-2 w-full;
     padding-top: 32px !important;
     padding-bottom: 32px !important;
+    div {
+      @apply aspect-square;
+    }
   }
 
   .swap {
