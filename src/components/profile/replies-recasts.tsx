@@ -106,9 +106,9 @@ export default function RepliesRecasts({ fid }: { fid: string }) {
           className="cursor-pointer"
         >
           {cast.embedType === "frame" ? (
-            <MemoizedFrame frame={cast} key={`cast-${cast.hash}`} />
+            <MemoizedFrame frame={cast} key={`cast-${cast.hash}`} style={{ paddingLeft: "0px", paddingRight: "0px" }} />
           ) : (
-            <MemoizedCast cast={cast} key={`cast-${cast.hash}`} />
+            <MemoizedCast cast={cast} key={`cast-${cast.hash}`} style={{ paddingLeft: "0px", paddingRight: "0px" }} />
           )}
           {index === allCasts.length - 1 ? null : (
             <hr className="border border-t-divider" />
