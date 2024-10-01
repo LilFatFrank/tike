@@ -31,7 +31,6 @@ export default async function handler(
     let body: {
       [key: string]: any;
     } = {
-      embeds,
       text,
       signer_uuid: uuid,
       channel_id: channelId,
@@ -42,6 +41,13 @@ export default async function handler(
         ...body,
         parent,
       };
+
+    if (embeds.length > 0) {
+      body = {
+        ...body,
+        embeds,
+      };
+    }
 
     const castResponse = await axios.post(url, body, {
       headers: {

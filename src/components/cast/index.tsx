@@ -236,14 +236,21 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
       );
       if (response.data.success) window.location.reload();
     } catch (error) {
-      console.error("Error uploading media", error);
-      toast.error("Error uploading media");
+      console.error("Error posting", error);
+      toast.error("Error posting");
     } finally {
       setIsUploading(false);
       setCommentText("");
       setMedia(null);
     }
-  }, [castDet, user?.signer_uuid, media, audioThumbnailMedia, musicTitle]);
+  }, [
+    castDet,
+    user?.signer_uuid,
+    media,
+    audioThumbnailMedia,
+    musicTitle,
+    commentText,
+  ]);
 
   const handleTimeUpdate = useCallback(() => {
     const audio = document.getElementById("audio-element") as HTMLAudioElement;
@@ -545,16 +552,18 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
       </div>
       <CommentModal
         openCommentModal={openCommentModal}
-        setOpenCommentModal={setOpenCommentModal}
+        setOpenCommentModal={(value: boolean) => setOpenCommentModal(value)}
         commentText={commentText}
-        setCommentText={setCommentText}
+        setCommentText={(value: string) => setCommentText(value)}
         handleMediaChange={handleMediaChange}
         isUploading={isUploading}
         handlePost={handlePost}
         media={media}
-        setMedia={setMedia}
+        setMedia={(value: any) => setMedia(value)}
         openCommentMediaModal={openCommentMediaModal}
-        setOpenCommentMediaModal={setOpenCommentMediaModal}
+        setOpenCommentMediaModal={(value: boolean) =>
+          setOpenCommentMediaModal(value)
+        }
         selectedCommentMediaType={selectedCommentMediaType}
         setSelectedCommentMediaType={(value: "video" | "image" | "music") =>
           setSelectedCommentMediaType(value)
@@ -562,13 +571,15 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
       />
       <MusicUploadModal
         openMusicUploadModal={openMusicUploadModal}
-        setOpenMusicUploadModal={setOpenMusicUploadModal}
+        setOpenMusicUploadModal={(value: boolean) =>
+          setOpenMusicUploadModal(value)
+        }
         media={media}
-        setMedia={setMedia}
+        setMedia={(value: any) => setMedia(value)}
         audioThumbnailMedia={audioThumbnailMedia}
-        setAudioThumbnailMedia={setAudioThumbnailMedia}
+        setAudioThumbnailMedia={(value: any) => setAudioThumbnailMedia(value)}
         musicTitle={musicTitle}
-        setMusicTitle={setMusicTitle}
+        setMusicTitle={(value: string) => setMusicTitle(value)}
         isUploading={isUploading}
         handlePost={handlePost}
         handleAudioThumbnailMedia={handleAudioThumbnailMedia}
