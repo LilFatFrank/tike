@@ -5,7 +5,7 @@ import { useNeynarContext } from "@neynar/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { useInfiniteQuery } from "react-query";
-import { VirtuosoGrid } from "react-virtuoso";
+import { Virtuoso } from "react-virtuoso";
 
 interface ApiResponse {
   casts: any;
@@ -97,40 +97,52 @@ export default function MediaCasts({ fid }: { fid: string }) {
 
   const renderItem = useCallback(
     (index: number) => {
-      if (!data) return null;
-      const cast = allCasts[index];
+      const startIndex = index * 3;
+      const endIndex = Math.min(startIndex + 3, allCasts.length);
+
+      const rowItems = allCasts.slice(startIndex, endIndex).map((cast, idx) => {
+        if (!cast) return null;
+
+        return (
+          <div
+            key={`media-${cast.hash}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              router.push(`/cast/${cast.parent_hash || cast.hash}`);
+            }}
+            className="cursor-pointer w-full aspect-square rounded-[12px] mb-2"
+            style={{ width: `33%` }}
+          >
+            <EmbedRenderer
+              type={
+                cast.embedType === "audio" || cast.embedType === "frame"
+                  ? "image"
+                  : cast.embedType
+              }
+              url={
+                cast.embedType === "frame"
+                  ? cast?.frames[0]?.image
+                  : cast.embedType === "audio"
+                  ? cast?.embeds[1]?.url
+                  : cast?.embeds[0]?.url
+              }
+              author={cast?.author?.username}
+              className={`object-cover w-full h-full ${
+                cast.embedType === "youtube" ? "min-h-[auto]" : ""
+              }`}
+            />
+          </div>
+        );
+      });
 
       return (
-        <div
-          key={`media-${cast.hash}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            router.push(`/cast/${cast.parent_hash || cast.hash}`);
-          }}
-          className="cursor-pointer w-full aspect-square rounded-[12px] grid-item"
-        >
-          <EmbedRenderer
-            type={
-              cast.embedType === "audio" || cast.embedType === "frame"
-                ? "image"
-                : cast.embedType
-            }
-            url={
-              cast.embedType === "frame"
-                ? cast?.frames[0]?.image
-                : cast.embedType === "audio"
-                ? cast?.embeds[1]?.url
-                : cast?.embeds[0]?.url
-            }
-            author={cast?.author?.username}
-            className={`object-cover w-full h-full ${cast.embedType === "youtube" ? "min-h-[auto]" : ""}`}
-            key={`profile-media-${cast.hash}`}
-          />
+        <div className="flex flex-row gap-2 w-full" key={`row-${index}`}>
+          {rowItems}
         </div>
       );
     },
-    [data, router]
+    [allCasts, router]
   );
 
   const Footer = useCallback(() => {
@@ -159,24 +171,21 @@ export default function MediaCasts({ fid }: { fid: string }) {
 
   if (error) return renderError();
 
-  const totalItemCount =
-    data?.pages.reduce((sum, page) => sum + page.casts.length, 0) ?? 0;
-
   return (
-    <VirtuosoGrid
-      useWindowScroll={isMobile}
-      totalCount={totalItemCount}
-      overscan={200}
+    <Virtuoso
+      totalCount={Math.ceil(allCasts.length / 3)}
+      data={allCasts}
+      itemContent={renderItem}
+      endReached={handleFetchNextPage}
       components={{
         Footer,
       }}
-      itemContent={renderItem}
-      endReached={handleFetchNextPage}
+      useWindowScroll={isMobile}
       style={{
-        height: isMobile ? undefined : 800,
+        height: "100vh",
         scrollbarWidth: "none",
+        marginTop: "8px",
       }}
-      listClassName="grid grid-cols-3 gap-2 mt-4 mb-2 grid-container"
     />
   );
 }
