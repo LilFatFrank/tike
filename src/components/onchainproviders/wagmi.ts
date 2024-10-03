@@ -1,9 +1,9 @@
 import { http, createConfig } from 'wagmi';
-import { base } from 'wagmi/chains';
+import { base, mainnet, zora, gnosis, polygon, arbitrum, optimism, avalanche } from 'wagmi/chains';
 import { coinbaseWallet } from 'wagmi/connectors';
  
 export const wagmiConfig = createConfig({
-  chains: [base],
+  chains: [base, mainnet, zora, gnosis, polygon, arbitrum, optimism, avalanche],
   multiInjectedProviderDiscovery: false,
   connectors: [
     coinbaseWallet({
@@ -15,5 +15,12 @@ export const wagmiConfig = createConfig({
   ssr: true,
   transports: {
     [base.id]: http(),
+    [mainnet.id]: http(),
+    [zora.id]: http(),
+    [gnosis.id]: http(),
+    [polygon.id]: http(),
+    [arbitrum.id]: http(),
+    [optimism.id]: http(),
+    [avalanche.id]: http(),
   },
 });
