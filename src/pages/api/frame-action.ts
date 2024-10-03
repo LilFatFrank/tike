@@ -7,7 +7,6 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     try {
-      console.log(req.body);
       const resp = await axios.post(
         `https://api.neynar.com/v2/farcaster/frame/action`,
         JSON.parse(req.body),

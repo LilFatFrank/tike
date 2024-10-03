@@ -24,7 +24,6 @@ import {
   useConnect,
   useSendTransaction,
   useSwitchChain,
-  useWriteContract,
 } from "wagmi";
 import { coinbaseWallet } from "wagmi/connectors";
 
@@ -43,7 +42,6 @@ interface Media {
 const Frame: FC<Frame> = memo(({ frame, style, type }) => {
   const { user } = useNeynarContext();
   const router = useRouter();
-  const { writeContractAsync } = useWriteContract();
   const { switchChainAsync } = useSwitchChain();
   const { address } = useAccount();
   const { connectAsync } = useConnect();
@@ -101,7 +99,9 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
                   title: frameDet?.frames[0]?.title,
                   image: frameDet?.frames[0]?.image,
                   frames_url: frameDet?.frames[0]?.frames_url,
-                  post_url: frameDet?.frames[0]?.post_url || frameDet?.frames[0]?.frames_url,
+                  post_url:
+                    frameDet?.frames[0]?.post_url ||
+                    frameDet?.frames[0]?.frames_url,
                   button: {
                     index: value.index,
                     action_type: value.action_type,
@@ -126,8 +126,13 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
               }),
             });
             const data = await res.json();
+            setInputText("");
             if (data.error) {
-              toast.error(typeof data.error.message === "string" ? data.error.message : "Error interacting with frame");
+              toast.error(
+                typeof data.error.message === "string"
+                  ? data.error.message
+                  : "Error interacting with frame"
+              );
               console.log("Error", data.error.message);
               return;
             }
@@ -169,7 +174,9 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
                     title: frameDet?.frames[0]?.title,
                     image: frameDet?.frames[0]?.image,
                     frames_url: frameDet?.frames[0]?.frames_url,
-                    post_url: frameDet?.frames[0]?.post_url || frameDet?.frames[0]?.frames_url,
+                    post_url:
+                      frameDet?.frames[0]?.post_url ||
+                      frameDet?.frames[0]?.frames_url,
                     button: {
                       index: value.index,
                       action_type: value.action_type,
@@ -194,8 +201,13 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
                 }),
               });
               const txData = await res.json();
+              setInputText("");
               if (txData.error) {
-                toast.error(typeof txData.error.message === "string" ? txData.error.message : "Error interacting with frame");
+                toast.error(
+                  typeof txData.error.message === "string"
+                    ? txData.error.message
+                    : "Error interacting with frame"
+                );
                 console.log("Error", txData.error);
                 return;
               }
@@ -616,7 +628,13 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
               <input
                 className="border border-frame-btn-bg rounded-[12px] py-2 px-4 outline-none w-full bg-inherit placeholder:text-black-40 mb-1"
                 placeholder={frameDet?.frames[0]?.input.text}
-                onChange={(e) => setInputText(e.target.value)}
+                onChange={(e) => {
+                  setInputText(e.target.value);
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 value={inputText}
               />
             ) : null}
