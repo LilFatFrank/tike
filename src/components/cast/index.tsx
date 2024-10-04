@@ -234,7 +234,25 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
           },
         }
       );
-      if (response.data.success) window.location.reload();
+      if (response.data.success) {
+        await fetch(`https://sheetdb.io/api/v1/${process.env.NEXT_PUBLIC_SHEETDB_JAM_EVENT_CAST}`, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            data: [
+              {
+                fid: user?.fid,
+                name: user?.username,
+                parent_hash: castDet.hash,
+              },
+            ],
+          }),
+        });
+        window.location.reload();
+      }
     } catch (error) {
       console.error("Error posting", error);
       toast.error("Error posting");
