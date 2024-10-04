@@ -79,6 +79,13 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
       setLoadingFrameInteraction(true);
       try {
         switch (value.action_type) {
+          case "post_redirect":
+            window.open(
+              frameDet?.frames[0]?.frames_url,
+              "_blank",
+              "noreferrer noopener"
+            );
+            break;
           case "link":
             window.open(value.target, "_blank", "noreferrer noopener");
             break;
@@ -638,19 +645,31 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
                 value={inputText}
               />
             ) : null}
-            {frameDet?.frames[0]?.buttons?.map((b: any, i: number, arr: []) => (
-              <button
-                className={`frame-btn ${i === arr.length - 1 ? "" : "mb-1"}`}
-                key={b.index}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  frameInteraction(b);
-                }}
-              >
-                <p className="font-medium">{b.title}</p>
-              </button>
-            ))}
+            <div
+              className={`grid gap-1 ${
+                frameDet?.frames[0]?.buttons?.length === 1
+                  ? "grid-cols-1"
+                  : frameDet?.frames[0]?.buttons?.length % 3 === 0
+                  ? "grid-cols-3"
+                  : "grid-cols-2"
+              }`}
+            >
+              {frameDet?.frames[0]?.buttons?.map(
+                (b: any) => (
+                  <button
+                    className={`frame-btn`}
+                    key={b.index}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      frameInteraction(b);
+                    }}
+                  >
+                    <p className="font-medium">{b.title}</p>
+                  </button>
+                )
+              )}
+            </div>
           </>
         )}
         <div className="w-full flex items-center justify-between mt-[12px]">
