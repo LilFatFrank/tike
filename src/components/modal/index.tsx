@@ -52,7 +52,12 @@ const Modal: React.FC<ModalProps> = memo(
               ? "-translate-y-full"
               : "translate-y-full"
           } border border-gray-text-1 mx-auto z-[99]`}
-          style={{ maxHeight: "80dvh", overflowY: "auto", ...style }}
+          style={{
+            maxHeight: "80dvh",
+            overflowY: "auto",
+            scrollbarWidth: "none",
+            ...style,
+          }}
           onClick={handleContentClick}
         >
           {children}
