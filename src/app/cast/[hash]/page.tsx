@@ -7,13 +7,16 @@ import { FC, memo, useCallback, useEffect, useState } from "react";
 import { useInfiniteQuery } from "react-query";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
+const MemoizedCast = memo(Cast);
+const MemoizedFrame = memo(Frame);
+
 const ReplyItem = memo(({ cast, push }: { cast: any; push: any }) => {
   return (
     <span onClick={() => push(`/cast/${cast.hash}`)} className="cursor-pointer">
       {cast.embedType === "frame" ? (
-        <Frame frame={cast} key={`cast-${cast.hash}`} type="reply" />
+        <MemoizedFrame frame={cast} key={`cast-${cast.hash}`} type="reply" />
       ) : (
-        <Cast cast={cast} key={`cast-${cast.hash}`} type="reply" />
+        <MemoizedCast cast={cast} key={`cast-${cast.hash}`} type="reply" />
       )}
     </span>
   );
@@ -143,9 +146,9 @@ const Page: FC<{ params: { hash: string } }> = memo(({ params }) => {
         </div>
         {cast ? (
           cast.frames ? (
-            <Frame frame={cast} />
+            <MemoizedFrame frame={cast} />
           ) : (
-            <Cast cast={cast} />
+            <MemoizedCast cast={cast} />
           )
         ) : null}
       </>
