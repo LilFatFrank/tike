@@ -89,8 +89,7 @@ body {
     @apply flex-shrink-0 flex items-center justify-center gap-2 py-1 px-2 rounded-[60px] border border-black/[6%] bg-white;
   }
 
-  .lifi-swap > div {
-    @apply fixed top-[50%] left-[50%] translate-y-[-50%] translate-x-[-50%];
+  .lifi-swap {
     * {
       scrollbar-width: none;
     }

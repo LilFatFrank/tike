@@ -21,6 +21,11 @@ export function Widget() {
     chains: {
       allow: chainIds,
     },
+    theme: {
+      palette: {
+        primary: { main: "#7C65C1" },
+      },
+    },
   };
 
   return (
