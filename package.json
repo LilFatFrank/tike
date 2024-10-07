@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@coinbase/onchainkit": "^0.33.1",
+    "@lifi/widget": "^3.7.0",
     "@neynar/react": "^0.4.6",
     "@tailwindcss/line-clamp": "^0.4.4",
     "@types/react-youtube": "^7.10.0",
