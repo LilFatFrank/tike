@@ -10,6 +10,7 @@ export const wagmiConfig = createConfig({
       appName: 'tike-social',
       preference: 'all',
       version: '4',
+      appLogoUrl: 'https://app.tike.social/icons/desktop-logo.svg'
     }),
   ],
   ssr: true,
