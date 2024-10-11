@@ -18,7 +18,17 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AppContext } from "@/context";
 import formatTime from "@/utils/formatTime";
-import Image from "next/image";
+import { creatorZoraClient } from "../zora-client";
+import {
+  useAccount,
+  useChainId,
+  useConnect,
+  useSwitchChain,
+  useWriteContract,
+} from "wagmi";
+import { zora } from "viem/chains";
+import { coinbaseWallet } from "wagmi/connectors";
+import { parseEther } from "viem";
 
 interface Media {
   type: "image" | "video" | "audio";
@@ -47,9 +57,22 @@ const CastInput: FC = memo(() => {
   const [currentAudioTime, setCurrentAudioTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
   const [musicTitle, setMusicTitle] = useState("");
+  const [openMintModal, setOpenMintModal] = useState(false);
+  const [mintThumbnail, setMintThumbnail] = useState<{
+    url: string;
+    file: File;
+  } | null>(null);
+  const [mintTitle, setMintTitle] = useState("");
+  const [mintDescription, setMintDescription] = useState("");
+  const [mintPrice, setMintPrice] = useState("");
 
   const { user } = useNeynarContext();
   const router = useRouter();
+  const { writeContractAsync } = useWriteContract();
+  const { address } = useAccount();
+  const chain = useChainId();
+  const { switchChainAsync } = useSwitchChain();
+  const { connect } = useConnect();
 
   const handleTextChange = useCallback(
     (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -64,6 +87,12 @@ const CastInput: FC = memo(() => {
       const file = files[0];
       const url = URL.createObjectURL(file);
       let type: "video" | "audio" | "image" = "image";
+      if (file.type.startsWith("image")) {
+        setMintThumbnail({
+          url,
+          file,
+        });
+      }
       if (file.type.startsWith("video")) {
         type = "video";
       } else if (file.type.startsWith("audio")) {
@@ -79,6 +108,19 @@ const CastInput: FC = memo(() => {
       const files = e.target.files;
       if (files && files.length > 0) {
         setAudioThumbnailMedia({
+          url: URL.createObjectURL(files[0]),
+          file: files[0],
+        });
+      }
+    },
+    []
+  );
+
+  const handleMintThumbnail = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        setMintThumbnail({
           url: URL.createObjectURL(files[0]),
           file: files[0],
         });
@@ -135,7 +177,257 @@ const CastInput: FC = memo(() => {
 
   const removeMedia = useCallback(() => {
     setMedia(null);
+    setMintThumbnail(null);
   }, []);
+
+  const checkUser = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/check-collection?fid=${user?.fid}`);
+      const data = await res.json();
+      return data;
+    } catch (error) {
+      console.log("Error checking user", error);
+      throw error;
+    }
+  }, [user?.fid, address]);
+
+  const buildContractMetadata = useCallback(async () => {
+    try {
+      const metadata = {
+        name: `${user?.username}'s Tike Posts`,
+        description: `Visit ${user?.username}'s Tike Posts here - https://app.tike.social/profile/${user?.fid}`,
+        image: user?.pfp_url,
+      };
+      const metadataUri = await handleJsonUploadToPinata(metadata);
+      return metadataUri;
+    } catch (error) {
+      console.log("Error building contract metadata", error);
+      toast.error("Error uploading metadata");
+      throw error;
+    }
+  }, [user?.pfp_url]);
+
+  const buildTokenMetadata = useCallback(async () => {
+    try {
+      let mediaUrl = "";
+      let thumbnailUrl = "";
+      if (media) mediaUrl = await handleUploadToPinata(media?.file);
+      if (mintThumbnail)
+        thumbnailUrl = await handleUploadToPinata(mintThumbnail?.file);
+      const metadata = {
+        name: mintTitle,
+        description: mintDescription,
+        image: thumbnailUrl,
+        external_link: `https://app.tike.social/profile/${user?.fid}`,
+        animation_url: mediaUrl,
+      };
+      const metadataUri = await handleJsonUploadToPinata(metadata);
+      return metadataUri;
+    } catch (error) {
+      console.log("Error building token metadata", error);
+      toast.error("Error uploading metadata");
+      throw error;
+    }
+  }, [user?.pfp_url, media, mintThumbnail, mintTitle, mintDescription]);
+
+  const handleJsonUploadToPinata = useCallback(async (json: object) => {
+    try {
+      const data = JSON.stringify({
+        pinataContent: json,
+        pinataMetadata: {
+          name: "metadata.json",
+        },
+      });
+      const response = await axios.post(
+        "https://api.pinata.cloud/pinning/pinJSONToIPFS",
+        data,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT_KEY}`,
+          },
+        }
+      );
+
+      return `${process.env.NEXT_PUBLIC_PINATA_GATEWAY_URL}/ipfs/${response.data.IpfsHash}`;
+    } catch (error) {
+      console.log("Error uploading to pinata", error);
+      toast.error("Error uploading metadata");
+      throw error;
+    }
+  }, []);
+
+  const handleMint = useCallback(async () => {
+    try {
+      if (!address) {
+        connect({
+          connector: coinbaseWallet({
+            appName: "tike-social",
+            preference: "all",
+            version: "4",
+            appLogoUrl: "https://app.tike.social/icons/desktop-logo.svg",
+          }),
+        });
+      }
+      if (chain !== zora.id) {
+        await switchChainAsync({
+          chainId: zora.id,
+        });
+      }
+      const userInfo = await checkUser();
+      if (!userInfo.error && !userInfo.exists) {
+        const contractMetadataUri = await buildContractMetadata();
+        const metadataUri = await buildTokenMetadata();
+        const { parameters, contractAddress, newTokenId } =
+          await creatorZoraClient.create1155({
+            contract: {
+              name: `${user?.username}'s Tike Posts`,
+              uri: contractMetadataUri,
+            },
+            token: {
+              tokenMetadataURI: metadataUri,
+              ...(mintPrice
+                ? {
+                    salesConfig: {
+                      pricePerToken: parseEther(mintPrice),
+                    },
+                  }
+                : {}),
+            },
+            account: address as `0x${string}`,
+          });
+        await writeContractAsync(parameters);
+        await fetch(`/api/add-collection`, {
+          method: "POST",
+          body: JSON.stringify({
+            username: user?.username,
+            fid: user?.fid,
+            collection: {
+              [address as `0x${string}`]: contractAddress,
+            },
+          }),
+        });
+        await axios.post(
+          "/api/create",
+          {
+            uuid: user?.signer_uuid,
+            channelId: selectedChannel,
+            text: "test frame",
+            fileUrl: `https://zora.co/collect/zora:${contractAddress.toLowerCase()}/${newTokenId.toString()}`,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        router.push(`/profile/${user?.fid}`);
+      } else if (!userInfo.error && userInfo.exists) {
+        if (
+          userInfo.user &&
+          userInfo.user.collection &&
+          userInfo.user.collection[address as `0x${string}`]
+        ) {
+          const metadataUri = await buildTokenMetadata();
+          const { parameters, newTokenId } =
+            await creatorZoraClient.create1155OnExistingContract({
+              contractAddress:
+                userInfo.user.collection[address as `0x${string}`],
+              token: {
+                tokenMetadataURI: metadataUri,
+                ...(mintPrice
+                  ? {
+                      salesConfig: {
+                        pricePerToken: parseEther(mintPrice),
+                      },
+                    }
+                  : {}),
+              },
+              account: address as `0x${string}`,
+            });
+          await writeContractAsync(parameters);
+          await axios.post(
+            "/api/create",
+            {
+              uuid: user?.signer_uuid,
+              channelId: selectedChannel,
+              text: mintDescription,
+              fileUrl: `https://zora.co/collect/zora:${userInfo.user.collection[
+                address as `0x${string}`
+              ].toLowerCase()}/${newTokenId.toString()}`,
+            },
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          router.push(`/profile/${user?.fid}`);
+        } else if (
+          userInfo.user &&
+          userInfo.user.collection &&
+          !userInfo.user.collection[address as `0x${string}`]
+        ) {
+          const contractMetadataUri = await buildContractMetadata();
+          const metadataUri = await buildTokenMetadata();
+          const { parameters, contractAddress, newTokenId } =
+            await creatorZoraClient.create1155({
+              contract: {
+                name: `${user?.username}'s Tike Posts`,
+                uri: contractMetadataUri,
+              },
+              token: {
+                tokenMetadataURI: metadataUri,
+                ...(mintPrice
+                  ? {
+                      salesConfig: {
+                        pricePerToken: parseEther(mintPrice),
+                      },
+                    }
+                  : {}),
+              },
+              account: address as `0x${string}`,
+            });
+          await writeContractAsync(parameters);
+          await fetch(`/api/update-collection`, {
+            method: "POST",
+            body: JSON.stringify({
+              ...userInfo.user,
+              collection: {
+                ...userInfo.user.collection,
+                [address as `0x${string}`]: contractAddress,
+              },
+            }),
+          });
+          await axios.post(
+            "/api/create",
+            {
+              uuid: user?.signer_uuid,
+              channelId: selectedChannel,
+              text: mintDescription,
+              fileUrl: `https://zora.co/collect/zora:${contractAddress}/${newTokenId.toString()}`,
+            },
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          router.push(`/profile/${user?.fid}`);
+        } else {
+          console.log("user info error");
+          toast.error("Error uploading art to Zora");
+        }
+      } else {
+        console.log("check-collection error");
+        toast.error("Error uploading art to Zora");
+      }
+    } catch (error) {
+      console.log("Error adding to zora", error);
+      toast.error("Error uploading art to Zora");
+      return;
+    }
+  }, [address]);
 
   const handleUploadToPinata = useCallback(async (file: File) => {
     try {
@@ -375,84 +667,112 @@ const CastInput: FC = memo(() => {
             ) : null}
           </div>
         </div>
-        <div className="pt-1 pb-6 px-2 flex items-center justify-start gap-1">
-          <label
-            className={`cursor-pointer ${
-              isUploading || media ? "cursor-not-allowed opacity-[0.4]" : ""
+        <div className="pt-1 pb-6 px-2 flex items-center justify-between">
+          <div className="flex items-center justify-center gap-1">
+            <label
+              className={`cursor-pointer ${
+                isUploading || media ? "cursor-not-allowed opacity-[0.4]" : ""
+              }`}
+            >
+              <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
+                <img
+                  src="/icons/image-upload-icon.svg"
+                  alt="image"
+                  className="w-8 h-8"
+                  width={32}
+                  height={32}
+                  loading="lazy"
+                  style={{ aspectRatio: "1 / 1" }}
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={
+                    isUploading || media
+                      ? undefined
+                      : (e) => handleMediaChange(e)
+                  }
+                />
+              </div>
+            </label>
+            <label
+              className={`cursor-pointer ${
+                isUploading || media ? "cursor-not-allowed opacity-[0.4]" : ""
+              }`}
+            >
+              <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
+                <img
+                  src="/icons/video-upload-icon.svg"
+                  alt="video"
+                  className="w-8 h-8"
+                  width={32}
+                  height={32}
+                  loading="lazy"
+                  style={{ aspectRatio: "1 / 1" }}
+                />
+                <input
+                  type="file"
+                  accept="video/*"
+                  multiple
+                  className="hidden"
+                  onChange={
+                    isUploading || media
+                      ? undefined
+                      : (e) => handleMediaChange(e)
+                  }
+                />
+              </div>
+            </label>
+            <label
+              className={`cursor-pointer ${
+                isUploading || media ? "cursor-not-allowed opacity-[0.4]" : ""
+              }`}
+            >
+              <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
+                <img
+                  src="/icons/music-upload-icon.svg"
+                  alt="music"
+                  className="w-8 h-8"
+                  width={32}
+                  height={32}
+                  loading="lazy"
+                  style={{ aspectRatio: "1 / 1" }}
+                />
+                <input
+                  type="file"
+                  accept="audio/*"
+                  className="hidden"
+                  onChange={
+                    isUploading || media
+                      ? undefined
+                      : (e) => handleMediaChange(e)
+                  }
+                />
+              </div>
+            </label>
+          </div>
+          <div
+            className={`py-1 px-2 rounded-[18px] bg-[#DDDBDC] ${
+              !media || isUploading
+                ? "cursor-not-allowed opacity-[0.4]"
+                : "cursor-pointer"
             }`}
+            onClick={
+              media && !isUploading ? () => setOpenMintModal(true) : undefined
+            }
           >
-            <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
-              <img
-                src="/icons/image-upload-icon.svg"
-                alt="image"
-                className="w-8 h-8"
-                width={32}
-                height={32}
-                loading="lazy"
-                style={{ aspectRatio: "1 / 1" }}
-              />
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={
-                  isUploading || media ? undefined : (e) => handleMediaChange(e)
-                }
-              />
-            </div>
-          </label>
-          <label
-            className={`cursor-pointer ${
-              isUploading || media ? "cursor-not-allowed opacity-[0.4]" : ""
-            }`}
-          >
-            <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
-              <img
-                src="/icons/video-upload-icon.svg"
-                alt="video"
-                className="w-8 h-8"
-                width={32}
-                height={32}
-                loading="lazy"
-                style={{ aspectRatio: "1 / 1" }}
-              />
-              <input
-                type="file"
-                accept="video/*"
-                multiple
-                className="hidden"
-                onChange={
-                  isUploading || media ? undefined : (e) => handleMediaChange(e)
-                }
-              />
-            </div>
-          </label>
-          <label
-            className={`cursor-pointer ${
-              isUploading || media ? "cursor-not-allowed opacity-[0.4]" : ""
-            }`}
-          >
-            <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
-              <img
-                src="/icons/music-upload-icon.svg"
-                alt="music"
-                className="w-8 h-8"
-                width={32}
-                height={32}
-                loading="lazy"
-                style={{ aspectRatio: "1 / 1" }}
-              />
-              <input
-                type="file"
-                accept="audio/*"
-                className="hidden"
-                onChange={
-                  isUploading || media ? undefined : (e) => handleMediaChange(e)
-                }
-              />
-            </div>
-          </label>
+            <img
+              src="/icons/mint-upload-icon.svg"
+              alt="mint"
+              className="w-8 h-8"
+              width={32}
+              height={32}
+              loading="lazy"
+              style={{ aspectRatio: "1 / 1" }}
+            />
+          </div>
         </div>
       </div>
       <Modal
@@ -613,15 +933,42 @@ const CastInput: FC = memo(() => {
                 onChange={handleAudioThumbnailMedia}
               />
             </label>
-            <button
-              className="w-full border-none outline-none rounded-[12px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
-              disabled={
-                !audioThumbnailMedia || !media || isUploading || !musicTitle
-              }
-              onClick={handlePost}
-            >
-              {isUploading ? "Uploading..." : "Post"}
-            </button>
+            <div className="flex items-center justify-center gap-2">
+              <button
+                className="w-full border-none outline-none rounded-[12px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
+                disabled={
+                  !audioThumbnailMedia || !media || isUploading || !musicTitle
+                }
+                onClick={handlePost}
+              >
+                {isUploading ? "Uploading..." : "Post"}
+              </button>
+              <div
+                className={`flex-shrink-0 py-1 px-2 rounded-[18px] bg-[#DDDBDC] ${
+                  !media || isUploading
+                    ? "cursor-not-allowed opacity-[0.4]"
+                    : "cursor-pointer"
+                }`}
+                onClick={
+                  !media || isUploading
+                    ? undefined
+                    : () => {
+                        setOpenMintModal(true);
+                        setOpenMusicUploadModal(false);
+                      }
+                }
+              >
+                <img
+                  src="/icons/mint-upload-icon.svg"
+                  alt="mint"
+                  className="w-8 h-8"
+                  width={32}
+                  height={32}
+                  loading="lazy"
+                  style={{ aspectRatio: "1 / 1" }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </Modal>
@@ -736,6 +1083,234 @@ const CastInput: FC = memo(() => {
                 </>
               ))
             : null}
+        </div>
+      </Modal>
+      <Modal
+        isOpen={openMintModal}
+        closeModal={
+          isUploading
+            ? undefined
+            : () => {
+                setOpenMintModal(false);
+                setMedia(null);
+                setMusicTitle("");
+                setAudioThumbnailMedia(null);
+                setMintThumbnail(null);
+                setText("");
+              }
+        }
+      >
+        <h2 className="text-[14px] text-black-70 leading-[120%] font-semibold mt-2 px-2">
+          Mint Details
+        </h2>
+        <div className="flex flex-col items-center justify-center gap-5 p-2">
+          {media && media.type === "audio" ? (
+            <div className="p-2 rounded-[12px] bg-music-upload-color/60 flex items-center gap-2 w-full">
+              <label className={`cursor-pointer`}>
+                <div className="rounded-[11px] w-[70px] h-[70px]">
+                  <img
+                    src={
+                      mintThumbnail
+                        ? mintThumbnail.url
+                        : "/icons/thumbnail-upload-icon.svg"
+                    }
+                    alt="image"
+                    className="flex-shrink-0 rounded-[11px] object-cover w-[70px] h-[70px]"
+                    width={70}
+                    height={70}
+                    loading="lazy"
+                    style={{ aspectRatio: "1 / 1" }}
+                  />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleMintThumbnail}
+                  />
+                </div>
+              </label>
+              <div className="grow flex flex-col items-start justify-between">
+                <div className="mb-1">
+                  <p className="text-[12px] leading-[120%] tracking-[0.3px] font-semibold text-white">
+                    {musicTitle || "Song Name"}
+                  </p>
+                  <p className="text-[10px] leading-[120%] tracking-[0.3px] font-semibold text-white/60">
+                    @{user?.username}
+                  </p>
+                  <div
+                    className={`py-[2px] px-1 rounded-[2px] bg-white/20 ${
+                      currentAudioTime ? "visible" : "invisible"
+                    } w-fit`}
+                  >
+                    <p className="text-[10px] leading-[120%] tracking-[0.3px] font-semibold text-white">
+                      {formatTime(currentAudioTime)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 w-full">
+                  <audio
+                    id="audio-element"
+                    src={media.url}
+                    className="hidden"
+                    onTimeUpdate={handleTimeUpdate}
+                  />
+                  <input
+                    type="range"
+                    min="0"
+                    max={audioDuration}
+                    value={currentAudioTime}
+                    onChange={handleSeek}
+                    className="hidden"
+                  />
+                  <div className="bg-music-progress-bg w-full h-[4px] rounded-[2px]">
+                    <div
+                      className={`bg-white rounded-[2px] h-[4px]`}
+                      style={{
+                        width: `${audioProgressWidth}%`,
+                      }}
+                    />
+                  </div>
+                  <img
+                    src={`/icons/music-${
+                      isAudioPlaying ? "pause" : "play"
+                    }-icon.svg`}
+                    alt={isAudioPlaying ? "pause" : "play"}
+                    className="w-[18px] h-[18px] cursor-pointer"
+                    onClick={togglePlayPause}
+                    width={18}
+                    height={18}
+                    loading="lazy"
+                    style={{ aspectRatio: "1 / 1" }}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
+          <label className="flex flex-col items-start gap-1 w-full">
+            <label
+              className="text-[18px] leading-[22px] font-semibold"
+              htmlFor="thumbnail"
+            >
+              Mint thumbnail*
+            </label>
+            <div className="p-[6px] rounded-[12px] border border-black/10 flex w-full gap-1 items-center justify-start cursor-pointer">
+              <div
+                className={`rounded-[12px] border border-black/10 ${
+                  mintThumbnail ? "w-14 h-14" : "p-3"
+                } bg-frame-btn-bg`}
+              >
+                <img
+                  src={
+                    mintThumbnail
+                      ? mintThumbnail.url
+                      : "/icons/upload-music-thumbnail-icon.svg"
+                  }
+                  alt="thumbnail"
+                  className={
+                    mintThumbnail
+                      ? "w-full h-full object-cover rounded-[12px]"
+                      : "w-8 h-8"
+                  }
+                  width={32}
+                  height={32}
+                  loading="lazy"
+                />
+              </div>
+              <div className="grow">
+                <p className="leading-[22px] mv-1">Select File</p>
+                <span className="text-[14px] text-black-50 leading-[22px]">
+                  PNG,JPG supported. Max size 5MB.
+                </span>
+              </div>
+            </div>
+            <input
+              type="file"
+              accept="image/png, image/jpeg"
+              multiple
+              className="hidden"
+              onChange={handleMintThumbnail}
+            />
+          </label>
+          <div className="flex flex-col items-start gap-1 w-full">
+            <label
+              className="text-[18px] leading-[22px] font-semibold"
+              htmlFor="minttitle"
+            >
+              Title*
+            </label>
+            <input
+              id="minttitle"
+              name="minttitle"
+              type="text"
+              placeholder="Rare Digital Artwork"
+              className="w-full border outline-none py-[10px] px-4 rounded-[12px] border-black/10 placeholder:text-black-20 text-black"
+              value={mintTitle}
+              onChange={(e) => setMintTitle(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col items-start gap-1 w-full">
+            <label
+              className="text-[18px] leading-[22px] font-semibold"
+              htmlFor="mintdescription"
+            >
+              Description*
+            </label>
+            <textarea
+              id="mintdescription"
+              name="mintdescription"
+              rows={3}
+              placeholder="A unique piece of digital art created exclusively for this collection."
+              className="w-full border outline-none py-[10px] px-4 rounded-[12px] border-black/10 placeholder:text-black-20 text-black"
+              value={mintDescription}
+              onChange={(e) => setMintDescription(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col items-start gap-1 w-full">
+            <label
+              className="text-[18px] leading-[22px] font-semibold"
+              htmlFor="minttitle"
+            >
+              Mint Price
+            </label>
+            <div className="flex items-center gap-2 w-full">
+              <input
+                id="mintprice"
+                name="mintprice"
+                type="number"
+                placeholder="0.001"
+                className="w-full border outline-none py-[10px] px-4 rounded-[12px] border-black/10 placeholder:text-black-20 text-black remove-arrow"
+                value={mintPrice}
+                onChange={(e) => setMintPrice(e.target.value)}
+              />
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <img
+                  src="/icons/eth-icon.svg"
+                  alt="eth"
+                  width={24}
+                  height={24}
+                  loading="lazy"
+                  style={{ aspectRatio: "1 / 1" }}
+                />
+                <p className="text-[18px] text-black-80 leading-[120%] font-semibold">
+                  ETH
+                </p>
+              </div>
+            </div>
+          </div>
+          <button
+            className="w-full border-none outline-none rounded-[12px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
+            disabled={
+              !mintThumbnail ||
+              !media ||
+              isUploading ||
+              !mintTitle ||
+              !mintDescription
+            }
+            onClick={handleMint}
+          >
+            {isUploading ? "Uploading..." : "Add to Zora"}
+          </button>
         </div>
       </Modal>
     </>
