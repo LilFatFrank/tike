@@ -43,7 +43,7 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
   const { user } = useNeynarContext();
   const router = useRouter();
   const { switchChainAsync } = useSwitchChain();
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const { connectAsync } = useConnect();
   const chain = useChainId();
   const { sendTransactionAsync } = useSendTransaction();
@@ -90,9 +90,14 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
             window.open(value.target, "_blank", "noreferrer noopener");
             break;
           default: {
-            if (!address && value.action_type === "tx") {
+            if (!(address || isConnected) && value.action_type === "tx") {
               await connectAsync({
-                connector: coinbaseWallet(),
+                connector: coinbaseWallet({
+                  appName: "tike-social",
+                  preference: "all",
+                  version: "4",
+                  appLogoUrl: "https://app.tike.social/icons/desktop-logo.svg",
+                }),
               });
             }
             const res = await fetch(`/api/frame-action`, {
@@ -654,21 +659,19 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
                   : "grid-cols-2"
               }`}
             >
-              {frameDet?.frames[0]?.buttons?.map(
-                (b: any) => (
-                  <button
-                    className={`frame-btn`}
-                    key={b.index}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      frameInteraction(b);
-                    }}
-                  >
-                    <p className="font-medium">{b.title}</p>
-                  </button>
-                )
-              )}
+              {frameDet?.frames[0]?.buttons?.map((b: any) => (
+                <button
+                  className={`frame-btn`}
+                  key={b.index}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    frameInteraction(b);
+                  }}
+                >
+                  <p className="font-medium">{b.title}</p>
+                </button>
+              ))}
             </div>
           </>
         )}

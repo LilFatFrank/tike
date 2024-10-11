@@ -69,7 +69,7 @@ const CastInput: FC = memo(() => {
   const { user } = useNeynarContext();
   const router = useRouter();
   const { writeContractAsync } = useWriteContract();
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const chain = useChainId();
   const { switchChainAsync } = useSwitchChain();
   const { connect } = useConnect();
@@ -259,25 +259,27 @@ const CastInput: FC = memo(() => {
 
   const handleMint = useCallback(async () => {
     try {
-      if (!address) {
-        connect({
-          connector: coinbaseWallet({
-            appName: "tike-social",
-            preference: "all",
-            version: "4",
-            appLogoUrl: "https://app.tike.social/icons/desktop-logo.svg",
-          }),
-        });
-      }
       if (chain !== zora.id) {
         await switchChainAsync({
           chainId: zora.id,
         });
       }
+      setIsUploading(true);
+      const toastId = toast.info("Checking collection", {
+        duration: 0,
+      });
       const userInfo = await checkUser();
       if (!userInfo.error && !userInfo.exists) {
+        toast.info("Creating metadata", {
+          id: toastId,
+          duration: 0,
+        });
         const contractMetadataUri = await buildContractMetadata();
         const metadataUri = await buildTokenMetadata();
+        toast.info("Creating contract", {
+          id: toastId,
+          duration: 0,
+        });
         const { parameters, contractAddress, newTokenId } =
           await creatorZoraClient.create1155({
             contract: {
@@ -307,12 +309,16 @@ const CastInput: FC = memo(() => {
             },
           }),
         });
+        toast.info("Creating frame", {
+          id: toastId,
+          duration: 0,
+        });
         await axios.post(
           "/api/create",
           {
             uuid: user?.signer_uuid,
             channelId: selectedChannel,
-            text: "test frame",
+            text: mintDescription,
             fileUrl: `https://zora.co/collect/zora:${contractAddress.toLowerCase()}/${newTokenId.toString()}`,
           },
           {
@@ -321,6 +327,10 @@ const CastInput: FC = memo(() => {
             },
           }
         );
+        toast.success("Successfully uploaded", {
+          id: toastId,
+          duration: 1500,
+        });
         router.push(`/profile/${user?.fid}`);
       } else if (!userInfo.error && userInfo.exists) {
         if (
@@ -328,7 +338,15 @@ const CastInput: FC = memo(() => {
           userInfo.user.collection &&
           userInfo.user.collection[address as `0x${string}`]
         ) {
+          toast.info("Creating metadata", {
+            id: toastId,
+            duration: 0,
+          });
           const metadataUri = await buildTokenMetadata();
+          toast.info("Creating token", {
+            id: toastId,
+            duration: 0,
+          });
           const { parameters, newTokenId } =
             await creatorZoraClient.create1155OnExistingContract({
               contractAddress:
@@ -346,6 +364,10 @@ const CastInput: FC = memo(() => {
               account: address as `0x${string}`,
             });
           await writeContractAsync(parameters);
+          toast.info("Creating frame", {
+            id: toastId,
+            duration: 0,
+          });
           await axios.post(
             "/api/create",
             {
@@ -362,14 +384,26 @@ const CastInput: FC = memo(() => {
               },
             }
           );
+          toast.info("Successfully uploaded", {
+            id: toastId,
+            duration: 1500,
+          });
           router.push(`/profile/${user?.fid}`);
         } else if (
           userInfo.user &&
           userInfo.user.collection &&
           !userInfo.user.collection[address as `0x${string}`]
         ) {
+          toast.info("Creating metadata", {
+            id: toastId,
+            duration: 0,
+          });
           const contractMetadataUri = await buildContractMetadata();
           const metadataUri = await buildTokenMetadata();
+          toast.info("Creating contract", {
+            id: toastId,
+            duration: 0,
+          });
           const { parameters, contractAddress, newTokenId } =
             await creatorZoraClient.create1155({
               contract: {
@@ -390,7 +424,7 @@ const CastInput: FC = memo(() => {
             });
           await writeContractAsync(parameters);
           await fetch(`/api/update-collection`, {
-            method: "POST",
+            method: "PUT",
             body: JSON.stringify({
               ...userInfo.user,
               collection: {
@@ -399,13 +433,17 @@ const CastInput: FC = memo(() => {
               },
             }),
           });
+          toast.info("Creating frame", {
+            id: toastId,
+            duration: 0,
+          });
           await axios.post(
             "/api/create",
             {
               uuid: user?.signer_uuid,
               channelId: selectedChannel,
               text: mintDescription,
-              fileUrl: `https://zora.co/collect/zora:${contractAddress}/${newTokenId.toString()}`,
+              fileUrl: `https://zora.co/collect/zora:${contractAddress.toLowerCase()}/${newTokenId.toString()}`,
             },
             {
               headers: {
@@ -413,6 +451,10 @@ const CastInput: FC = memo(() => {
               },
             }
           );
+          toast.info("Successfully uploaded", {
+            id: toastId,
+            duration: 1500,
+          });
           router.push(`/profile/${user?.fid}`);
         } else {
           console.log("user info error");
@@ -426,8 +468,10 @@ const CastInput: FC = memo(() => {
       console.log("Error adding to zora", error);
       toast.error("Error uploading art to Zora");
       return;
+    } finally {
+      setIsUploading(false);
     }
-  }, [address]);
+  }, [address, mintDescription, mintTitle, user, chain]);
 
   const handleUploadToPinata = useCallback(async (file: File) => {
     try {
@@ -1097,6 +1141,8 @@ const CastInput: FC = memo(() => {
                 setAudioThumbnailMedia(null);
                 setMintThumbnail(null);
                 setText("");
+                setMintDescription("");
+                setMintTitle("");
               }
         }
       >
@@ -1278,7 +1324,7 @@ const CastInput: FC = memo(() => {
                 id="mintprice"
                 name="mintprice"
                 type="number"
-                placeholder="0.001"
+                placeholder="0"
                 className="w-full border outline-none py-[10px] px-4 rounded-[12px] border-black/10 placeholder:text-black-20 text-black remove-arrow"
                 value={mintPrice}
                 onChange={(e) => setMintPrice(e.target.value)}
@@ -1298,19 +1344,38 @@ const CastInput: FC = memo(() => {
               </div>
             </div>
           </div>
-          <button
-            className="w-full border-none outline-none rounded-[12px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
-            disabled={
-              !mintThumbnail ||
-              !media ||
-              isUploading ||
-              !mintTitle ||
-              !mintDescription
-            }
-            onClick={handleMint}
-          >
-            {isUploading ? "Uploading..." : "Add to Zora"}
-          </button>
+          {!(address || isConnected) ? (
+            <button
+              className="w-full border-none outline-none rounded-[12px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
+              onClick={() =>
+                connect({
+                  connector: coinbaseWallet({
+                    appName: "tike-social",
+                    preference: "all",
+                    version: "4",
+                    appLogoUrl:
+                      "https://app.tike.social/icons/desktop-logo.svg",
+                  }),
+                })
+              }
+            >
+              Connect Wallet
+            </button>
+          ) : (
+            <button
+              className="w-full border-none outline-none rounded-[12px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
+              disabled={
+                !mintThumbnail ||
+                !media ||
+                isUploading ||
+                !mintTitle ||
+                !mintDescription
+              }
+              onClick={handleMint}
+            >
+              {isUploading ? "Uploading..." : "Mint"}
+            </button>
+          )}
         </div>
       </Modal>
     </>
