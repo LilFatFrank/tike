@@ -33,8 +33,14 @@ export default async function handler(
     } = {
       text,
       signer_uuid: uuid,
-      channel_id: channelId,
     };
+
+    if (channelId) {
+      body = {
+        ...body,
+        channel_id: channelId,
+      };
+    }
 
     if (parent)
       body = {
