@@ -155,6 +155,7 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
               });
             } else {
               if (
+                address && isConnected &&
                 chain !==
                 Number(data.transaction_calldata.chainId.split(":")[1])
               ) {
@@ -237,7 +238,7 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
         setLoadingFrameInteraction(false);
       }
     },
-    [user?.fid, inputText, frameDet]
+    [user?.fid, inputText, frameDet, address, chain, isConnected]
   );
 
   const postReaction = useCallback(

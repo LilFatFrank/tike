@@ -1,14 +1,14 @@
 import { createCreatorClient } from "@zoralabs/protocol-sdk";
 import { createPublicClient, http, Chain } from "viem";
-import { zora } from "viem/chains";
+import { base } from "viem/chains";
 
 const publicZoraClient = createPublicClient({
-  chain: zora as Chain,
+  chain: base as Chain,
   transport: http(),
 });
 
 const creatorZoraClient = createCreatorClient({
-  chainId: zora.id,
+  chainId: base.id,
   publicClient: publicZoraClient,
 });
 

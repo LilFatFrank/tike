@@ -26,9 +26,44 @@ import {
   useSwitchChain,
   useWriteContract,
 } from "wagmi";
-import { zora } from "viem/chains";
+import { base } from "viem/chains";
 import { coinbaseWallet } from "wagmi/connectors";
 import { parseEther } from "viem";
+
+const MINT_DURATION = [
+  {
+    label: "1 Hour",
+    value: 60 * 60,
+  },
+  {
+    label: "4 Hours",
+    value: 4 * 60 * 60,
+  },
+  {
+    label: "24 Hours",
+    value: 24 * 60 * 60,
+  },
+  {
+    label: "3 Days",
+    value: 3 * 24 * 60 * 60,
+  },
+  {
+    label: "1 Week",
+    value: 7 * 24 * 60 * 60,
+  },
+  {
+    label: "1 Month",
+    value: 30 * 24 * 60 * 60,
+  },
+  {
+    label: "3 Months",
+    value: 90 * 24 * 60 * 60,
+  },
+  {
+    label: "Open",
+    value: 0,
+  },
+];
 
 interface Media {
   type: "image" | "video" | "audio";
@@ -65,6 +100,14 @@ const CastInput: FC = memo(() => {
   const [mintTitle, setMintTitle] = useState("");
   const [mintDescription, setMintDescription] = useState("");
   const [mintPrice, setMintPrice] = useState("");
+  const [openCountdownModal, setOpenCountdownModal] = useState(false);
+  const [marketCountdown, setMarketCountdown] = useState<{
+    label: string;
+    value: number;
+  }>({
+    label: "Open",
+    value: 0,
+  });
 
   const { user } = useNeynarContext();
   const router = useRouter();
@@ -259,9 +302,14 @@ const CastInput: FC = memo(() => {
 
   const handleMint = useCallback(async () => {
     try {
-      if (chain !== zora.id) {
+      console.log(marketCountdown.value, {
+        ...(marketCountdown.value !== 0
+          ? { marketCountdown: BigInt(marketCountdown.value) }
+          : {}),
+      });
+      if (chain !== base.id) {
         await switchChainAsync({
-          chainId: zora.id,
+          chainId: base.id,
         });
       }
       setIsUploading(true);
@@ -288,13 +336,15 @@ const CastInput: FC = memo(() => {
             },
             token: {
               tokenMetadataURI: metadataUri,
-              ...(mintPrice
-                ? {
-                    salesConfig: {
-                      pricePerToken: parseEther(mintPrice),
-                    },
-                  }
-                : {}),
+              salesConfig: {
+                ...(mintPrice ? { pricePerToken: parseEther(mintPrice) } : {}),
+                ...(marketCountdown.value !== 0
+                  ? {
+                      type: "timed",
+                      marketCountdown: BigInt(marketCountdown.value),
+                    }
+                  : {}),
+              },
             },
             account: address as `0x${string}`,
           });
@@ -319,7 +369,7 @@ const CastInput: FC = memo(() => {
             uuid: user?.signer_uuid,
             channelId: selectedChannel,
             text: mintDescription,
-            fileUrl: `https://zora.co/collect/zora:${contractAddress.toLowerCase()}/${newTokenId.toString()}`,
+            fileUrl: `https://zora.co/collect/base:${contractAddress.toLowerCase()}/${newTokenId.toString()}`,
           },
           {
             headers: {
@@ -353,13 +403,17 @@ const CastInput: FC = memo(() => {
                 userInfo.user.collection[address as `0x${string}`],
               token: {
                 tokenMetadataURI: metadataUri,
-                ...(mintPrice
-                  ? {
-                      salesConfig: {
-                        pricePerToken: parseEther(mintPrice),
-                      },
-                    }
-                  : {}),
+                salesConfig: {
+                  ...(mintPrice
+                    ? { pricePerToken: parseEther(mintPrice) }
+                    : {}),
+                  ...(marketCountdown.value !== 0
+                    ? {
+                        type: "timed",
+                        marketCountdown: BigInt(marketCountdown.value),
+                      }
+                    : {}),
+                },
               },
               account: address as `0x${string}`,
             });
@@ -374,7 +428,7 @@ const CastInput: FC = memo(() => {
               uuid: user?.signer_uuid,
               channelId: selectedChannel,
               text: mintDescription,
-              fileUrl: `https://zora.co/collect/zora:${userInfo.user.collection[
+              fileUrl: `https://zora.co/collect/base:${userInfo.user.collection[
                 address as `0x${string}`
               ].toLowerCase()}/${newTokenId.toString()}`,
             },
@@ -412,13 +466,17 @@ const CastInput: FC = memo(() => {
               },
               token: {
                 tokenMetadataURI: metadataUri,
-                ...(mintPrice
-                  ? {
-                      salesConfig: {
-                        pricePerToken: parseEther(mintPrice),
-                      },
-                    }
-                  : {}),
+                salesConfig: {
+                  ...(mintPrice
+                    ? { pricePerToken: parseEther(mintPrice) }
+                    : {}),
+                  ...(marketCountdown.value !== 0
+                    ? {
+                        type: "timed",
+                        marketCountdown: BigInt(marketCountdown.value),
+                      }
+                    : {}),
+                },
               },
               account: address as `0x${string}`,
             });
@@ -443,7 +501,7 @@ const CastInput: FC = memo(() => {
               uuid: user?.signer_uuid,
               channelId: selectedChannel,
               text: mintDescription,
-              fileUrl: `https://zora.co/collect/zora:${contractAddress.toLowerCase()}/${newTokenId.toString()}`,
+              fileUrl: `https://zora.co/collect/base:${contractAddress.toLowerCase()}/${newTokenId.toString()}`,
             },
             {
               headers: {
@@ -471,7 +529,16 @@ const CastInput: FC = memo(() => {
     } finally {
       setIsUploading(false);
     }
-  }, [address, mintDescription, mintTitle, user, chain]);
+  }, [
+    address,
+    mintDescription,
+    mintTitle,
+    user,
+    chain,
+    mintThumbnail,
+    mintPrice,
+    marketCountdown,
+  ]);
 
   const handleUploadToPinata = useCallback(async (file: File) => {
     try {
@@ -1313,12 +1380,17 @@ const CastInput: FC = memo(() => {
             />
           </div>
           <div className="flex flex-col items-start gap-1 w-full">
-            <label
-              className="text-[18px] leading-[22px] font-semibold"
-              htmlFor="minttitle"
-            >
-              Mint Price
-            </label>
+            <span className="flex flex-col items-start">
+              <label
+                className="text-[18px] leading-[22px] font-semibold"
+                htmlFor="minttitle"
+              >
+                Mint Price
+              </label>
+              <span className="text-[10px] font-medium leading-[auto] text-black-60">
+                Set your price to 0 to earn Creator Rewards.
+              </span>
+            </span>
             <div className="flex items-center gap-2 w-full">
               <input
                 id="mintprice"
@@ -1344,6 +1416,28 @@ const CastInput: FC = memo(() => {
               </div>
             </div>
           </div>
+          {/* <div className="flex flex-col items-start gap-1 w-full">
+            <label
+              className="text-[18px] leading-[22px] font-semibold"
+              htmlFor="minttitle"
+            >
+              Mint Duration
+            </label>
+            <div
+              className="flex items-center cursor-pointer justify-between py-[10px] px-4 border outline-none border-black/10 rounded-[12px] w-full"
+              onClick={() => setOpenCountdownModal(true)}
+            >
+              <p className="font-medium leading-[18px]">
+                {marketCountdown.label}
+              </p>
+              <img
+                src="/icons/chevron-down-icon.svg"
+                alt="chevron-down"
+                className="w-4 h-4"
+                loading="lazy"
+              />
+            </div>
+          </div> */}
           {!(address || isConnected) ? (
             <button
               className="w-full border-none outline-none rounded-[12px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
@@ -1376,6 +1470,36 @@ const CastInput: FC = memo(() => {
               {isUploading ? "Uploading..." : "Mint"}
             </button>
           )}
+        </div>
+      </Modal>
+      <Modal
+        isOpen={openCountdownModal}
+        closeModal={() => setOpenCountdownModal(false)}
+      >
+        <div className="flex-1 pt-8 pb-2 px-2">
+          <p className="mb-2 text-center text-[18px] font-semibold leading-[22px]">
+            Mint Duration
+          </p>
+          {MINT_DURATION.map((md) => (
+            <div
+              key={md.label}
+              className={`w-full mb-1 px-2 py-[10px] cursor-pointer rounded-[12px] ${
+                marketCountdown.value === md.value
+                  ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
+                  : ""
+              } hover:bg-frame-btn-bg`}
+            >
+              <p
+                className="font-medium leading-[22px]"
+                onClick={() => {
+                  setMarketCountdown(md);
+                  setOpenCountdownModal(false);
+                }}
+              >
+                {md.label}
+              </p>
+            </div>
+          ))}
         </div>
       </Modal>
     </>
