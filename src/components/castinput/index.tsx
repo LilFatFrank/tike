@@ -1213,7 +1213,7 @@ const CastInput: FC = memo(() => {
               }
         }
       >
-        <h2 className="text-[14px] text-black-70 leading-[120%] font-semibold mt-2 px-2">
+        <h2 className="text-[18px] text-center text-black leading-[22px] font-semibold mt-2 px-2">
           Mint Details
         </h2>
         <div className="flex flex-col items-center justify-center gap-5 p-2">
