@@ -1153,26 +1153,26 @@ const CastInput: FC = memo(() => {
                       ? ""
                       : "mb-1"
                   } rounded-[12px] ${
-                    selectedChannel === channel.channel.id
+                    selectedChannel === channel?.channel?.id
                       ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
                       : ""
                   } hover:bg-frame-btn-bg`}
                   onClick={() => {
-                    setSelectedChannel(channel.channel.id);
+                    setSelectedChannel(channel?.channel?.id);
                     setOpenChannelModal(false);
                   }}
                 >
                   <img
-                    src={channel.channel.image_url}
+                    src={channel?.channel?.image_url}
                     className="w-[24px] h-[24px] rounded-[20px] object-cover"
                     width={24}
                     height={24}
                     loading="lazy"
-                    alt={channel.id}
+                    alt={channel?.channel?.id}
                     style={{ aspectRatio: "1 / 1" }}
                   />
                   <p className="font-medium leading-[22px]">
-                    {channel.channel.id}&nbsp;
+                    {channel?.channel?.id}&nbsp;
                   </p>
                 </div>
               ) : null;
