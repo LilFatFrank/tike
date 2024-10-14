@@ -638,8 +638,6 @@ const CastInput: FC = memo(() => {
     [allChannels]
   );
 
-  console.log(allUserMemberChannels);
-
   const handleFetchNextPage = useCallback(() => {
     if (hasNextUserChannels && !isFetchingNextUserChannels) {
       fetchNextUserChannels();
@@ -1148,7 +1146,7 @@ const CastInput: FC = memo(() => {
             endReached={handleFetchNextPage}
             itemContent={(channelIndex) => {
               const channel = allUserMemberChannels[channelIndex];
-              return (
+              return channel ? (
                 <div
                   className={`w-full px-2 py-[10px] flex items-center justify-start gap-2 cursor-pointer ${
                     channelIndex === allUserMemberChannels.length - 1
@@ -1177,11 +1175,13 @@ const CastInput: FC = memo(() => {
                     {channel.channel.id}&nbsp;
                   </p>
                 </div>
-              );
+              ) : null;
             }}
             useWindowScroll={isMobile}
             components={{
-              Footer: isFetchingNextUserChannels ? renderLoadingMore() : undefined
+              Footer: isFetchingNextUserChannels
+                ? renderLoadingMore()
+                : undefined,
             }}
             style={{ height: "80dvh", scrollbarWidth: "none" }}
           />
