@@ -638,8 +638,6 @@ const CastInput: FC = memo(() => {
     [allChannels]
   );
 
-  console.log(allUserMemberChannels);
-
   const handleFetchNextPage = useCallback(() => {
     if (hasNextUserChannels && !isFetchingNextUserChannels) {
       fetchNextUserChannels();
