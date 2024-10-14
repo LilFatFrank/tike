@@ -117,13 +117,6 @@ const CastInput: FC = memo(() => {
   const { switchChainAsync } = useSwitchChain();
   const { connect } = useConnect();
 
-  const handleTextChange = useCallback(
-    (e: ChangeEvent<HTMLTextAreaElement>) => {
-      setText(e.target.value);
-    },
-    []
-  );
-
   const handleMediaChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
@@ -302,11 +295,6 @@ const CastInput: FC = memo(() => {
 
   const handleMint = useCallback(async () => {
     try {
-      console.log(marketCountdown.value, {
-        ...(marketCountdown.value !== 0
-          ? { marketCountdown: BigInt(marketCountdown.value) }
-          : {}),
-      });
       if (chain !== base.id) {
         await switchChainAsync({
           chainId: base.id,
@@ -368,7 +356,7 @@ const CastInput: FC = memo(() => {
           {
             uuid: user?.signer_uuid,
             channelId: selectedChannel,
-            text: mintDescription,
+            text: text || mintTitle,
             fileUrl: `https://zora.co/collect/base:${contractAddress.toLowerCase()}/${newTokenId.toString()}`,
           },
           {
@@ -427,7 +415,7 @@ const CastInput: FC = memo(() => {
             {
               uuid: user?.signer_uuid,
               channelId: selectedChannel,
-              text: mintDescription,
+              text: text || mintTitle,
               fileUrl: `https://zora.co/collect/base:${userInfo.user.collection[
                 address as `0x${string}`
               ].toLowerCase()}/${newTokenId.toString()}`,
@@ -500,7 +488,7 @@ const CastInput: FC = memo(() => {
             {
               uuid: user?.signer_uuid,
               channelId: selectedChannel,
-              text: mintDescription,
+              text: text || mintTitle,
               fileUrl: `https://zora.co/collect/base:${contractAddress.toLowerCase()}/${newTokenId.toString()}`,
             },
             {
@@ -605,7 +593,7 @@ const CastInput: FC = memo(() => {
       setMedia(null);
       setSelectedChannel("");
     }
-  }, [media, selectedChannel, musicTitle, user?.signer_uuid, router]);
+  }, [media, selectedChannel, musicTitle, user?.signer_uuid, router, text]);
 
   const fetchAllChannels = useCallback(async () => {
     try {
@@ -746,7 +734,7 @@ const CastInput: FC = memo(() => {
             className="w-full outline-none resize-none placeholder:text-black-40"
             placeholder="What's happening?"
             value={text}
-            onChange={handleTextChange}
+            onChange={(e) => setText(e.target.value)}
             rows={3}
           />
           <div className="flex flex-wrap gap-2 mt-1 w-full">
