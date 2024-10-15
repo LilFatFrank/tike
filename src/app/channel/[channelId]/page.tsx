@@ -407,7 +407,7 @@ const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
                   </ProfileButton>
                 ) : null}
               </div>
-              <div className="flex flex-col items-start justify-start gap-3 mt-[12px]">
+              <div className="flex flex-col items-start justify-start gap-3 py-[12px]">
                 <div className="flex flex-col items-start gap-[2px]">
                   <p className="font-bold text-[18px] leading-[auto] text-black">
                     {channelPro?.name}
@@ -450,7 +450,7 @@ const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
                           src={h.image_url}
                           key={h.fid}
                           alt={h.username}
-                          className="rounded-full h-6 w-6 bg-white ring-[0.5px] ring-inset ring-black-50"
+                          className="rounded-full h-6 w-6 bg-white ring-[0.5px] ring-inset ring-black-10"
                         />
                       ))}
                     </div>
@@ -463,6 +463,7 @@ const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
                   </div>
                 ) : null}
               </div>
+              <hr className="border-b-[0.5px] border-b-black-10 relative left-[-16px] w-[106%] overflow-x-hidden" />
               <ChannelCasts channelId={params.channelId} />
             </>
           )}
