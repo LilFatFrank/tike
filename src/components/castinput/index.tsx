@@ -5,7 +5,6 @@ import {
   ChangeEvent,
   FC,
   ClipboardEvent as ReactClipboardEvent,
-  useContext,
   memo,
   useCallback,
   useMemo,
@@ -16,7 +15,6 @@ import Modal from "../modal";
 import { useNeynarContext } from "@neynar/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { AppContext } from "@/context";
 import formatTime from "@/utils/formatTime";
 import { creatorZoraClient } from "../zora-client";
 import {
@@ -75,7 +73,6 @@ interface Media {
 }
 
 const CastInput: FC = memo(() => {
-  const [state] = useContext(AppContext);
   const [text, setText] = useState("");
   const [media, setMedia] = useState<Media | null>(null);
   const [audioThumbnailMedia, setAudioThumbnailMedia] = useState<{
@@ -327,6 +324,7 @@ const CastInput: FC = memo(() => {
                 ...(marketCountdown.value !== 0
                   ? {
                       type: "timed",
+                      saleStart: BigInt(Math.floor(Date.now() / 1000)),
                       marketCountdown: BigInt(marketCountdown.value),
                     }
                   : {}),
@@ -389,17 +387,22 @@ const CastInput: FC = memo(() => {
                 userInfo.user.collection[address as `0x${string}`],
               token: {
                 tokenMetadataURI: metadataUri,
-                salesConfig: {
-                  ...(mintPrice
-                    ? { pricePerToken: parseEther(mintPrice) }
-                    : {}),
-                  ...(marketCountdown.value !== 0
-                    ? {
-                        type: "timed",
-                        marketCountdown: BigInt(marketCountdown.value),
-                      }
-                    : {}),
-                },
+                ...(mintPrice || marketCountdown.value
+                  ? {
+                      salesConfig: {
+                        ...(mintPrice
+                          ? { pricePerToken: parseEther(mintPrice) }
+                          : {}),
+                        ...(marketCountdown.value !== 0
+                          ? {
+                              type: "timed",
+                              saleStart: BigInt(Math.floor(Date.now() / 1000)),
+                              marketCountdown: BigInt(marketCountdown.value),
+                            }
+                          : {}),
+                      },
+                    }
+                  : {}),
               },
               account: address as `0x${string}`,
             });
@@ -459,6 +462,7 @@ const CastInput: FC = memo(() => {
                   ...(marketCountdown.value !== 0
                     ? {
                         type: "timed",
+                        saleStart: BigInt(Math.floor(Date.now() / 1000)),
                         marketCountdown: BigInt(marketCountdown.value),
                       }
                     : {}),
@@ -711,8 +715,11 @@ const CastInput: FC = memo(() => {
 
   return (
     <>
-      <div className="bg-[#F0EEEF] w-dvw md:w-auto md:min-h-full min-h-dvh h-auto flex flex-col">
-        <div className="grow p-2 bg-white rounded-[20px] shadow-cast-upload">
+      <div className="bg-[#F0EEEF] w-dvw md:w-auto md:min-h-full min-h-dvh h-full flex flex-col">
+        <div
+          className="h-full p-2 bg-white rounded-[20px] shadow-cast-upload overflow-auto"
+          style={{ scrollbarWidth: "none" }}
+        >
           <div className="w-full flex items-center justify-between mb-[40px]">
             <button
               className="border-none outline-none rounded-[18px] px-2 py-1 bg-frame-btn-bg"
@@ -773,7 +780,10 @@ const CastInput: FC = memo(() => {
             className="w-full outline-none resize-none placeholder:text-black-40"
             placeholder="What's happening?"
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value);
+              setMintDescription(e.target.value);
+            }}
             rows={3}
           />
           <div className="flex flex-wrap gap-2 mt-1 w-full">
@@ -1407,7 +1417,7 @@ const CastInput: FC = memo(() => {
               </div>
             </div>
           </div>
-          {/* <div className="flex flex-col items-start gap-1 w-full">
+          <div className="flex flex-col items-start gap-1 w-full">
             <label
               className="text-[18px] leading-[22px] font-semibold"
               htmlFor="minttitle"
@@ -1428,7 +1438,7 @@ const CastInput: FC = memo(() => {
                 loading="lazy"
               />
             </div>
-          </div> */}
+          </div>
           {!(address || isConnected) ? (
             <button
               className="w-full border-none outline-none rounded-[12px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
