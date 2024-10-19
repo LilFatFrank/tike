@@ -35,7 +35,7 @@ const Modal: React.FC<ModalProps> = memo(
 
     const positionClass = direction === "top" ? "top-0" : "bottom-0";
     const borderRadiusClass =
-      direction === "top" ? "rounded-b-md" : "rounded-t-md";
+      direction === "top" ? "rounded-b-md" : "rounded-t-[20px]";
 
     return (
       <div
