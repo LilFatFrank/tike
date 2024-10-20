@@ -20,51 +20,15 @@ import { creatorZoraClient } from "../zora-client";
 import {
   useAccount,
   useChainId,
-  useConnect,
   useSwitchChain,
   useWriteContract,
 } from "wagmi";
 import { base } from "viem/chains";
-import { coinbaseWallet } from "wagmi/connectors";
 import { parseEther } from "viem";
-import { useInfiniteQuery } from "react-query";
-import { Virtuoso } from "react-virtuoso";
-import { useIsMobile } from "@/hooks/useIsMobile";
-
-const MINT_DURATION = [
-  {
-    label: "1 Hour",
-    value: 60 * 60,
-  },
-  {
-    label: "4 Hours",
-    value: 4 * 60 * 60,
-  },
-  {
-    label: "24 Hours",
-    value: 24 * 60 * 60,
-  },
-  {
-    label: "3 Days",
-    value: 3 * 24 * 60 * 60,
-  },
-  {
-    label: "1 Week",
-    value: 7 * 24 * 60 * 60,
-  },
-  {
-    label: "1 Month",
-    value: 30 * 24 * 60 * 60,
-  },
-  {
-    label: "3 Months",
-    value: 90 * 24 * 60 * 60,
-  },
-  {
-    label: "Open",
-    value: 0,
-  },
-];
+import SelectChannelModal from "./select-channel-modal";
+import ConnectWalletModal from "./connect-wallet-modal";
+import MarketCountdownModal from "./market-countdown-modal";
+import MintModal from "./mint-modal";
 
 interface Media {
   type: "image" | "video" | "audio";
@@ -103,6 +67,8 @@ const CastInput: FC = memo(() => {
     label: "Open",
     value: 0,
   });
+  const [mintEnabled, setMintEnabled] = useState(false);
+  const [openConnectModal, setOpenConnectModal] = useState(false);
 
   const { user } = useNeynarContext();
   const router = useRouter();
@@ -110,29 +76,31 @@ const CastInput: FC = memo(() => {
   const { address, isConnected } = useAccount();
   const chain = useChainId();
   const { switchChainAsync } = useSwitchChain();
-  const { connect } = useConnect();
 
-  const handleMediaChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      const url = URL.createObjectURL(file);
-      let type: "video" | "audio" | "image" = "image";
-      if (file.type.startsWith("image")) {
-        setMintThumbnail({
-          url,
-          file,
-        });
+  const handleMediaChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        const file = files[0];
+        const url = URL.createObjectURL(file);
+        let type: "video" | "audio" | "image" = "image";
+        if (file.type.startsWith("image")) {
+          setMintThumbnail({
+            url,
+            file,
+          });
+        }
+        if (file.type.startsWith("video")) {
+          type = "video";
+        } else if (file.type.startsWith("audio")) {
+          type = "audio";
+          setOpenMusicUploadModal(true);
+        }
+        setMedia({ type, url, file });
       }
-      if (file.type.startsWith("video")) {
-        type = "video";
-      } else if (file.type.startsWith("audio")) {
-        type = "audio";
-        setOpenMusicUploadModal(true);
-      }
-      setMedia({ type, url, file });
-    }
-  }, []);
+    },
+    [media]
+  );
 
   const handleAudioThumbnailMedia = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -142,9 +110,10 @@ const CastInput: FC = memo(() => {
           url: URL.createObjectURL(files[0]),
           file: files[0],
         });
+        handleMintThumbnail(e);
       }
     },
-    []
+    [media]
   );
 
   const handleMintThumbnail = useCallback(
@@ -157,7 +126,7 @@ const CastInput: FC = memo(() => {
         });
       }
     },
-    []
+    [media]
   );
 
   const handlePaste = useCallback(
@@ -288,19 +257,9 @@ const CastInput: FC = memo(() => {
     }
   }, []);
 
-  const handleMint = useCallback(async () => {
-    try {
-      if (chain !== base.id) {
-        await switchChainAsync({
-          chainId: base.id,
-        });
-      }
-      setIsUploading(true);
-      const toastId = toast.info("Checking collection", {
-        duration: 0,
-      });
-      const userInfo = await checkUser();
-      if (!userInfo.error && !userInfo.exists) {
+  const mintCreateContract = useCallback(
+    async (toastId: string | number) => {
+      try {
         toast.info("Creating metadata", {
           id: toastId,
           duration: 0,
@@ -366,6 +325,35 @@ const CastInput: FC = memo(() => {
           duration: 1500,
         });
         router.push(`/profile/${user?.fid}`);
+      } catch (error) {
+        throw error;
+      }
+    },
+    [
+      user,
+      selectedChannel,
+      text,
+      mintTitle,
+      address,
+      mintPrice,
+      marketCountdown,
+    ]
+  );
+
+  const handleMint = useCallback(async () => {
+    try {
+      if (chain !== base.id) {
+        await switchChainAsync({
+          chainId: base.id,
+        });
+      }
+      setIsUploading(true);
+      const toastId = toast.info("Checking collection", {
+        duration: 0,
+      });
+      const userInfo = await checkUser();
+      if (!userInfo.error && !userInfo.exists) {
+        mintCreateContract(toastId);
       } else if (!userInfo.error && userInfo.exists) {
         if (
           userInfo.user &&
@@ -437,73 +425,7 @@ const CastInput: FC = memo(() => {
           userInfo.user.collection &&
           !userInfo.user.collection[address as `0x${string}`]
         ) {
-          toast.info("Creating metadata", {
-            id: toastId,
-            duration: 0,
-          });
-          const contractMetadataUri = await buildContractMetadata();
-          const metadataUri = await buildTokenMetadata();
-          toast.info("Creating contract", {
-            id: toastId,
-            duration: 0,
-          });
-          const { parameters, contractAddress, newTokenId } =
-            await creatorZoraClient.create1155({
-              contract: {
-                name: `${user?.username}'s Tike Posts`,
-                uri: contractMetadataUri,
-              },
-              token: {
-                tokenMetadataURI: metadataUri,
-                salesConfig: {
-                  ...(mintPrice
-                    ? { pricePerToken: parseEther(mintPrice) }
-                    : {}),
-                  ...(marketCountdown.value !== 0
-                    ? {
-                        type: "timed",
-                        saleStart: BigInt(Math.floor(Date.now() / 1000)),
-                        marketCountdown: BigInt(marketCountdown.value),
-                      }
-                    : {}),
-                },
-              },
-              account: address as `0x${string}`,
-            });
-          await writeContractAsync(parameters);
-          await fetch(`/api/update-collection`, {
-            method: "PUT",
-            body: JSON.stringify({
-              ...userInfo.user,
-              collection: {
-                ...userInfo.user.collection,
-                [address as `0x${string}`]: contractAddress,
-              },
-            }),
-          });
-          toast.info("Creating frame", {
-            id: toastId,
-            duration: 0,
-          });
-          await axios.post(
-            "/api/create",
-            {
-              uuid: user?.signer_uuid,
-              channelId: selectedChannel,
-              text: text || mintTitle,
-              fileUrl: `https://zora.co/collect/base:${contractAddress.toLowerCase()}/${newTokenId.toString()}`,
-            },
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          );
-          toast.info("Successfully uploaded", {
-            id: toastId,
-            duration: 1500,
-          });
-          router.push(`/profile/${user?.fid}`);
+          mintCreateContract(toastId);
         } else {
           console.log("user info error");
           toast.error("Error uploading art to Zora");
@@ -528,6 +450,8 @@ const CastInput: FC = memo(() => {
     mintThumbnail,
     mintPrice,
     marketCountdown,
+    selectedChannel,
+    text,
   ]);
 
   const handleUploadToPinata = useCallback(async (file: File) => {
@@ -552,6 +476,15 @@ const CastInput: FC = memo(() => {
       throw error;
     }
   }, []);
+
+  const handlePostClick = useCallback(() => {
+    if (mintEnabled) {
+      if (isConnected) handleMint();
+      else setOpenConnectModal(true);
+    } else {
+      handlePost();
+    }
+  }, [mintEnabled, isConnected, media, selectedChannel, text]);
 
   const handlePost = useCallback(async () => {
     setIsUploading(true);
@@ -597,72 +530,6 @@ const CastInput: FC = memo(() => {
     }
   }, [media, selectedChannel, musicTitle, user?.signer_uuid, router, text]);
 
-  const fetchUserMemberChannels = useCallback(
-    async ({
-      pageParam = "",
-      queryKey,
-    }: {
-      pageParam?: string;
-      queryKey: any;
-    }): Promise<{
-      channels: any;
-      next: { cursor: string };
-    }> => {
-      const [_key, { fid }] = queryKey;
-      const response = await fetch(`/api/user-member-channels`, {
-        method: "POST",
-        body: JSON.stringify({ cursor: pageParam, fid }),
-      });
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return await response.json();
-    },
-    []
-  );
-
-  const {
-    data: allChannels,
-    fetchNextPage: fetchNextUserChannels,
-    hasNextPage: hasNextUserChannels,
-    isFetchingNextPage: isFetchingNextUserChannels,
-  } = useInfiniteQuery(
-    ["user-channels", { fid: user?.fid || 3 }],
-    fetchUserMemberChannels,
-    {
-      getNextPageParam: (lastPage) => lastPage.next?.cursor ?? false,
-      refetchOnWindowFocus: false,
-      staleTime: 60000,
-      cacheTime: 3600000,
-    }
-  );
-
-  const allUserMemberChannels = useMemo(
-    () => allChannels?.pages.flatMap((page) => page.channels) ?? [],
-    [allChannels]
-  );
-
-  const handleFetchNextPage = useCallback(() => {
-    if (hasNextUserChannels && !isFetchingNextUserChannels) {
-      fetchNextUserChannels();
-    }
-  }, [hasNextUserChannels, fetchNextUserChannels, isFetchingNextUserChannels]);
-
-  const renderLoadingMore = () =>
-    useCallback(
-      () => (
-        <div className="w-full">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <div
-              key={index}
-              className="animate-pulse w-full h-[50px] bg-divider rounded-lg mb-2"
-            />
-          ))}
-        </div>
-      ),
-      []
-    );
-
   const togglePlayPause = useCallback(() => {
     const audio = document.getElementById("audio-element") as HTMLAudioElement;
     if (audio.paused) {
@@ -700,8 +567,6 @@ const CastInput: FC = memo(() => {
     };
   }, [handlePaste]);
 
-  const isMobile = useIsMobile();
-
   const isPostDisabled = useMemo(
     () => !media || isUploading,
     [media, isUploading]
@@ -738,7 +603,7 @@ const CastInput: FC = memo(() => {
             <button
               className="border-none outline-none rounded-[22px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
               disabled={isPostDisabled}
-              onClick={handlePost}
+              onClick={handlePostClick}
             >
               {isUploading ? "Uploading..." : "Post"}
             </button>
@@ -784,6 +649,7 @@ const CastInput: FC = memo(() => {
               setText(e.target.value);
               setMintDescription(e.target.value);
             }}
+            style={{ scrollbarWidth: "none" }}
             rows={3}
           />
           <div className="flex flex-wrap gap-2 mt-1 w-full">
@@ -902,7 +768,9 @@ const CastInput: FC = memo(() => {
             </label>
           </div>
           <div
-            className={`py-1 px-2 rounded-[18px] bg-[#DDDBDC] ${
+            className={`py-1 px-2 rounded-[18px] ${
+              mintEnabled ? "bg-purple/40" : "bg-[#DDDBDC]"
+            } ${
               !media || isUploading
                 ? "cursor-not-allowed opacity-[0.4]"
                 : "cursor-pointer"
@@ -912,7 +780,11 @@ const CastInput: FC = memo(() => {
             }
           >
             <img
-              src="/icons/mint-upload-icon.svg"
+              src={
+                mintEnabled
+                  ? "/icons/mint-enabled-icon.svg"
+                  : "/icons/mint-upload-icon.svg"
+              }
               alt="mint"
               className="w-8 h-8"
               width={32}
@@ -929,6 +801,11 @@ const CastInput: FC = memo(() => {
           setOpenMusicUploadModal(false);
           setMedia(null);
           setAudioThumbnailMedia(null);
+          setMusicTitle("");
+          setMintTitle("");
+          if (isAudioPlaying) {
+            setIsAudioPlaying(false);
+          }
         }}
       >
         <div className="pt-2 px-2 pb-8">
@@ -1033,7 +910,10 @@ const CastInput: FC = memo(() => {
                 placeholder="Heartless"
                 className="w-full border outline-none py-[10px] px-4 rounded-[12px] border-black/10 placeholder:text-black-20 text-black"
                 value={musicTitle}
-                onChange={(e) => setMusicTitle(e.target.value)}
+                onChange={(e) => {
+                  setMusicTitle(e.target.value);
+                  setMintTitle(e.target.value);
+                }}
               />
             </div>
             <label className="flex flex-col items-start gap-1 w-full">
@@ -1087,12 +967,14 @@ const CastInput: FC = memo(() => {
                 disabled={
                   !audioThumbnailMedia || !media || isUploading || !musicTitle
                 }
-                onClick={handlePost}
+                onClick={handlePostClick}
               >
                 {isUploading ? "Uploading..." : "Post"}
               </button>
               <div
-                className={`flex-shrink-0 py-1 px-2 rounded-[18px] bg-[#DDDBDC] ${
+                className={`flex-shrink-0 py-1 px-2 rounded-[18px] ${
+                  mintEnabled ? "bg-purple/40" : "bg-[#DDDBDC]"
+                } ${
                   !media || isUploading
                     ? "cursor-not-allowed opacity-[0.4]"
                     : "cursor-pointer"
@@ -1100,14 +982,15 @@ const CastInput: FC = memo(() => {
                 onClick={
                   !media || isUploading
                     ? undefined
-                    : () => {
-                        setOpenMintModal(true);
-                        setOpenMusicUploadModal(false);
-                      }
+                    : () => setOpenMintModal(true)
                 }
               >
                 <img
-                  src="/icons/mint-upload-icon.svg"
+                  src={
+                    mintEnabled
+                      ? "/icons/mint-enabled-icon.svg"
+                      : "/icons/mint-upload-icon.svg"
+                  }
                   alt="mint"
                   className="w-8 h-8"
                   width={32}
@@ -1120,389 +1003,51 @@ const CastInput: FC = memo(() => {
           </div>
         </div>
       </Modal>
-      <Modal
-        isOpen={openChannelModal}
-        closeModal={() => setOpenChannelModal(false)}
-        style={{ borderRadius: "20px 20px 0 0", padding: 0, minHeight: "40%" }}
-      >
-        <div className="flex-1 pt-8 pb-2 px-2">
-          <p className="mb-2 text-center text-[18px] font-semibold leading-[22px]">
-            Select Channel
-          </p>
-          <div
-            className={`w-full px-2 py-[10px] flex items-center justify-start gap-2 cursor-pointer mb-1 rounded-[12px] ${
-              selectedChannel === ""
-                ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
-                : ""
-            } hover:bg-frame-btn-bg`}
-            onClick={() => {
-              setSelectedChannel("");
-              setOpenChannelModal(false);
-            }}
-          >
-            <img
-              src={"/icons/home-icon.svg"}
-              className="w-[24px] h-[24px] rounded-[20px] object-cover"
-              width={24}
-              height={24}
-              loading="lazy"
-              alt={"none"}
-              style={{ aspectRatio: "1 / 1" }}
-            />
-            <p className="font-medium leading-[22px]">None</p>
-          </div>
-          <Virtuoso
-            data={allUserMemberChannels}
-            endReached={handleFetchNextPage}
-            itemContent={(channelIndex) => {
-              const channel = allUserMemberChannels[channelIndex];
-              return channel ? (
-                <div
-                  className={`w-full px-2 py-[10px] flex items-center justify-start gap-2 cursor-pointer ${
-                    channelIndex === allUserMemberChannels.length - 1
-                      ? ""
-                      : "mb-1"
-                  } rounded-[12px] ${
-                    selectedChannel === channel?.channel?.id
-                      ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
-                      : ""
-                  } hover:bg-frame-btn-bg`}
-                  onClick={() => {
-                    setSelectedChannel(channel?.channel?.id);
-                    setOpenChannelModal(false);
-                  }}
-                >
-                  <img
-                    src={channel?.channel?.image_url}
-                    className="w-[24px] h-[24px] rounded-[20px] object-cover"
-                    width={24}
-                    height={24}
-                    loading="lazy"
-                    alt={channel?.channel?.id}
-                    style={{ aspectRatio: "1 / 1" }}
-                  />
-                  <p className="font-medium leading-[22px]">
-                    {channel?.channel?.id}&nbsp;
-                  </p>
-                </div>
-              ) : null;
-            }}
-            useWindowScroll={isMobile}
-            components={{
-              Footer: isFetchingNextUserChannels
-                ? renderLoadingMore()
-                : undefined,
-            }}
-            style={{ height: "80dvh", scrollbarWidth: "none" }}
-          />
-        </div>
-      </Modal>
-      <Modal
-        isOpen={openMintModal}
-        closeModal={
-          isUploading
-            ? undefined
-            : () => {
-                setOpenMintModal(false);
-                setMedia(null);
-                setMusicTitle("");
-                setAudioThumbnailMedia(null);
-                setMintThumbnail(null);
-                setText("");
-                setMintDescription("");
-                setMintTitle("");
-              }
-        }
-      >
-        <h2 className="text-[18px] text-center text-black leading-[22px] font-semibold mt-2 px-2">
-          Mint Details
-        </h2>
-        <div className="flex flex-col items-center justify-center gap-5 p-2">
-          {media && media.type === "audio" ? (
-            <div className="p-2 rounded-[12px] bg-music-upload-color/60 flex items-center gap-2 w-full">
-              <label className={`cursor-pointer`}>
-                <div className="rounded-[11px] w-[70px] h-[70px]">
-                  <img
-                    src={
-                      mintThumbnail
-                        ? mintThumbnail.url
-                        : "/icons/thumbnail-upload-icon.svg"
-                    }
-                    alt="image"
-                    className="flex-shrink-0 rounded-[11px] object-cover w-[70px] h-[70px]"
-                    width={70}
-                    height={70}
-                    loading="lazy"
-                    style={{ aspectRatio: "1 / 1" }}
-                  />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={handleMintThumbnail}
-                  />
-                </div>
-              </label>
-              <div className="grow flex flex-col items-start justify-between">
-                <div className="mb-1">
-                  <p className="text-[12px] leading-[120%] tracking-[0.3px] font-semibold text-white">
-                    {musicTitle || "Song Name"}
-                  </p>
-                  <p className="text-[10px] leading-[120%] tracking-[0.3px] font-semibold text-white/60">
-                    @{user?.username}
-                  </p>
-                  <div
-                    className={`py-[2px] px-1 rounded-[2px] bg-white/20 ${
-                      currentAudioTime ? "visible" : "invisible"
-                    } w-fit`}
-                  >
-                    <p className="text-[10px] leading-[120%] tracking-[0.3px] font-semibold text-white">
-                      {formatTime(currentAudioTime)}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 w-full">
-                  <audio
-                    id="audio-element"
-                    src={media.url}
-                    className="hidden"
-                    onTimeUpdate={handleTimeUpdate}
-                  />
-                  <input
-                    type="range"
-                    min="0"
-                    max={audioDuration}
-                    value={currentAudioTime}
-                    onChange={handleSeek}
-                    className="hidden"
-                  />
-                  <div className="bg-music-progress-bg w-full h-[4px] rounded-[2px]">
-                    <div
-                      className={`bg-white rounded-[2px] h-[4px]`}
-                      style={{
-                        width: `${audioProgressWidth}%`,
-                      }}
-                    />
-                  </div>
-                  <img
-                    src={`/icons/music-${
-                      isAudioPlaying ? "pause" : "play"
-                    }-icon.svg`}
-                    alt={isAudioPlaying ? "pause" : "play"}
-                    className="w-[18px] h-[18px] cursor-pointer"
-                    onClick={togglePlayPause}
-                    width={18}
-                    height={18}
-                    loading="lazy"
-                    style={{ aspectRatio: "1 / 1" }}
-                  />
-                </div>
-              </div>
-            </div>
-          ) : null}
-          <label className="flex flex-col items-start gap-1 w-full">
-            <label
-              className="text-[18px] leading-[22px] font-semibold"
-              htmlFor="thumbnail"
-            >
-              Mint thumbnail*
-            </label>
-            <div className="p-[6px] rounded-[12px] border border-black/10 flex w-full gap-1 items-center justify-start cursor-pointer">
-              <div
-                className={`rounded-[12px] border border-black/10 ${
-                  mintThumbnail ? "w-14 h-14" : "p-3"
-                } bg-frame-btn-bg`}
-              >
-                <img
-                  src={
-                    mintThumbnail
-                      ? mintThumbnail.url
-                      : "/icons/upload-music-thumbnail-icon.svg"
-                  }
-                  alt="thumbnail"
-                  className={
-                    mintThumbnail
-                      ? "w-full h-full object-cover rounded-[12px]"
-                      : "w-8 h-8"
-                  }
-                  width={32}
-                  height={32}
-                  loading="lazy"
-                />
-              </div>
-              <div className="grow">
-                <p className="leading-[22px] mv-1">Select File</p>
-                <span className="text-[14px] text-black-50 leading-[22px]">
-                  PNG,JPG supported. Max size 5MB.
-                </span>
-              </div>
-            </div>
-            <input
-              type="file"
-              accept="image/png, image/jpeg"
-              multiple
-              className="hidden"
-              onChange={handleMintThumbnail}
-            />
-          </label>
-          <div className="flex flex-col items-start gap-1 w-full">
-            <label
-              className="text-[18px] leading-[22px] font-semibold"
-              htmlFor="minttitle"
-            >
-              Title*
-            </label>
-            <input
-              id="minttitle"
-              name="minttitle"
-              type="text"
-              placeholder="Rare Digital Artwork"
-              className="w-full border outline-none py-[10px] px-4 rounded-[12px] border-black/10 placeholder:text-black-20 text-black"
-              value={mintTitle}
-              onChange={(e) => setMintTitle(e.target.value)}
-            />
-          </div>
-          <div className="flex flex-col items-start gap-1 w-full">
-            <label
-              className="text-[18px] leading-[22px] font-semibold"
-              htmlFor="mintdescription"
-            >
-              Description*
-            </label>
-            <textarea
-              id="mintdescription"
-              name="mintdescription"
-              rows={3}
-              placeholder="A unique piece of digital art created exclusively for this collection."
-              className="w-full border outline-none py-[10px] px-4 rounded-[12px] border-black/10 placeholder:text-black-20 text-black"
-              value={mintDescription}
-              onChange={(e) => setMintDescription(e.target.value)}
-            />
-          </div>
-          <div className="flex flex-col items-start gap-1 w-full">
-            <span className="flex flex-col items-start">
-              <label
-                className="text-[18px] leading-[22px] font-semibold"
-                htmlFor="minttitle"
-              >
-                Mint Price
-              </label>
-              <span className="text-[10px] font-medium leading-[auto] text-black-60">
-                Set your price to 0 to earn Creator Rewards.
-              </span>
-            </span>
-            <div className="flex items-center gap-2 w-full">
-              <input
-                id="mintprice"
-                name="mintprice"
-                type="number"
-                placeholder="0"
-                className="w-full border outline-none py-[10px] px-4 rounded-[12px] border-black/10 placeholder:text-black-20 text-black remove-arrow"
-                value={mintPrice}
-                onChange={(e) => setMintPrice(e.target.value)}
-              />
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <img
-                  src="/icons/eth-icon.svg"
-                  alt="eth"
-                  width={24}
-                  height={24}
-                  loading="lazy"
-                  style={{ aspectRatio: "1 / 1" }}
-                />
-                <p className="text-[18px] text-black-80 leading-[120%] font-semibold">
-                  ETH
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col items-start gap-1 w-full">
-            <label
-              className="text-[18px] leading-[22px] font-semibold"
-              htmlFor="minttitle"
-            >
-              Mint Duration
-            </label>
-            <div
-              className="flex items-center cursor-pointer justify-between py-[10px] px-4 border outline-none border-black/10 rounded-[12px] w-full"
-              onClick={() => setOpenCountdownModal(true)}
-            >
-              <p className="font-medium leading-[18px]">
-                {marketCountdown.label}
-              </p>
-              <img
-                src="/icons/chevron-down-icon.svg"
-                alt="chevron-down"
-                className="w-4 h-4"
-                loading="lazy"
-              />
-            </div>
-          </div>
-          {!(address || isConnected) ? (
-            <button
-              className="w-full border-none outline-none rounded-[12px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
-              onClick={() =>
-                connect({
-                  connector: coinbaseWallet({
-                    appName: "tike-social",
-                    preference: "all",
-                    version: "4",
-                    appLogoUrl:
-                      "https://app.tike.social/icons/desktop-logo.svg",
-                  }),
-                })
-              }
-            >
-              Connect Wallet
-            </button>
-          ) : (
-            <button
-              className="w-full border-none outline-none rounded-[12px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
-              disabled={
-                !mintThumbnail ||
-                !media ||
-                isUploading ||
-                !mintTitle ||
-                !mintDescription
-              }
-              onClick={handleMint}
-            >
-              {isUploading ? "Uploading..." : "Mint"}
-            </button>
-          )}
-        </div>
-      </Modal>
-      <Modal
-        isOpen={openCountdownModal}
-        closeModal={() => setOpenCountdownModal(false)}
-      >
-        <div className="flex-1 pt-8 pb-2 px-2">
-          <p className="mb-2 text-center text-[18px] font-semibold leading-[22px]">
-            Mint Duration
-          </p>
-          {MINT_DURATION.map((md) => (
-            <div
-              key={md.label}
-              className={`w-full mb-1 px-2 py-[10px] cursor-pointer rounded-[12px] ${
-                marketCountdown.value === md.value
-                  ? "bg-frame-btn-bg ring-inset ring-1 ring-black/10"
-                  : ""
-              } hover:bg-frame-btn-bg`}
-            >
-              <p
-                className="font-medium leading-[22px]"
-                onClick={() => {
-                  setMarketCountdown(md);
-                  setOpenCountdownModal(false);
-                }}
-              >
-                {md.label}
-              </p>
-            </div>
-          ))}
-        </div>
-      </Modal>
+      <MintModal
+        isAudioPlaying={isAudioPlaying}
+        openMintModal={openMintModal}
+        setOpenCountdownModal={(val) => {
+          setOpenCountdownModal(val);
+          if (!val && isAudioPlaying) {
+            setIsAudioPlaying(false);
+          }
+        }}
+        isUploading={isUploading}
+        setMintDescription={(val) => setMintDescription(val)}
+        setMintEnabled={(val) => setMintEnabled(val)}
+        setMintPrice={(val) => setMintPrice(val)}
+        setMintTitle={(val) => setMintTitle(val)}
+        setOpenMintModal={(val) => setOpenMintModal(val)}
+        handleMintThumbnail={handleMintThumbnail}
+        handleSeek={handleSeek}
+        handleTimeUpdate={handleTimeUpdate}
+        togglePlayPause={togglePlayPause}
+        mintDescription={mintDescription}
+        mintPrice={mintPrice}
+        mintThumbnail={mintThumbnail}
+        marketCountdown={marketCountdown}
+        media={media}
+        mintTitle={mintTitle}
+        musicTitle={musicTitle}
+        currentAudioTime={currentAudioTime}
+        audioDuration={audioDuration}
+      />
+      <SelectChannelModal
+        openChannelModal={openChannelModal}
+        setOpenChannelModal={(val) => setOpenChannelModal(val)}
+        selectedChannel={selectedChannel}
+        setSelectedChannel={(val: string) => setSelectedChannel(val)}
+      />
+      <ConnectWalletModal
+        openConnectModal={openConnectModal}
+        setOpenConnectModal={(val: boolean) => setOpenConnectModal(val)}
+      />
+      <MarketCountdownModal
+        openCountdownModal={openCountdownModal}
+        setOpenCountdownModal={(val) => setOpenCountdownModal(val)}
+        marketCountdown={marketCountdown}
+        setMarketCountdown={(val) => setMarketCountdown(val)}
+      />
     </>
   );
 });

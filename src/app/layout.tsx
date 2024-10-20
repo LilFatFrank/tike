@@ -48,7 +48,7 @@ export default function RootLayout({
         {process.env.NEXT_PUBLIC_GTM_ID && (
           <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />
         )}
-        <Toaster position="bottom-center" duration={1500} />
+        <Toaster position="bottom-center" duration={2000} />
         <main className="w-dvw max-md:h-dvh md:h-[calc(100dvh-40px)] mx-auto md:w-[552px] md:border md:border-black-20 md:border-b-0 md:rounded-t-[20px] md:overflow-auto md:no-scrollbar">
           <Wrapper>{children}</Wrapper>
         </main>
