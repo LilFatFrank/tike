@@ -1,13 +1,7 @@
 "use client";
 import { useNeynarContext } from "@neynar/react";
 import { IUser } from "@neynar/react/dist/types/common";
-import {
-  FC,
-  memo,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { FC, memo, useCallback, useEffect, useState } from "react";
 import formatNumber from "@/utils/formatNumber";
 import StringProcessor from "../stringprocessor";
 import ProfileButton from "../profilebutton";
@@ -16,6 +10,7 @@ import EditProfile from "./edit-profile";
 import ProfileCasts from "./profile-casts";
 import RepliesRecasts from "./replies-recasts";
 import MediaCasts from "./media-casts";
+import Created from "./created-art";
 
 const tabs = [
   {
@@ -30,6 +25,10 @@ const tabs = [
     label: "Media",
     value: "media",
   },
+  {
+    label: "Created",
+    value: "created",
+  },
 ];
 
 interface Profile {
@@ -39,7 +38,7 @@ interface Profile {
 const Profile: FC<Profile> = memo(({ fid }) => {
   const { user, logoutUser } = useNeynarContext();
   const [selectedTab, setSelectedTab] = useState<
-    "casts" | "recasts_replies" | "media"
+    "casts" | "recasts_replies" | "media" | "created"
   >("casts");
   const [openProfileOptions, setOpenProfileOptions] = useState(false);
   const [profileOptionType, setProfileOptionType] = useState<
@@ -317,6 +316,8 @@ const Profile: FC<Profile> = memo(({ fid }) => {
                 <MediaCasts fid={fid.toString()} />
               ) : selectedTab === "recasts_replies" ? (
                 <RepliesRecasts fid={fid.toString()} />
+              ) : selectedTab === "created" ? (
+                <Created fid={fid.toString()}  />
               ) : null}
             </>
           )}
