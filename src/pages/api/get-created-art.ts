@@ -45,7 +45,10 @@ export default async function handler(
 
       const filteredTokens = validTokens
         .filter((token) => token !== null)
-        .sort((a, b) => Number(b.tokenId) - Number(a.tokenId));
+        .sort((a, b) => {
+          if (!a || !b) return 0;
+          return Number(b.tokenId) - Number(a.tokenId);
+        });
 
       res.status(200).json(filteredTokens);
     } catch (error: any) {
