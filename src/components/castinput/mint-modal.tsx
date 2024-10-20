@@ -1,7 +1,7 @@
 "use client";
 import formatTime from "@/utils/formatTime";
 import { useNeynarContext } from "@neynar/react";
-import { ChangeEvent, FC, useMemo } from "react";
+import { ChangeEvent, FC, useEffect, useMemo } from "react";
 import Modal from "../modal";
 
 interface Media {
@@ -72,6 +72,10 @@ const MintModal: FC<MintModalProps> = ({
       audioDuration ? Math.floor((currentAudioTime / audioDuration) * 100) : 0,
     [currentAudioTime, audioDuration]
   );
+
+  useEffect(() => {
+    if (!(mintTitle && mintDescription && mintThumbnail)) setMintEnabled(false);
+  }, [mintTitle, mintDescription, mintThumbnail]);
 
   return (
     <>

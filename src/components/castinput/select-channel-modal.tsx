@@ -176,7 +176,7 @@ const SelectChannelModal: FC<SelectChannelModalProps> = ({
                   ? renderLoadingMore()
                   : undefined,
               }}
-              style={{ height: "80vh", scrollbarWidth: "none" }}
+              style={{ height: "100vh", scrollbarWidth: "none" }}
             />
           )}
         </div>

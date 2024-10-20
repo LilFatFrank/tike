@@ -257,19 +257,9 @@ const CastInput: FC = memo(() => {
     }
   }, []);
 
-  const handleMint = useCallback(async () => {
-    try {
-      if (chain !== base.id) {
-        await switchChainAsync({
-          chainId: base.id,
-        });
-      }
-      setIsUploading(true);
-      const toastId = toast.info("Checking collection", {
-        duration: 0,
-      });
-      const userInfo = await checkUser();
-      if (!userInfo.error && !userInfo.exists) {
+  const mintCreateContract = useCallback(
+    async (toastId: string | number) => {
+      try {
         toast.info("Creating metadata", {
           id: toastId,
           duration: 0,
@@ -335,6 +325,35 @@ const CastInput: FC = memo(() => {
           duration: 1500,
         });
         router.push(`/profile/${user?.fid}`);
+      } catch (error) {
+        throw error;
+      }
+    },
+    [
+      user,
+      selectedChannel,
+      text,
+      mintTitle,
+      address,
+      mintPrice,
+      marketCountdown,
+    ]
+  );
+
+  const handleMint = useCallback(async () => {
+    try {
+      if (chain !== base.id) {
+        await switchChainAsync({
+          chainId: base.id,
+        });
+      }
+      setIsUploading(true);
+      const toastId = toast.info("Checking collection", {
+        duration: 0,
+      });
+      const userInfo = await checkUser();
+      if (!userInfo.error && !userInfo.exists) {
+        mintCreateContract(toastId);
       } else if (!userInfo.error && userInfo.exists) {
         if (
           userInfo.user &&
@@ -406,73 +425,7 @@ const CastInput: FC = memo(() => {
           userInfo.user.collection &&
           !userInfo.user.collection[address as `0x${string}`]
         ) {
-          toast.info("Creating metadata", {
-            id: toastId,
-            duration: 0,
-          });
-          const contractMetadataUri = await buildContractMetadata();
-          const metadataUri = await buildTokenMetadata();
-          toast.info("Creating contract", {
-            id: toastId,
-            duration: 0,
-          });
-          const { parameters, contractAddress, newTokenId } =
-            await creatorZoraClient.create1155({
-              contract: {
-                name: `${user?.username}'s Tike Posts`,
-                uri: contractMetadataUri,
-              },
-              token: {
-                tokenMetadataURI: metadataUri,
-                salesConfig: {
-                  ...(mintPrice
-                    ? { pricePerToken: parseEther(mintPrice) }
-                    : {}),
-                  ...(marketCountdown.value !== 0
-                    ? {
-                        type: "timed",
-                        saleStart: BigInt(Math.floor(Date.now() / 1000)),
-                        marketCountdown: BigInt(marketCountdown.value),
-                      }
-                    : {}),
-                },
-              },
-              account: address as `0x${string}`,
-            });
-          await writeContractAsync(parameters);
-          await fetch(`/api/update-collection`, {
-            method: "PUT",
-            body: JSON.stringify({
-              ...userInfo.user,
-              collection: {
-                ...userInfo.user.collection,
-                [address as `0x${string}`]: contractAddress,
-              },
-            }),
-          });
-          toast.info("Creating frame", {
-            id: toastId,
-            duration: 0,
-          });
-          await axios.post(
-            "/api/create",
-            {
-              uuid: user?.signer_uuid,
-              channelId: selectedChannel,
-              text: text || mintTitle,
-              fileUrl: `https://zora.co/collect/base:${contractAddress.toLowerCase()}/${newTokenId.toString()}`,
-            },
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          );
-          toast.info("Successfully uploaded", {
-            id: toastId,
-            duration: 1500,
-          });
-          router.push(`/profile/${user?.fid}`);
+          mintCreateContract(toastId);
         } else {
           console.log("user info error");
           toast.error("Error uploading art to Zora");
@@ -497,6 +450,8 @@ const CastInput: FC = memo(() => {
     mintThumbnail,
     mintPrice,
     marketCountdown,
+    selectedChannel,
+    text,
   ]);
 
   const handleUploadToPinata = useCallback(async (file: File) => {
@@ -1048,6 +1003,35 @@ const CastInput: FC = memo(() => {
           </div>
         </div>
       </Modal>
+      <MintModal
+        isAudioPlaying={isAudioPlaying}
+        openMintModal={openMintModal}
+        setOpenCountdownModal={(val) => {
+          setOpenCountdownModal(val);
+          if (!val && isAudioPlaying) {
+            setIsAudioPlaying(false);
+          }
+        }}
+        isUploading={isUploading}
+        setMintDescription={(val) => setMintDescription(val)}
+        setMintEnabled={(val) => setMintEnabled(val)}
+        setMintPrice={(val) => setMintPrice(val)}
+        setMintTitle={(val) => setMintTitle(val)}
+        setOpenMintModal={(val) => setOpenMintModal(val)}
+        handleMintThumbnail={handleMintThumbnail}
+        handleSeek={handleSeek}
+        handleTimeUpdate={handleTimeUpdate}
+        togglePlayPause={togglePlayPause}
+        mintDescription={mintDescription}
+        mintPrice={mintPrice}
+        mintThumbnail={mintThumbnail}
+        marketCountdown={marketCountdown}
+        media={media}
+        mintTitle={mintTitle}
+        musicTitle={musicTitle}
+        currentAudioTime={currentAudioTime}
+        audioDuration={audioDuration}
+      />
       <SelectChannelModal
         openChannelModal={openChannelModal}
         setOpenChannelModal={(val) => setOpenChannelModal(val)}
@@ -1063,35 +1047,6 @@ const CastInput: FC = memo(() => {
         setOpenCountdownModal={(val) => setOpenCountdownModal(val)}
         marketCountdown={marketCountdown}
         setMarketCountdown={(val) => setMarketCountdown(val)}
-      />
-      <MintModal
-        isAudioPlaying={isAudioPlaying}
-        openMintModal={openMintModal}
-        setOpenCountdownModal={(val) => {
-          setOpenCountdownModal(val);
-          if (!val && isAudioPlaying) {
-            setIsAudioPlaying(false);
-          }
-        }}
-        isUploading={isUploading}
-        setMintDescription={(val) => setMintDescription(val)}
-        setMintEnabled={(val) => setMintEnabled(val)}
-        setMintPrice={(val) => setMintPrice(val)}
-        setMintTitle={(val) => setMintPrice(val)}
-        setOpenMintModal={(val) => setOpenMintModal(val)}
-        handleMintThumbnail={handleMintThumbnail}
-        handleSeek={handleSeek}
-        handleTimeUpdate={handleTimeUpdate}
-        togglePlayPause={togglePlayPause}
-        mintDescription={mintDescription}
-        mintPrice={mintPrice}
-        mintThumbnail={mintThumbnail}
-        marketCountdown={marketCountdown}
-        media={media}
-        mintTitle={mintTitle}
-        musicTitle={musicTitle}
-        currentAudioTime={currentAudioTime}
-        audioDuration={audioDuration}
       />
     </>
   );
