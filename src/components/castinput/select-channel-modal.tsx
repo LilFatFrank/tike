@@ -1,10 +1,11 @@
 "use client";
 import { useNeynarContext } from "@neynar/react";
-import { FC, useCallback, useMemo } from "react";
+import { FC, memo, useCallback, useMemo } from "react";
 import { useInfiniteQuery } from "react-query";
 import Modal from "@/components/modal";
 import { Virtuoso } from "react-virtuoso";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { toast } from "sonner";
 
 interface SelectChannelModalProps {
     openChannelModal: boolean,
@@ -85,6 +86,10 @@ const SelectChannelModal: FC<SelectChannelModalProps> = ({
           refetchOnWindowFocus: false,
           staleTime: 60000,
           cacheTime: 3600000,
+          onError: (err) => {
+            console.log(err);
+            toast.error("Error fetching channels list!");
+          }
         }
       );
     
@@ -95,13 +100,20 @@ const SelectChannelModal: FC<SelectChannelModalProps> = ({
     
       const handleFetchNextPage = useCallback(() => {
         if (hasNextUserChannels && !isFetchingNextUserChannels) {
-          fetchNextUserChannels();
+          fetchNextUserChannels().catch(error => {
+            console.log(error);
+            toast.error("Error fetching next set of channels!");
+          });
         }
       }, [hasNextUserChannels, fetchNextUserChannels, isFetchingNextUserChannels]);
 
       const renderMemberChannel = useCallback((index: number) => {
         const channel = allUserMemberChannels[index];
-        return channel ? (
+        if (!channel) {
+          console.log(index, "No channel found!");
+          return null
+        }
+        return (
           <div
             className={`w-full px-2 py-[10px] flex items-center justify-start gap-2 cursor-pointer ${
               index === allUserMemberChannels.length - 1 ? "" : "mb-1"
@@ -128,14 +140,14 @@ const SelectChannelModal: FC<SelectChannelModalProps> = ({
               {channel?.channel?.id}&nbsp;
             </p>
           </div>
-        ) : null;
+        );
       }, [allUserMemberChannels]);
 
     return <>
     <Modal
         isOpen={openChannelModal}
         closeModal={() => setOpenChannelModal(false)}
-        style={{ borderRadius: "20px 20px 0 0", padding: 0, minHeight: "40%" }}
+        style={{ borderRadius: "20px 20px 0 0", padding: 0, height: "40%" }}
       >
         <div className="flex-1 pt-8 pb-2 px-2">
           <p className="mb-2 text-center text-[18px] font-semibold leading-[22px]">
@@ -167,10 +179,11 @@ const SelectChannelModal: FC<SelectChannelModalProps> = ({
             renderLoadingChannels()
           ) : (
             <Virtuoso
-              data={allUserMemberChannels}
+              data={allUserMemberChannels.concat(allUserMemberChannels)}
               endReached={handleFetchNextPage}
               itemContent={renderMemberChannel}
               useWindowScroll={isMobile}
+              overscan={8}
               components={{
                 Footer: isFetchingNextUserChannels
                   ? renderLoadingMore()
@@ -184,4 +197,4 @@ const SelectChannelModal: FC<SelectChannelModalProps> = ({
     </>
 }
 
-export default SelectChannelModal;
+export default memo(SelectChannelModal);
