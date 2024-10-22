@@ -8,6 +8,7 @@ import RecastUpdate from "./recast-update";
 import FollowUpdate from "./follow-update";
 import { Virtuoso } from "react-virtuoso";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { toast } from "sonner";
 
 const NotificationItem = memo(
   ({
@@ -114,14 +115,17 @@ interface ApiResponse {
 const fetchNotifications = async ({
   pageParam = "",
   queryKey,
+  signal,
 }: {
   pageParam?: string;
   queryKey: any;
+  signal?: AbortSignal;
 }): Promise<ApiResponse> => {
   const [_key, { fid, filter }] = queryKey;
   const response = await fetch(`/api/for-you-notifications`, {
     method: "POST",
     body: JSON.stringify({ cursor: pageParam, fid, filter }),
+    signal
   });
   if (!response.ok) {
     throw new Error("Network response was not ok");
@@ -142,7 +146,7 @@ const ForYou: FC = memo(() => {
     isFetchingNextPage,
   } = useInfiniteQuery(
     ["notifications", { fid: user?.fid || 3 }],
-    fetchNotifications,
+    ({ pageParam, queryKey, signal }) => fetchNotifications({ pageParam, queryKey, signal }),
     {
       getNextPageParam: (lastPage) => {
         return lastPage.next?.cursor ?? false;
@@ -150,6 +154,12 @@ const ForYou: FC = memo(() => {
       refetchOnWindowFocus: false,
       staleTime: 60000,
       cacheTime: 3600000,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      onError: (error) => {
+        console.log("Error fetching notifications:", error);
+        toast.error("Error fetching notifications!");
+      }
     }
   );
 

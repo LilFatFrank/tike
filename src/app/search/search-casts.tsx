@@ -4,10 +4,21 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import { useRouter } from "next/navigation";
 import { FC, memo, useCallback, useMemo } from "react";
 import { useInfiniteQuery } from "react-query";
-import { Virtuoso } from 'react-virtuoso';
+import { Virtuoso } from "react-virtuoso";
+import { toast } from "sonner";
 
 const CastItem = memo(
-  ({ cast, router, index, arr }: { cast: any; router: any; index: number; arr: any }) => (
+  ({
+    cast,
+    router,
+    index,
+    arr,
+  }: {
+    cast: any;
+    router: any;
+    index: number;
+    arr: any;
+  }) => (
     <span
       onClick={() => router.push(`/cast/${cast.parent_hash || cast.hash}`)}
       className="cursor-pointer"
@@ -76,14 +87,17 @@ const SearchCasts: FC<SearchCasts> = memo(({ input }) => {
     async ({
       pageParam = "",
       queryKey,
+      signal,
     }: {
       pageParam?: string;
       queryKey: any;
+      signal?: AbortSignal;
     }): Promise<ApiResponse> => {
       const [_key, { q }] = queryKey;
       const response = await fetch(`/api/search-casts`, {
         method: "POST",
         body: JSON.stringify({ cursor: pageParam, q }),
+        signal,
       });
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -101,15 +115,26 @@ const SearchCasts: FC<SearchCasts> = memo(({ input }) => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteQuery(["search-casts", { q: input }], fetchSearchCasts, {
-    getNextPageParam: (lastPage) => {
-      return lastPage.next?.cursor ?? false;
-    },
-    refetchOnWindowFocus: false,
-    enabled: !!input,
-    staleTime: 60000,
-    cacheTime: 3600000,
-  });
+  } = useInfiniteQuery(
+    ["search-casts", { q: input }],
+    ({ pageParam, queryKey, signal }) =>
+      fetchSearchCasts({ pageParam, queryKey, signal }),
+    {
+      getNextPageParam: (lastPage) => {
+        return lastPage.next?.cursor ?? false;
+      },
+      refetchOnWindowFocus: false,
+      enabled: !!input,
+      staleTime: 60000,
+      cacheTime: 3600000,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      onError: (error) => {
+        console.log("Error fetching casts:", error);
+        toast.error("Error fetching casts!");
+      },
+    }
+  );
 
   const allCasts = useMemo(
     () => data?.pages.flatMap((page) => page.casts) ?? [],
@@ -122,18 +147,21 @@ const SearchCasts: FC<SearchCasts> = memo(({ input }) => {
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const renderItem = useCallback((index: number) => {
-    const cast = allCasts[index];
-    return cast?.embeds[0]?.url ? (
-      <CastItem
-        cast={cast}
-        router={router}
-        key={cast.parent_hash || cast.hash}
-        arr={allCasts}
-        index={index}
-      />
-    ) : null;
-  }, [allCasts, router]);
+  const renderItem = useCallback(
+    (index: number) => {
+      const cast = allCasts[index];
+      return cast?.embeds[0]?.url ? (
+        <CastItem
+          cast={cast}
+          router={router}
+          key={cast.parent_hash || cast.hash}
+          arr={allCasts}
+          index={index}
+        />
+      ) : null;
+    },
+    [allCasts, router]
+  );
 
   const Footer = useCallback(() => {
     if (isFetchingNextPage) {

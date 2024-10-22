@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { memo, useCallback, useMemo } from "react";
 import { useInfiniteQuery } from "react-query";
 import { Virtuoso } from "react-virtuoso";
+import { toast } from "sonner";
 
 interface ApiResponse {
   casts: any;
@@ -19,14 +20,17 @@ export default function ChannelCasts({ channelId }: { channelId: string }) {
     async ({
       pageParam = "",
       queryKey,
+      signal,
     }: {
       pageParam?: string;
       queryKey: any;
+      signal?: AbortSignal;
     }): Promise<ApiResponse> => {
       const [_key, { fid, viewerFid }] = queryKey;
       const response = await fetch(`/api/channel-casts`, {
         method: "POST",
         body: JSON.stringify({ cursor: pageParam, channelId, viewerFid }),
+        signal,
       });
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -46,7 +50,7 @@ export default function ChannelCasts({ channelId }: { channelId: string }) {
     error,
   } = useInfiniteQuery(
     ["channel-casts", { channelId, viewerFid: user?.fid || 3 }],
-    fetchChannelCasts,
+    ({ pageParam, queryKey, signal }) => fetchChannelCasts({ pageParam, queryKey, signal }),
     {
       getNextPageParam: (lastPage) => {
         return lastPage.next?.cursor ?? false;
@@ -54,6 +58,12 @@ export default function ChannelCasts({ channelId }: { channelId: string }) {
       refetchOnWindowFocus: false,
       staleTime: 60000,
       cacheTime: 3600000,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      onError: (error) => {
+        console.error("Error fetching casts:", error);
+        toast.error("Error fetching casts!");
+      },
     }
   );
 

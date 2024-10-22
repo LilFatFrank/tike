@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { useInfiniteQuery } from "react-query";
 import { Virtuoso } from "react-virtuoso";
+import { toast } from "sonner";
 
 interface ApiResponse {
   casts: any;
@@ -20,14 +21,17 @@ export default function MediaCasts({ fid }: { fid: string }) {
     async ({
       pageParam = "",
       queryKey,
+      signal,
     }: {
       pageParam?: string;
       queryKey: any;
+      signal?: AbortSignal;
     }): Promise<ApiResponse> => {
       const [_key, { fid, viewerFid }] = queryKey;
       const response = await fetch(`/api/profile-casts`, {
         method: "POST",
         body: JSON.stringify({ cursor: pageParam, fid, viewerFid }),
+        signal
       });
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -47,7 +51,7 @@ export default function MediaCasts({ fid }: { fid: string }) {
     error,
   } = useInfiniteQuery(
     ["media-casts", { fid: fid, viewerFid: user?.fid || 3 }],
-    fetchProfileCasts,
+    ({ pageParam, queryKey, signal }) => fetchProfileCasts({ pageParam, queryKey, signal }),
     {
       getNextPageParam: (lastPage) => {
         return lastPage.next?.cursor ?? false;
@@ -55,6 +59,12 @@ export default function MediaCasts({ fid }: { fid: string }) {
       refetchOnWindowFocus: false,
       staleTime: 60000,
       cacheTime: 3600000,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      onError: (err) => {
+        console.log(err);
+        toast.error("Error fetching media casts!");
+      },
     }
   );
 

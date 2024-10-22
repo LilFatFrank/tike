@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { memo, useCallback, useMemo } from "react";
 import { useInfiniteQuery } from "react-query";
 import { Virtuoso } from "react-virtuoso";
+import { toast } from "sonner";
 
 interface ApiResponse {
   casts: any;
@@ -19,9 +20,11 @@ export default function RepliesRecasts({ fid }: { fid: string }) {
     async ({
       pageParam = "",
       queryKey,
+      signal,
     }: {
       pageParam?: string;
       queryKey: any;
+      signal?: AbortSignal
     }): Promise<ApiResponse> => {
       const [_key, { fid, viewerFid }] = queryKey;
       const response = await fetch(`/api/replies-recasts`, {
@@ -46,7 +49,7 @@ export default function RepliesRecasts({ fid }: { fid: string }) {
     error,
   } = useInfiniteQuery(
     ["replies-recasts", { fid: fid, viewerFid: user?.fid || 3 }],
-    fetchRepliesRecasts,
+    ({ pageParam, queryKey, signal }) => fetchRepliesRecasts({ pageParam, queryKey, signal }),
     {
       getNextPageParam: (lastPage) => {
         return lastPage.next?.cursor ?? false;
@@ -54,6 +57,12 @@ export default function RepliesRecasts({ fid }: { fid: string }) {
       refetchOnWindowFocus: false,
       staleTime: 60000,
       cacheTime: 3600000,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      onError: (err) => {
+        console.log(err);
+        toast.error("Error fetching replies and recasts!");
+      },
     }
   );
 

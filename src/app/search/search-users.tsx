@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FC, memo, useCallback, useMemo } from "react";
 import { useInfiniteQuery } from "react-query";
 import { Virtuoso } from 'react-virtuoso';
+import { toast } from "sonner";
 
 const UserItem = memo(({ user, router, isLast }: { user: any; router: any; isLast: boolean }) => (
   <span
@@ -50,14 +51,17 @@ const SearchUsers: FC<SearchUsers> = memo(({ input }) => {
   const fetchSearchUsers = useCallback(async ({
     pageParam = "",
     queryKey,
+    signal,
   }: {
     pageParam?: string;
     queryKey: any;
+    signal?: AbortSignal;
   }): Promise<ApiResponse> => {
     const [_key, { viewerFid, q }] = queryKey;
     const response = await fetch(`/api/search-users`, {
       method: "POST",
       body: JSON.stringify({ cursor: pageParam, viewerFid, q }),
+      signal
     });
     if (!response.ok) {
       throw new Error("Network response was not ok");
@@ -84,6 +88,12 @@ const SearchUsers: FC<SearchUsers> = memo(({ input }) => {
       enabled: !!input,
       staleTime: 60000,
       cacheTime: 3600000,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      onError: (error) => {
+        console.log("Error fetching users:", error);
+        toast.error("Error fetching users!");
+      }
     }
   );
 
