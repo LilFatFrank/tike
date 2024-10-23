@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { FC, memo, useCallback, useEffect, useState } from "react";
 import { useInfiniteQuery } from "react-query";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { toast } from "sonner";
 
 const MemoizedCast = memo(Cast);
 const MemoizedFrame = memo(Frame);
@@ -54,14 +55,17 @@ const Page: FC<{ params: { hash: string } }> = memo(({ params }) => {
     async ({
       pageParam = "",
       queryKey,
+      signal,
     }: {
       pageParam?: string;
       queryKey: any;
+      signal?: AbortSignal;
     }): Promise<ApiResponse> => {
       const [_key, { hash, fid }] = queryKey;
       const response = await fetch(`/api/conversation`, {
         method: "POST",
         body: JSON.stringify({ cursor: pageParam, hash, fid }),
+        signal,
       });
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -81,7 +85,7 @@ const Page: FC<{ params: { hash: string } }> = memo(({ params }) => {
     isFetchingNextPage,
   } = useInfiniteQuery(
     ["casts", { fid: user?.fid || 3, hash: params.hash }],
-    fetchConversation,
+    ({ pageParam, queryKey, signal }) => fetchConversation({ pageParam, queryKey, signal }),
     {
       getNextPageParam: (lastPage) => {
         return lastPage.next?.cursor ?? false;
@@ -89,6 +93,12 @@ const Page: FC<{ params: { hash: string } }> = memo(({ params }) => {
       refetchOnWindowFocus: false,
       staleTime: 60000,
       cacheTime: 3600000,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      onError: (error) => {
+        console.error("Error fetching casts:", error);
+        toast.error("Error fetching casts!");
+      },
     }
   );
 

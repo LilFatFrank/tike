@@ -7,6 +7,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useInfiniteQuery } from "react-query";
 import { Virtuoso } from "react-virtuoso";
+import { toast } from "sonner";
 
 interface ApiResponse {
   casts: any;
@@ -28,14 +29,17 @@ export default function Home() {
     async ({
       pageParam = "",
       queryKey,
+      signal,
     }: {
       pageParam?: string;
       queryKey: any;
+      signal?: AbortSignal;
     }): Promise<UserChannelsResponse> => {
       const [_key, { fid }] = queryKey;
       const response = await fetch(`/api/user-channels`, {
         method: "POST",
         body: JSON.stringify({ cursor: pageParam, fid }),
+        signal,
       });
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -52,12 +56,19 @@ export default function Home() {
     isFetchingNextPage: isFetchingNextUserChannels,
   } = useInfiniteQuery(
     ["user-channels", { fid: user?.fid || 3 }],
-    fetchUserChannels,
+    ({ pageParam, queryKey, signal }) =>
+      fetchUserChannels({ pageParam, queryKey, signal }),
     {
       getNextPageParam: (lastPage) => lastPage.next?.cursor ?? false,
       refetchOnWindowFocus: false,
       staleTime: 60000,
       cacheTime: 3600000,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      onError: (error) => {
+        console.error("Error fetching casts:", error);
+        toast.error("Error fetching casts!");
+      },
     }
   );
 
@@ -70,14 +81,17 @@ export default function Home() {
     async ({
       pageParam = "",
       queryKey,
+      signal,
     }: {
       pageParam?: string;
       queryKey: any;
+      signal?: AbortSignal;
     }): Promise<ApiResponse> => {
       const [_key, { fid, filter }] = queryKey;
       const response = await fetch(`/api/casts`, {
         method: "POST",
         body: JSON.stringify({ cursor: pageParam, fid, filter }),
+        signal,
       });
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -95,13 +109,19 @@ export default function Home() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteQuery(["casts", { fid: user?.fid || 3, filter }], fetchCasts, {
+  } = useInfiniteQuery(["casts", { fid: user?.fid || 3, filter }], ({ pageParam, queryKey, signal }) => fetchCasts({ pageParam, queryKey, signal }), {
     getNextPageParam: (lastPage) => {
       return lastPage.next?.cursor ?? false;
     },
     refetchOnWindowFocus: false,
     staleTime: 60000,
     cacheTime: 3600000,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    onError: (error) => {
+      console.error("Error fetching casts:", error);
+      toast.error("Error fetching casts!");
+    },
   });
 
   const pathname = usePathname();

@@ -9,6 +9,7 @@ import { FC, memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useInfiniteQuery } from "react-query";
 import { Virtuoso } from "react-virtuoso";
 import ChannelCasts from "./channel-casts";
+import { toast } from "sonner";
 
 const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
   const { user } = useNeynarContext();
@@ -57,9 +58,11 @@ const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
     async ({
       pageParam = "",
       queryKey,
+      signal,
     }: {
       pageParam?: string;
       queryKey: any;
+      signal?: AbortSignal;
     }): Promise<{
       users: any;
       next: { cursor: string };
@@ -68,6 +71,7 @@ const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
       const response = await fetch(`/api/channel-followers`, {
         method: "POST",
         body: JSON.stringify({ cursor: pageParam, channelId, viewerFid }),
+        signal,
       });
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -87,12 +91,18 @@ const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
       "channel-followers",
       { channelId: params.channelId, viewerFid: user?.fid },
     ],
-    fetchChannelFollowers,
+    ({ pageParam, queryKey, signal }) => fetchChannelFollowers({ pageParam, queryKey, signal }),
     {
       getNextPageParam: (lastPage) => lastPage.next?.cursor ?? false,
       refetchOnWindowFocus: false,
       staleTime: 60000,
       cacheTime: 3600000,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      onError: (error) => {
+        console.log("Error fetching followers:", error);
+        toast.error("Error fetching followers!");
+      }
     }
   );
 
@@ -111,9 +121,11 @@ const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
     async ({
       pageParam = "",
       queryKey,
+      signal,
     }: {
       pageParam?: string;
       queryKey: any;
+      signal?: AbortSignal;
     }): Promise<{
       channels: any;
       next: { cursor: string };
@@ -122,6 +134,7 @@ const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
       const response = await fetch(`/api/channel-members`, {
         method: "POST",
         body: JSON.stringify({ cursor: pageParam, channelId }),
+        signal,
       });
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -138,12 +151,18 @@ const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
     isFetchingNextPage: isFetchingNextMembers,
   } = useInfiniteQuery(
     ["channel-members", { channelId: params.channelId }],
-    fetchChannelMembers,
+    ({ pageParam, queryKey, signal }) => fetchChannelMembers({ pageParam, queryKey, signal }),
     {
       getNextPageParam: (lastPage) => lastPage.next?.cursor ?? false,
       refetchOnWindowFocus: false,
       staleTime: 60000,
       cacheTime: 3600000,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      onError: (error) => {
+        console.log("Error fetching members:", error);
+        toast.error("Error fetching members!");
+      }
     }
   );
 

@@ -15,7 +15,7 @@ export default async function handler(
       const resp = await axios.get(
         !filter
           ? `https://api.neynar.com/v2/farcaster/feed?feed_type=following&fid=${fid}&with_recasts=true&viewer_fid=${fid}&limit=${
-              filter === "video" ? "100" : "50"
+              filter === "video" ? "100" : "25"
             }&cursor=${cursor}`
           : `https://api.neynar.com/v2/farcaster/feed?feed_type=filter&filter_type=embed_types&fid=${fid}&embed_types=${filter}&with_recasts=true&limit=25&cursor=${cursor}`,
         {

@@ -7,6 +7,7 @@ import React from "react";
 import { FC, memo, useCallback, useMemo } from "react";
 import { useInfiniteQuery } from "react-query";
 import { Virtuoso } from "react-virtuoso";
+import { toast } from "sonner";
 
 interface ApiResponse {
   casts: any;
@@ -26,14 +27,17 @@ const Frames: FC = memo(() => {
     async ({
       pageParam = "",
       queryKey,
+      signal,
     }: {
       pageParam?: string;
       queryKey: any;
+      signal?: AbortSignal;
     }): Promise<UserChannelsResponse> => {
       const [_key, { fid }] = queryKey;
       const response = await fetch(`/api/user-channels`, {
         method: "POST",
         body: JSON.stringify({ cursor: pageParam, fid }),
+        signal,
       });
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -50,12 +54,19 @@ const Frames: FC = memo(() => {
     isFetchingNextPage: isFetchingNextUserChannels,
   } = useInfiniteQuery(
     ["user-channels", { fid: user?.fid || 3 }],
-    fetchUserChannels,
+    ({ pageParam, queryKey, signal }) =>
+      fetchUserChannels({ pageParam, queryKey, signal }),
     {
       getNextPageParam: (lastPage) => lastPage.next?.cursor ?? false,
       refetchOnWindowFocus: false,
       staleTime: 60000,
       cacheTime: 3600000,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      onError: (error) => {
+        console.log("Error fetching channels:", error);
+        toast.error("Error fetching channels!");
+      }
     }
   );
 
@@ -68,14 +79,17 @@ const Frames: FC = memo(() => {
     async ({
       pageParam = "",
       queryKey,
+      signal,
     }: {
       pageParam?: string;
       queryKey: any;
+      signal?: AbortSignal;
     }): Promise<ApiResponse> => {
       const [_key, { fid }] = queryKey;
       const response = await fetch(`/api/frames`, {
         method: "POST",
         body: JSON.stringify({ cursor: pageParam, fid }),
+        signal,
       });
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -93,14 +107,25 @@ const Frames: FC = memo(() => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteQuery(["frames", { fid: user?.fid || 3 }], fetchFrames, {
-    getNextPageParam: (lastPage) => {
-      return lastPage.next?.cursor ?? false;
-    },
-    refetchOnWindowFocus: false,
-    staleTime: 60000,
-    cacheTime: 3600000,
-  });
+  } = useInfiniteQuery(
+    ["frames", { fid: user?.fid || 3 }],
+    ({ pageParam, queryKey, signal }) =>
+      fetchFrames({ pageParam, queryKey, signal }),
+    {
+      getNextPageParam: (lastPage) => {
+        return lastPage.next?.cursor ?? false;
+      },
+      refetchOnWindowFocus: false,
+      staleTime: 60000,
+      cacheTime: 3600000,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      onError: (error) => {
+        console.log("Error fetching frames:", error);
+        toast.error("Error fetching frames!");
+      }
+    }
+  );
 
   const handleFetchNextPage = useCallback(() => {
     if (hasNextPage) {
