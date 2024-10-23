@@ -29,6 +29,7 @@ import SelectChannelModal from "./select-channel-modal";
 import ConnectWalletModal from "./connect-wallet-modal";
 import MarketCountdownModal from "./market-countdown-modal";
 import MintModal from "./mint-modal";
+import { checkUrlType, containsUrl, getYouTubeVideoId } from "@/utils/text-url";
 
 interface Media {
   type: "image" | "video" | "audio";
@@ -69,6 +70,10 @@ const CastInput: FC = memo(() => {
   });
   const [mintEnabled, setMintEnabled] = useState(false);
   const [openConnectModal, setOpenConnectModal] = useState(false);
+  const [urlType, setUrlType] = useState("");
+  const [isUrlEmbed, setIsUrlEmbed] = useState(false);
+  const [youtubeVideoId, setYoutubeVideoId] = useState<string | null>(null);
+  const [frameDet, setFrameDet] = useState<any>();
 
   const { user } = useNeynarContext();
   const router = useRouter();
@@ -160,19 +165,9 @@ const CastInput: FC = memo(() => {
         if (newMedia.length > 0) {
           setMedia(newMedia[0]);
         }
-
-        // Check for text content
-        const textItem = Array.from(items).find(
-          (item) => item.kind === "string" && item.type === "text/plain"
-        );
-        if (textItem) {
-          textItem.getAsString((pastedText) => {
-            setText((prevText) => prevText + pastedText);
-          });
-        }
       }
     },
-    [media]
+    [media, text]
   );
 
   const removeMedia = useCallback(() => {
@@ -484,40 +479,39 @@ const CastInput: FC = memo(() => {
     } else {
       handlePost();
     }
-  }, [mintEnabled, isConnected, media, selectedChannel, text]);
+  }, [mintEnabled, isConnected, media, selectedChannel, text, isUrlEmbed]);
 
   const handlePost = useCallback(async () => {
     setIsUploading(true);
-
+    let fileUrl = "";
     try {
-      if (media) {
-        const fileUrl = await handleUploadToPinata(media.file);
-        let thumbnailUrl: string | null = null;
-        if (audioThumbnailMedia) {
-          thumbnailUrl = await handleUploadToPinata(audioThumbnailMedia.file);
-        }
+      if (media && !isUrlEmbed) fileUrl = await handleUploadToPinata(media.file);
+      else fileUrl = text;
+      let thumbnailUrl: string | null = null;
+      if (audioThumbnailMedia) {
+        thumbnailUrl = await handleUploadToPinata(audioThumbnailMedia.file);
+      }
 
-        if (fileUrl) {
-          const response = await axios.post(
-            "/api/create",
-            {
-              uuid: user?.signer_uuid,
-              channelId: selectedChannel,
-              text: media.type === "audio" ? musicTitle : text,
-              fileUrl,
-              thumbnailUrl,
+      if (fileUrl) {
+        const response = await axios.post(
+          "/api/create",
+          {
+            uuid: user?.signer_uuid,
+            channelId: selectedChannel,
+            text: isUrlEmbed ? "" : media && media.type === "audio" ? musicTitle : text,
+            fileUrl,
+            thumbnailUrl,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
             },
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          );
+          }
+        );
 
-          if (response.data.success) router.push("/profile");
-        } else {
-          toast.error("Error uploading media");
-        }
+        if (response.data.success) router.push("/profile");
+      } else {
+        toast.error("Error uploading media");
       }
     } catch (error) {
       console.error("Error uploading media", error);
@@ -528,7 +522,24 @@ const CastInput: FC = memo(() => {
       setMedia(null);
       setSelectedChannel("");
     }
-  }, [media, selectedChannel, musicTitle, user?.signer_uuid, router, text]);
+  }, [media, selectedChannel, musicTitle, user?.signer_uuid, router, text, isUrlEmbed]);
+
+  const fetchUrlMetadata = useCallback(async (url: string) => {
+    try {
+      const resp = await fetch(`/api/fetching-metadata`, {
+        method: "POST",
+        body: JSON.stringify({ url }),
+      });
+      const data = await resp.json();
+      if (data.data && Object.keys(data.data).length > 0) {
+        setFrameDet(data.data);
+        setIsUrlEmbed(true);
+      }
+    } catch (error) {
+      console.log("Error fetching metadata", error);
+      toast.error("Error fetching metadata");
+    }
+  }, []);
 
   const togglePlayPause = useCallback(() => {
     const audio = document.getElementById("audio-element") as HTMLAudioElement;
@@ -568,8 +579,8 @@ const CastInput: FC = memo(() => {
   }, [handlePaste]);
 
   const isPostDisabled = useMemo(
-    () => !media || isUploading,
-    [media, isUploading]
+    () => (!isUrlEmbed && !media) || isUploading,
+    [media, isUploading, isUrlEmbed]
   );
 
   const audioProgressWidth = useMemo(
@@ -577,6 +588,28 @@ const CastInput: FC = memo(() => {
       audioDuration ? Math.floor((currentAudioTime / audioDuration) * 100) : 0,
     [currentAudioTime, audioDuration]
   );
+
+  useEffect(() => {
+    if (text && containsUrl(text)) {
+      const urlType = checkUrlType(text);
+      if (urlType === "youtube" || urlType === "other") {
+        setUrlType(urlType);
+        if (urlType === "other") {
+          fetchUrlMetadata(text);
+        } else {
+          const videoId = getYouTubeVideoId(text);
+          if (videoId) {
+            setYoutubeVideoId(videoId);
+            setIsUrlEmbed(true);
+          }
+        }
+      }
+    } else {
+      setYoutubeVideoId("");
+      setUrlType("");
+      setIsUrlEmbed(false);
+    }
+  }, [text]);
 
   return (
     <>
@@ -653,7 +686,7 @@ const CastInput: FC = memo(() => {
             rows={3}
           />
           <div className="flex flex-wrap gap-2 mt-1 w-full">
-            {media && media.type !== "audio" ? (
+            {!isUrlEmbed && media && media.type !== "audio" ? (
               <div className="flex flex-wrap gap-2 mt-2 w-full">
                 <div key={media.url} className="relative w-full">
                   {media.type === "image" ? (
@@ -679,13 +712,73 @@ const CastInput: FC = memo(() => {
                 </div>
               </div>
             ) : null}
+            {isUrlEmbed ? (
+              urlType === "youtube" ? (
+                youtubeVideoId ? (
+                  <iframe
+                    width={"100%"}
+                    src={`https://www.youtube.com/embed/${youtubeVideoId}`}
+                    title={"YouTube video player"}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full max-h-[100dvw] min-h-[300px] object-contain rounded-[10px]"
+                  ></iframe>
+                ) : null
+              ) : urlType === "other" ? (
+                frameDet ? (
+                  <div className="w-full">
+                    <img
+                      src={frameDet?.image}
+                      alt="Cast image"
+                      className="w-full object-contain rounded-[10px] mb-1"
+                      loading="lazy"
+                    />
+                    {frameDet?.input && Object.keys(frameDet?.input)?.length ? (
+                      <input
+                        className="border border-frame-btn-bg rounded-[12px] py-2 px-4 outline-none w-full bg-inherit placeholder:text-black-40 mb-1"
+                        placeholder={frameDet?.input.text}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                      />
+                    ) : null}
+                    <div
+                      className={`grid gap-1 ${
+                        frameDet?.buttons?.length === 1
+                          ? "grid-cols-1"
+                          : frameDet?.buttons?.length % 3 === 0
+                          ? "grid-cols-3"
+                          : "grid-cols-2"
+                      }`}
+                    >
+                      {frameDet?.buttons?.map((b: any) => (
+                        <button
+                          className={`frame-btn`}
+                          key={b.index}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                        >
+                          <p className="font-medium">{b.title}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null
+              ) : null
+            ) : null}
           </div>
         </div>
         <div className="pt-1 pb-6 px-2 flex items-center justify-between">
           <div className="flex items-center justify-center gap-1">
             <label
               className={`cursor-pointer ${
-                isUploading || media ? "cursor-not-allowed opacity-[0.4]" : ""
+                isUploading || media || isUrlEmbed
+                  ? "cursor-not-allowed opacity-[0.4]"
+                  : ""
               }`}
             >
               <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
@@ -704,7 +797,7 @@ const CastInput: FC = memo(() => {
                   multiple
                   className="hidden"
                   onChange={
-                    isUploading || media
+                    isUploading || media || isUrlEmbed
                       ? undefined
                       : (e) => handleMediaChange(e)
                   }
@@ -713,7 +806,9 @@ const CastInput: FC = memo(() => {
             </label>
             <label
               className={`cursor-pointer ${
-                isUploading || media ? "cursor-not-allowed opacity-[0.4]" : ""
+                isUploading || media || isUrlEmbed
+                  ? "cursor-not-allowed opacity-[0.4]"
+                  : ""
               }`}
             >
               <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
@@ -732,7 +827,7 @@ const CastInput: FC = memo(() => {
                   multiple
                   className="hidden"
                   onChange={
-                    isUploading || media
+                    isUploading || media || isUrlEmbed
                       ? undefined
                       : (e) => handleMediaChange(e)
                   }
@@ -741,7 +836,9 @@ const CastInput: FC = memo(() => {
             </label>
             <label
               className={`cursor-pointer ${
-                isUploading || media ? "cursor-not-allowed opacity-[0.4]" : ""
+                isUploading || media || isUrlEmbed
+                  ? "cursor-not-allowed opacity-[0.4]"
+                  : ""
               }`}
             >
               <div className="py-1 px-2 rounded-[18px] bg-[#DDDBDC]">
@@ -759,7 +856,7 @@ const CastInput: FC = memo(() => {
                   accept="audio/*"
                   className="hidden"
                   onChange={
-                    isUploading || media
+                    isUploading || media || isUrlEmbed
                       ? undefined
                       : (e) => handleMediaChange(e)
                   }
@@ -771,12 +868,14 @@ const CastInput: FC = memo(() => {
             className={`py-1 px-2 rounded-[18px] ${
               mintEnabled ? "bg-purple/40" : "bg-[#DDDBDC]"
             } ${
-              !media || isUploading
+              !media || isUploading || isUrlEmbed
                 ? "cursor-not-allowed opacity-[0.4]"
                 : "cursor-pointer"
             }`}
             onClick={
-              media && !isUploading ? () => setOpenMintModal(true) : undefined
+              (media && !isUploading) || isUrlEmbed
+                ? () => setOpenMintModal(true)
+                : undefined
             }
           >
             <img
