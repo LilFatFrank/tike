@@ -8,12 +8,6 @@ export default async function handler(
   if (req.method === "POST") {
     try {
       const url = JSON.parse(req.body).url as string;
-      console.log({
-        url,
-        reqUrl: `https://api.neynar.com/v2/farcaster/frame/crawl?url=${encodeURIComponent(
-          url
-        )}`,
-      });
 
       const resp = await axios.get(
         `https://api.neynar.com/v2/farcaster/frame/crawl?url=${encodeURIComponent(
