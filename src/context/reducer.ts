@@ -1,5 +1,10 @@
 import { Action } from "./action";
-import { SET_USER_CHANNELS, SET_PAGE_NOT_FOUND, SET_ERROR } from "./actions";
+import {
+  SET_USER_CHANNELS,
+  SET_PAGE_NOT_FOUND,
+  SET_ERROR,
+  SET_PIRATE_MODE,
+} from "./actions";
 import State from "./statemodel";
 
 const reducer = (state: State, action: Action): State => {
@@ -18,6 +23,11 @@ const reducer = (state: State, action: Action): State => {
       return {
         ...state,
         appError: action.payload,
+      };
+    case SET_PIRATE_MODE:
+      return {
+        ...state,
+        pirateMode: action.payload,
       };
     default:
       return state;

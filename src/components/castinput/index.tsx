@@ -37,7 +37,11 @@ interface Media {
   file: File;
 }
 
-const CastInput: FC = memo(() => {
+interface CastInput {
+  hideClose?: boolean;
+}
+
+const CastInput: FC<CastInput> = memo(({ hideClose }) => {
   const [text, setText] = useState("");
   const [media, setMedia] = useState<Media | null>(null);
   const [audioThumbnailMedia, setAudioThumbnailMedia] = useState<{
@@ -619,7 +623,7 @@ const CastInput: FC = memo(() => {
           style={{ scrollbarWidth: "none" }}
         >
           <div className="w-full flex items-center justify-between mb-[40px]">
-            <button
+            {hideClose ? <>&nbsp;</> : <button
               className="border-none outline-none rounded-[18px] px-2 py-1 bg-frame-btn-bg"
               onClick={() => router.back()}
             >
@@ -632,7 +636,7 @@ const CastInput: FC = memo(() => {
                 loading="lazy"
                 style={{ aspectRatio: "1 / 1" }}
               />
-            </button>
+            </button>}
             <button
               className="border-none outline-none rounded-[22px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
               disabled={isPostDisabled}
