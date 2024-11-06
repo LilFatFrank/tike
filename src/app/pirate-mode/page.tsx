@@ -53,7 +53,13 @@ const PirateMode = () => {
         <div className="flex items-center justify-center gap-2 overflow-auto">
           <div
             className="py-3 px-2 gap-2 flex flex-col items-center justify-center w-[90px] cursor-pointer"
-            onClick={() => router.push("/")}
+            onClick={() => {
+              router.push("/");
+              dispatch({
+                type: SET_PIRATE_MODE,
+                payload: false,
+              });
+            }}
           >
             <img src="/icons/back-icon.svg" alt="back" width={24} height={24} />
             <p className="font-bold text-[14px] leading-[18px] text-black">

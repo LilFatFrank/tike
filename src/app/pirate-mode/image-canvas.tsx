@@ -28,11 +28,13 @@ const ImageCell = memo(({ image }: { image: Image | null }) => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   if (!image)
-    return <div className="max-md:w-32 max-md:h-32 w-48 h-48 bg-gray-200 rounded-lg flex-shrink-0" />;
+    return (
+      <div className="max-md:w-32 max-md:h-32 w-[300px] h-[300px] bg-gray-200 rounded-lg flex-shrink-0" />
+    );
 
   return (
     <div
-      className="max-md:w-32 max-md:h-32 w-48 h-48 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer"
+      className="max-md:w-32 max-md:h-32 w-[300px] h-[300px] bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer"
       onClick={() => router.push(`/cast/${image.hash}`)}
     >
       <img
@@ -66,6 +68,34 @@ const GridRow = memo(
 
 GridRow.displayName = "GridRow";
 
+const LoadingImageCell = memo(() => (
+  <div className="max-md:w-32 max-md:h-32 w-[300px] h-[300px] bg-gray-200 rounded-lg flex-shrink-0 animate-pulse" />
+));
+
+LoadingImageCell.displayName = "LoadingImageCell";
+
+const LoadingGridRow = memo(({ columns = 10 }: { columns?: number }) => (
+  <div className="flex gap-4 mb-4">
+    {Array.from({ length: columns }).map((_, index) => (
+      <LoadingImageCell key={index} />
+    ))}
+  </div>
+));
+
+LoadingGridRow.displayName = "LoadingGridRow";
+
+const LoadingGrid = memo(
+  ({ rows = 10, columns = 10 }: { rows?: number; columns?: number }) => (
+    <div>
+      {Array.from({ length: rows }).map((_, index) => (
+        <LoadingGridRow key={index} columns={columns} />
+      ))}
+    </div>
+  )
+);
+
+LoadingGrid.displayName = "LoadingGrid";
+
 const ImageCanvas = () => {
   const { user } = useNeynarContext();
   const [imageGrid, setImageGrid] = useState<(Image | null)[][]>([[]]);
@@ -83,20 +113,23 @@ const ImageCanvas = () => {
     overscan: 5,
   });
 
-  const fetchImages = useCallback(async (cursor: string | null, limit: number | null = 25) => {
-    const abortController = new AbortController();
-    const response = await fetch(`/api/images`, {
-      method: "POST",
-      body: JSON.stringify({
-        fid: user?.fid,
-        cursor,
-        limit
-      }),
-      signal: abortController.signal,
-    });
-    const data: ApiResponse = await response.json();
-    return data;
-  }, []);
+  const fetchImages = useCallback(
+    async (cursor: string | null, limit: number | null = 25) => {
+      const abortController = new AbortController();
+      const response = await fetch(`/api/images`, {
+        method: "POST",
+        body: JSON.stringify({
+          fid: user?.fid,
+          cursor,
+          limit,
+        }),
+        signal: abortController.signal,
+      });
+      const data: ApiResponse = await response.json();
+      return data;
+    },
+    []
+  );
 
   const createRow = useCallback((images: Image[], length: number) => {
     return Array(length)
@@ -257,35 +290,40 @@ const ImageCanvas = () => {
         onScroll={handleScroll}
         style={{ scrollbarWidth: "none" }}
       >
-        <div
-          className="inline-block min-w-full min-h-full"
-          style={{
-            height: `${totalHeight}px`,
-            width: "100%",
-            position: "relative",
-          }}
-        >
+        {loading && imageGrid[0].length === 0 ? (
+          // Show loading grid only during initial load
+          <LoadingGrid rows={10} columns={10} />
+        ) : (
           <div
+            className="inline-block min-w-full min-h-full"
             style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
+              height: `${totalHeight}px`,
               width: "100%",
-              transform: `translateY(${paddingTop}px)`,
+              position: "relative",
             }}
           >
-            {virtualRows.map((virtualRow) => {
-              const row = imageGrid[virtualRow.index];
-              return (
-                <GridRow
-                  key={virtualRow.index}
-                  row={row}
-                  rowIndex={virtualRow.index}
-                />
-              );
-            })}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                transform: `translateY(${paddingTop}px)`,
+              }}
+            >
+              {virtualRows.map((virtualRow) => {
+                const row = imageGrid[virtualRow.index];
+                return (
+                  <GridRow
+                    key={virtualRow.index}
+                    row={row}
+                    rowIndex={virtualRow.index}
+                  />
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -30,7 +30,7 @@ const VideoCell = memo(({ video }: { video: Video | null }) => {
 
   if (!video)
     return (
-      <div className="max-md:w-32 max-md:h-32 w-48 h-48 bg-gray-200 rounded-lg flex-shrink-0" />
+      <div className="max-md:w-32 max-md:h-32 w-[300px] h-[300px] bg-gray-200 rounded-lg flex-shrink-0" />
     );
 
   const handleMouseEnter = () => {
@@ -52,7 +52,7 @@ const VideoCell = memo(({ video }: { video: Video | null }) => {
 
   return (
     <div
-      className="max-md:w-32 max-md:h-32 w-48 h-48 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer relative"
+      className="max-md:w-32 max-md:h-32 w-[300px] h-[300px] bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer relative"
       onClick={() => router.push(`/cast/${video.hash}`)}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -97,6 +97,32 @@ const GridRow = memo(
 );
 
 GridRow.displayName = "GridRow";
+
+const LoadingImageCell = memo(() => (
+  <div className="max-md:w-32 max-md:h-32 w-[300px] h-[300px] bg-gray-200 rounded-lg flex-shrink-0 animate-pulse" />
+));
+
+LoadingImageCell.displayName = "LoadingImageCell";
+
+const LoadingGridRow = memo(({ columns = 10 }: { columns?: number }) => (
+  <div className="flex gap-4 mb-4">
+    {Array.from({ length: columns }).map((_, index) => (
+      <LoadingImageCell key={index} />
+    ))}
+  </div>
+));
+
+LoadingGridRow.displayName = "LoadingGridRow";
+
+const LoadingGrid = memo(
+  ({ rows = 10, columns = 10 }: { rows?: number; columns?: number }) => (
+    <div>
+      {Array.from({ length: rows }).map((_, index) => (
+        <LoadingGridRow key={index} columns={columns} />
+      ))}
+    </div>
+  )
+);
 
 const VideoCanvas = () => {
   const { user } = useNeynarContext();
@@ -292,35 +318,40 @@ const VideoCanvas = () => {
         onScroll={handleScroll}
         style={{ scrollbarWidth: "none" }}
       >
-        <div
-          className="inline-block min-w-full min-h-full"
-          style={{
-            height: `${totalHeight}px`,
-            width: "100%",
-            position: "relative",
-          }}
-        >
+        {loading && videoGrid[0].length === 0 ? (
+          // Show loading grid only during initial load
+          <LoadingGrid rows={10} columns={10} />
+        ) : (
           <div
+            className="inline-block min-w-full min-h-full"
             style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
+              height: `${totalHeight}px`,
               width: "100%",
-              transform: `translateY(${paddingTop}px)`,
+              position: "relative",
             }}
           >
-            {virtualRows.map((virtualRow) => {
-              const row = videoGrid[virtualRow.index];
-              return (
-                <GridRow
-                  key={virtualRow.index}
-                  row={row}
-                  rowIndex={virtualRow.index}
-                />
-              );
-            })}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                transform: `translateY(${paddingTop}px)`,
+              }}
+            >
+              {virtualRows.map((virtualRow) => {
+                const row = videoGrid[virtualRow.index];
+                return (
+                  <GridRow
+                    key={virtualRow.index}
+                    row={row}
+                    rowIndex={virtualRow.index}
+                  />
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
