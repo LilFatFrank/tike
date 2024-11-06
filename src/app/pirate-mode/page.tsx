@@ -105,9 +105,16 @@ const PirateMode = () => {
       <Modal
         isOpen={openCastModal}
         closeModal={() => setOpenCastModal(false)}
-        style={{ background: "#F0EEEF", height: "90vh" }}
+        style={{ background: "#F0EEEF", height: "90vh", overflow: "hidden" }}
       >
-        <CastInput hideClose={true} />
+        <CastInput
+          hideClose={true}
+          customWrapperStyle={{
+            width: "100%",
+            height: "100%",
+            minHeight: "auto",
+          }}
+        />
       </Modal>
     </>
   );

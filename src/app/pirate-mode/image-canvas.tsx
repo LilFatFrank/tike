@@ -29,12 +29,12 @@ const ImageCell = memo(({ image }: { image: Image | null }) => {
 
   if (!image)
     return (
-      <div className="max-md:w-32 max-md:h-32 w-[300px] h-[300px] bg-gray-200 rounded-lg flex-shrink-0" />
+      <div className="max-md:w-40 max-md:h-40 w-[300px] h-[300px] bg-gray-200 rounded-lg flex-shrink-0" />
     );
 
   return (
     <div
-      className="max-md:w-32 max-md:h-32 w-[300px] h-[300px] bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer"
+      className="max-md:w-40 max-md:h-40 w-[300px] h-[300px] bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer"
       onClick={() => router.push(`/cast/${image.hash}`)}
     >
       <img
@@ -69,7 +69,7 @@ const GridRow = memo(
 GridRow.displayName = "GridRow";
 
 const LoadingImageCell = memo(() => (
-  <div className="max-md:w-32 max-md:h-32 w-[300px] h-[300px] bg-gray-200 rounded-lg flex-shrink-0 animate-pulse" />
+  <div className="max-md:w-40 max-md:h-40 w-[300px] h-[300px] bg-gray-200 rounded-lg flex-shrink-0 animate-pulse" />
 ));
 
 LoadingImageCell.displayName = "LoadingImageCell";
@@ -130,68 +130,65 @@ const ImageCanvas = () => {
     },
     []
   );
-
+  
+  // Helper function to create a row
   const createRow = useCallback((images: Image[], length: number) => {
-    return Array(length)
-      .fill(null)
-      .map((_, i) => (i < images.length ? images[i] : null));
+    // Always return an array of specified length, filled with null for missing images
+    return Array(length).fill(null).map((_, i) => 
+      i < images.length ? images[i] : null
+    );
   }, []);
 
   const loadMoreImages = useCallback(
     async (direction: "north" | "south" | "east" | "west") => {
       if (loading || !nextCursor) return;
-
+  
       setLoading(true);
       try {
         const data = await fetchImages(nextCursor);
-        const rows = Math.ceil(data.data.length / 5);
-
+        console.log('Fetched images:', data.data.length); // Debug log
+  
         startTransition(() => {
           setImageGrid((prevGrid) => {
             const newGrid = [...prevGrid.map((row) => [...row])];
-
+            
+            // Always create 5 rows, even if some are empty
+            const newRows = Array(5).fill(null).map((_, i) => {
+              const startIndex = i * 5;
+              const rowImages = data.data.slice(startIndex, startIndex + 5);
+              return createRow(rowImages, 5); // This will fill with null for missing images
+            });
+  
+            console.log('Created new rows:', newRows.length); // Debug log
+  
             switch (direction) {
               case "north":
               case "south": {
-                // Create multiple rows from the new data
-                const newRows = [];
-                for (let i = 0; i < rows; i++) {
-                  const startIndex = i * 5;
-                  const rowImages = data.data.slice(startIndex, startIndex + 5);
-                  newRows.push(createRow(rowImages, 5));
-                }
-
-                // Add rows to the appropriate end
+                // Add all 5 rows, even if some are empty
                 return direction === "north"
                   ? [...newRows, ...newGrid]
                   : [...newGrid, ...newRows];
               }
+  
               case "west":
               case "east": {
-                // Create multiple rows from the new data
-                const newRows: any = [];
-                for (let i = 0; i < rows; i++) {
-                  const startIndex = i * 5;
-                  const rowImages = data.data.slice(startIndex, startIndex + 5);
-                  newRows.push(createRow(rowImages, 5));
-                }
-
-                // Add columns to existing rows
-                newGrid.forEach((row, i) => {
-                  const newRowIndex = i % newRows.length;
-                  const newRow = newRows[newRowIndex];
-                  if (direction === "west") {
-                    row.unshift(...newRow);
-                  } else {
-                    row.push(...newRow);
+                // Ensure we're modifying 5 rows
+                for (let i = 0; i < 5; i++) {
+                  if (i < newGrid.length) { // Only if the row exists
+                    const newRow = newRows[i];
+                    if (direction === "west") {
+                      newGrid[i].unshift(...newRow);
+                    } else {
+                      newGrid[i].push(...newRow);
+                    }
                   }
-                });
+                }
                 return newGrid;
               }
             }
             return newGrid;
           });
-
+  
           setNextCursor(data.nextCursor);
         });
       } finally {
