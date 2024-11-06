@@ -21,8 +21,6 @@ export default async function handler(
         }
       );
 
-      console.log(resp.data);
-
       res.status(200).json({ data: resp.data.frame });
     } catch (error: any) {
       console.error("Error processing request:", error);

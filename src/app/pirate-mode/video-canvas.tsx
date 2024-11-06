@@ -146,7 +146,6 @@ const VideoCanvas = () => {
       setLoading(true);
       try {
         const data = await fetchVideos(nextCursor);
-        console.log({ data });
         const rows = Math.ceil(data.data.length / 5);
 
         startTransition(() => {

@@ -24,8 +24,6 @@ export default async function handler(
   try {
     const { fid } = req.query;
 
-    console.log(fid);
-
     // Validate the input data
     if (!fid || Array.isArray(fid)) {
       return res.status(400).json({ error: true, message: 'Valid fid is required' });
