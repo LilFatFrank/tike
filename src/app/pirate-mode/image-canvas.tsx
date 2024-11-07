@@ -146,7 +146,6 @@ const ImageCanvas = () => {
       setLoading(true);
       try {
         const data = await fetchImages(nextCursor);
-        console.log('Fetched images:', data.data.length); // Debug log
   
         startTransition(() => {
           setImageGrid((prevGrid) => {
@@ -158,8 +157,6 @@ const ImageCanvas = () => {
               const rowImages = data.data.slice(startIndex, startIndex + 5);
               return createRow(rowImages, 5); // This will fill with null for missing images
             });
-  
-            console.log('Created new rows:', newRows.length); // Debug log
   
             switch (direction) {
               case "north":
