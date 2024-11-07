@@ -8,6 +8,7 @@ import {
   memo,
   useCallback,
   useMemo,
+  CSSProperties,
 } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import axios from "axios";
@@ -37,7 +38,12 @@ interface Media {
   file: File;
 }
 
-const CastInput: FC = memo(() => {
+interface CastInput {
+  hideClose?: boolean;
+  customWrapperStyle?: CSSProperties;
+}
+
+const CastInput: FC<CastInput> = memo(({ hideClose, customWrapperStyle }) => {
   const [text, setText] = useState("");
   const [media, setMedia] = useState<Media | null>(null);
   const [audioThumbnailMedia, setAudioThumbnailMedia] = useState<{
@@ -485,7 +491,8 @@ const CastInput: FC = memo(() => {
     setIsUploading(true);
     let fileUrl = "";
     try {
-      if (media && !isUrlEmbed) fileUrl = await handleUploadToPinata(media.file);
+      if (media && !isUrlEmbed)
+        fileUrl = await handleUploadToPinata(media.file);
       else fileUrl = text;
       let thumbnailUrl: string | null = null;
       if (audioThumbnailMedia) {
@@ -498,7 +505,11 @@ const CastInput: FC = memo(() => {
           {
             uuid: user?.signer_uuid,
             channelId: selectedChannel,
-            text: isUrlEmbed ? "" : media && media.type === "audio" ? musicTitle : text,
+            text: isUrlEmbed
+              ? ""
+              : media && media.type === "audio"
+              ? musicTitle
+              : text,
             fileUrl,
             thumbnailUrl,
           },
@@ -522,7 +533,15 @@ const CastInput: FC = memo(() => {
       setMedia(null);
       setSelectedChannel("");
     }
-  }, [media, selectedChannel, musicTitle, user?.signer_uuid, router, text, isUrlEmbed]);
+  }, [
+    media,
+    selectedChannel,
+    musicTitle,
+    user?.signer_uuid,
+    router,
+    text,
+    isUrlEmbed,
+  ]);
 
   const fetchUrlMetadata = useCallback(async (url: string) => {
     try {
@@ -613,26 +632,33 @@ const CastInput: FC = memo(() => {
 
   return (
     <>
-      <div className="bg-[#F0EEEF] w-dvw md:w-auto md:min-h-full min-h-dvh h-full flex flex-col">
+      <div
+        className="bg-[#F0EEEF] w-dvw md:w-auto md:min-h-full min-h-dvh h-full flex flex-col"
+        style={customWrapperStyle}
+      >
         <div
           className="h-full p-2 bg-white rounded-[20px] shadow-cast-upload overflow-auto"
           style={{ scrollbarWidth: "none" }}
         >
           <div className="w-full flex items-center justify-between mb-[40px]">
-            <button
-              className="border-none outline-none rounded-[18px] px-2 py-1 bg-frame-btn-bg"
-              onClick={() => router.back()}
-            >
-              <img
-                src="/icons/close-upload-view-icon.svg"
-                alt="close"
-                className="w-8 h-8"
-                width={32}
-                height={32}
-                loading="lazy"
-                style={{ aspectRatio: "1 / 1" }}
-              />
-            </button>
+            {hideClose ? (
+              <>&nbsp;</>
+            ) : (
+              <button
+                className="border-none outline-none rounded-[18px] px-2 py-1 bg-frame-btn-bg"
+                onClick={() => router.back()}
+              >
+                <img
+                  src="/icons/close-upload-view-icon.svg"
+                  alt="close"
+                  className="w-8 h-8"
+                  width={32}
+                  height={32}
+                  loading="lazy"
+                  style={{ aspectRatio: "1 / 1" }}
+                />
+              </button>
+            )}
             <button
               className="border-none outline-none rounded-[22px] px-4 py-2 bg-black text-white leading-[120%] font-medium disabled:bg-black-40 disabled:text-black-50"
               disabled={isPostDisabled}

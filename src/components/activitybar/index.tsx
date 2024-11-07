@@ -156,16 +156,6 @@ const ActivityBar: FC = memo(() => {
           style={{ aspectRatio: "1 / 1" }}
         />
         <div className="flex items-center gap-2">
-          <Link href={"/swap"}>
-            <img
-              src="/icons/swap-icon.svg"
-              alt="back"
-              width={24}
-              height={24}
-              className="cursor-pointer"
-              loading="lazy"
-            />
-          </Link>
           <Link href={"/updates"}>
             <img
               src="/icons/bell-icon.svg"
@@ -175,6 +165,16 @@ const ActivityBar: FC = memo(() => {
               className="cursor-pointer"
               loading="lazy"
               style={{ aspectRatio: "1 / 1" }}
+            />
+          </Link>
+          <Link href={"/pirate-mode"}>
+            <img
+              src="/icons/pirate-mode-icon.svg"
+              alt="pirate-mode"
+              width={24}
+              height={24}
+              className="cursor-pointer"
+              loading="lazy"
             />
           </Link>
         </div>

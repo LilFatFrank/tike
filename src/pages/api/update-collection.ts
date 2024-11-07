@@ -33,8 +33,6 @@ export default async function handler(
     const { fid, ...updateData }: { fid: number } & Partial<UserData> =
       JSON.parse(req.body);
 
-      console.log({ fid, ...updateData })
-
     // Validate the input data
     if (typeof fid !== "number") {
       return res.status(400).json({ message: "Valid fid is required" });

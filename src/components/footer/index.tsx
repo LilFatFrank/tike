@@ -43,7 +43,7 @@ const Footer: FC = () => {
 
   const { user } = useNeynarContext();
 
-  if (!user) return null;
+  if (!user || state.pirateMode) return null;
 
   if (pathname === "/create" || state.pageNotFound) return null;
 

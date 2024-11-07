@@ -21,14 +21,10 @@ export default async function handler(
         }
       );
 
-      console.log(resp.data.result.casts);
-
       const processedObjects =
         resp.data && resp.data.result.casts && resp.data.result.casts.length
           ? await processCasts(resp.data.result.casts)
           : resp.data.casts;
-
-        console.log(processedObjects);
 
       res.status(200).json({
         casts: processedObjects,

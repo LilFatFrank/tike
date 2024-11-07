@@ -1,32 +1,20 @@
 "use client";
-import { useRouter } from "next/navigation";
 import { Widget } from "./widget";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { useAccount, useDisconnect } from "wagmi";
 import { Sidebar } from "@/components";
 import generateColorFromAddress from "@/utils/avatar";
 import { toast } from "sonner";
 
-export default function Home() {
-  const { back } = useRouter();
+export default function Swap() {
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
-  const handleBack = useCallback(() => back(), [back]);
   const [openSidebar, setOpenSidebar] = useState(false);
 
   return (
     <>
       <div className="flex-1 bg-white min-h-full p-5">
-        <div className="w-full flex items-center justify-between">
-          <img
-            src="/icons/back-icon.svg"
-            alt="back"
-            width={24}
-            height={24}
-            className="cursor-pointer"
-            onClick={handleBack}
-            loading="lazy"
-          />
+        <div className="w-full flex items-center justify-end">
           {address ? (
             <div
               className="flex items-center justify-center gap-2 px-2 py-1 hover:bg-purple/20 rounded-[12px] cursor-pointer"

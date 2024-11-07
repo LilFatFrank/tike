@@ -7,12 +7,12 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     try {
-      const url = JSON.parse(req.body).url as string;
+      const cursor = JSON.parse(req.body).cursor as string;
+      const fid = JSON.parse(req.body).fid as string;
+      const limit = JSON.parse(req.body).limit as string;
 
       const resp = await axios.get(
-        `https://api.neynar.com/v2/farcaster/frame/crawl?url=${encodeURIComponent(
-          url
-        )}`,
+        `https://api.neynar.com/v2/farcaster/feed?feed_type=filter&filter_type=embed_types&fid=${fid}&embed_types=video&with_recasts=true&limit=${limit}&cursor=${cursor}`,
         {
           headers: {
             accept: "application/json",
@@ -20,8 +20,12 @@ export default async function handler(
           },
         }
       );
+      const processedObjects = resp.data.casts.map((c: any) => ({url: c.embeds[0].url, hash: c.parent_hash || c.hash }));
 
-      res.status(200).json({ data: resp.data.frame });
+      res.status(200).json({
+        data: processedObjects,
+        nextCursor: resp.data.next.cursor,
+      });
     } catch (error: any) {
       console.error("Error processing request:", error);
       res.status(500).json({ error: error.message });

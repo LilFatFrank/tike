@@ -32,8 +32,6 @@ export default async function handler(
   try {
     const userData: UserData = JSON.parse(req.body);
 
-    console.log(userData);
-
     // Validate the input data
     if (!userData.username || typeof userData.fid !== 'number' || !userData.collection) {
       return res.status(400).json({ message: 'Invalid user data' });

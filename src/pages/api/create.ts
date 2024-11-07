@@ -55,8 +55,6 @@ export default async function handler(
       };
     }
 
-    console.log(body);
-
     const castResponse = await axios.post(url, body, {
       headers: {
         accept: "application/json",

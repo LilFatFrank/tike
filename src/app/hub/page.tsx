@@ -1,4 +1,5 @@
 "use client";
+import Swap from "@/components/swap";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import formatNumber from "@/utils/formatNumber";
 import Link from "next/link";
@@ -21,15 +22,20 @@ const tabs = [
     value: "nfts",
     heading: "Trending mints",
   },
+  {
+    label: "Swap",
+    value: "swap",
+    heading: "",
+  },
 ];
 
 const Hub: FC = memo(() => {
   const [inputSearch, setInputSearch] = useState("");
   const [debouncedInputSearch, setDebouncedInputSearch] = useState("");
   const [changeView, setChangeView] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<"apps" | "tokens" | "nfts">(
-    "apps"
-  );
+  const [selectedTab, setSelectedTab] = useState<
+    "apps" | "tokens" | "nfts" | "swap"
+  >("apps");
   const [topProtocols, setTopProtocols] = useState<
     {
       id: number;
@@ -351,6 +357,8 @@ const Hub: FC = memo(() => {
               />
             ))}
           </div>
+        ) : selectedTab === "swap" ? (
+          <Swap />
         ) : (
           <Virtuoso
             style={{ height: "100dvh", width: "100%", scrollbarWidth: "none" }}
@@ -387,9 +395,7 @@ const Hub: FC = memo(() => {
                 </>
               );
             }}
-            components={{
-
-            }}
+            components={{}}
           />
         )}
       </div>
