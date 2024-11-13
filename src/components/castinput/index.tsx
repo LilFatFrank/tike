@@ -31,6 +31,7 @@ import ConnectWalletModal from "./connect-wallet-modal";
 import MarketCountdownModal from "./market-countdown-modal";
 import MintModal from "./mint-modal";
 import { checkUrlType, containsUrl, getYouTubeVideoId } from "@/utils/text-url";
+import { urlToFile } from "@/utils/extract-image";
 
 interface Media {
   type: "image" | "video" | "audio";
@@ -80,6 +81,7 @@ const CastInput: FC<CastInput> = memo(({ hideClose, customWrapperStyle }) => {
   const [isUrlEmbed, setIsUrlEmbed] = useState(false);
   const [youtubeVideoId, setYoutubeVideoId] = useState<string | null>(null);
   const [frameDet, setFrameDet] = useState<any>();
+  const [loadingAiImage, setLoadingAiImage] = useState<boolean>(false);
 
   const { user } = useNeynarContext();
   const router = useRouter();
@@ -340,6 +342,39 @@ const CastInput: FC<CastInput> = memo(({ hideClose, customWrapperStyle }) => {
       marketCountdown,
     ]
   );
+
+  const generateImageUsingAi = useCallback(async () => {
+    try {
+      setMedia(null);
+      toast.info("Generating Image");
+      setLoadingAiImage(true);
+      const res = await fetch(`/api/generate-image`, {
+        method: "POST",
+        body: JSON.stringify({
+          prompt: text,
+        }),
+      });
+      const data = await res.json();
+      if (data.imageUrl) {
+        const file = await urlToFile(data.imageUrl);
+        setMedia({
+          url: data.imageUrl,
+          file: file,
+          type: "image",
+        });
+        setMintThumbnail({
+          url: data.imageUrl,
+          file: file,
+        });
+        setText("");
+      }
+    } catch (error) {
+      console.log("Error generating image", error);
+      toast.error("Error generating image");
+    } finally {
+      setLoadingAiImage(false);
+    }
+  }, [text]);
 
   const handleMint = useCallback(async () => {
     try {
@@ -796,13 +831,18 @@ const CastInput: FC<CastInput> = memo(({ hideClose, customWrapperStyle }) => {
                 ) : null
               ) : null
             ) : null}
+            {loadingAiImage ? (
+              <>
+                <div className="animate-pulse w-[100%] aspect-square bg-divider rounded-lg"></div>
+              </>
+            ) : null}
           </div>
         </div>
         <div className="pt-1 pb-6 px-2 flex items-center justify-between">
           <div className="flex items-center justify-center gap-1">
             <label
               className={`cursor-pointer ${
-                isUploading || media || isUrlEmbed
+                isUploading || media || isUrlEmbed || loadingAiImage
                   ? "cursor-not-allowed opacity-[0.4]"
                   : ""
               }`}
@@ -823,7 +863,7 @@ const CastInput: FC<CastInput> = memo(({ hideClose, customWrapperStyle }) => {
                   multiple
                   className="hidden"
                   onChange={
-                    isUploading || media || isUrlEmbed
+                    isUploading || media || isUrlEmbed || loadingAiImage
                       ? undefined
                       : (e) => handleMediaChange(e)
                   }
@@ -832,7 +872,7 @@ const CastInput: FC<CastInput> = memo(({ hideClose, customWrapperStyle }) => {
             </label>
             <label
               className={`cursor-pointer ${
-                isUploading || media || isUrlEmbed
+                isUploading || media || isUrlEmbed || loadingAiImage
                   ? "cursor-not-allowed opacity-[0.4]"
                   : ""
               }`}
@@ -853,7 +893,7 @@ const CastInput: FC<CastInput> = memo(({ hideClose, customWrapperStyle }) => {
                   multiple
                   className="hidden"
                   onChange={
-                    isUploading || media || isUrlEmbed
+                    isUploading || media || isUrlEmbed || loadingAiImage
                       ? undefined
                       : (e) => handleMediaChange(e)
                   }
@@ -862,7 +902,7 @@ const CastInput: FC<CastInput> = memo(({ hideClose, customWrapperStyle }) => {
             </label>
             <label
               className={`cursor-pointer ${
-                isUploading || media || isUrlEmbed
+                isUploading || media || isUrlEmbed || loadingAiImage
                   ? "cursor-not-allowed opacity-[0.4]"
                   : ""
               }`}
@@ -882,24 +922,38 @@ const CastInput: FC<CastInput> = memo(({ hideClose, customWrapperStyle }) => {
                   accept="audio/*"
                   className="hidden"
                   onChange={
-                    isUploading || media || isUrlEmbed
+                    isUploading || media || isUrlEmbed || loadingAiImage
                       ? undefined
                       : (e) => handleMediaChange(e)
                   }
                 />
               </div>
             </label>
+            <div
+              className="py-1 px-2 rounded-[18px] bg-[#DDDBDC] cursor-pointer"
+              onClick={generateImageUsingAi}
+            >
+              <img
+                src="/icons/generate-using-ai-icon.svg"
+                alt="generate"
+                className="w-8 h-8"
+                width={32}
+                height={32}
+                loading="lazy"
+                style={{ aspectRatio: "1 / 1" }}
+              />
+            </div>
           </div>
           <div
             className={`py-1 px-2 rounded-[18px] ${
               mintEnabled ? "bg-purple/40" : "bg-[#DDDBDC]"
             } ${
-              !media || isUploading || isUrlEmbed
+              !media || isUploading || isUrlEmbed || loadingAiImage
                 ? "cursor-not-allowed opacity-[0.4]"
                 : "cursor-pointer"
             }`}
             onClick={
-              (media && !isUploading) || isUrlEmbed
+              (media && !isUploading) || isUrlEmbed || loadingAiImage
                 ? () => setOpenMintModal(true)
                 : undefined
             }
