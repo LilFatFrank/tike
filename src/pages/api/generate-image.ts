@@ -1,7 +1,13 @@
 import axios from "axios";
 import { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export const maxDuration = 60;
+export const dynamic = "force-dynamic";
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method === "POST") {
     try {
       const prompt = JSON.parse(req.body).prompt as string;
@@ -12,18 +18,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       const response = await axios.post(
-        'https://api.openai.com/v1/images/generations',
+        "https://api.openai.com/v1/images/generations",
         {
           model: "dall-e-3",
           prompt: prompt,
           n: 1,
-          size: "1024x1024"
+          size: "1024x1024",
         },
         {
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-          }
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          },
         }
       );
 
