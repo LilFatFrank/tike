@@ -62,7 +62,10 @@ const Search: FC = memo(() => {
 
   const fetchTrendingChannels = useCallback(async () => {
     try {
-      const res = await fetch("/api/trending-channels");
+      const controller = new AbortController();
+      const res = await fetch("/api/trending-channels", {
+        signal: controller.signal,
+      });
       const data = await res.json();
       setTrendingChannels(data.channels);
     } catch (error) {
@@ -72,9 +75,11 @@ const Search: FC = memo(() => {
 
   const fetchPowerUsers = useCallback(async () => {
     try {
+      const controller = new AbortController();
       const res = await fetch("/api/power-users", {
         method: "POST",
-        body: JSON.stringify({ viewerFid: user?.fid }),
+        body: JSON.stringify({ viewerFid: user?.fid || 3 }),
+        signal: controller.signal,
       });
       const data = await res.json();
       setPowerUsers(data.users);
@@ -200,38 +205,40 @@ const Search: FC = memo(() => {
   }, [trendingChannels]);
 
   const renderedPowerUsers = useMemo(() => {
-    return powerUsers.map((pu) => (
-      <span
-        onClick={() => router.push(`/profile/${pu.fid}`)}
-        key={pu.fid}
-        className="cursor-pointer"
-      >
-        <div className="flex flex-col items-center w-[90px] gap-[6px]">
-          <img
-            src={pu.pfp_url}
-            alt={pu.username}
-            className={
-              "w-[70px] h-[70px] rounded-full border-none object-cover"
-            }
-            width={70}
-            height={70}
-            loading="lazy"
-            style={{ aspectRatio: "1 / 1" }}
-          />
-          <div className="w-full text-center">
-            <p className="font-bold text-[10px] leading-[120%] text-ellipsis whitespace-nowrap overflow-hidden w-full">
-              {pu.display_name}
-            </p>
-            <p className="text-black-50 text-[6px] text-ellipsis whitespace-nowrap overflow-hidden w-full mb-1">
-              @{pu.username}
-            </p>
-            <p className="font-medium text-[6px]">
-              {formatNumber(pu.follower_count)} followers
-            </p>
-          </div>
-        </div>
-      </span>
-    ));
+    return powerUsers
+      ? powerUsers.map((pu) => (
+          <span
+            onClick={() => router.push(`/profile/${pu.fid}`)}
+            key={pu.fid}
+            className="cursor-pointer"
+          >
+            <div className="flex flex-col items-center w-[90px] gap-[6px]">
+              <img
+                src={pu.pfp_url}
+                alt={pu.username}
+                className={
+                  "w-[70px] h-[70px] rounded-full border-none object-cover"
+                }
+                width={70}
+                height={70}
+                loading="lazy"
+                style={{ aspectRatio: "1 / 1" }}
+              />
+              <div className="w-full text-center">
+                <p className="font-bold text-[10px] leading-[120%] text-ellipsis whitespace-nowrap overflow-hidden w-full">
+                  {pu.display_name}
+                </p>
+                <p className="text-black-50 text-[6px] text-ellipsis whitespace-nowrap overflow-hidden w-full mb-1">
+                  @{pu.username}
+                </p>
+                <p className="font-medium text-[6px]">
+                  {formatNumber(pu.follower_count)} followers
+                </p>
+              </div>
+            </div>
+          </span>
+        ))
+      : [];
   }, [powerUsers]);
 
   const isMobile = useIsMobile();
@@ -340,7 +347,11 @@ const Search: FC = memo(() => {
               </div>
             ) : errorChannels ? null : (
               <Virtuoso
-                style={{ height: "100dvh", width: "100%", scrollbarWidth: "none" }}
+                style={{
+                  height: "100dvh",
+                  width: "100%",
+                  scrollbarWidth: "none",
+                }}
                 data={allChannels}
                 itemContent={(index, channel) => (
                   <ChannelItem
@@ -381,7 +392,7 @@ const Search: FC = memo(() => {
                   </div>
                 </div>
               ) : null}
-              {powerUsers.length ? (
+              {powerUsers && powerUsers.length ? (
                 <div className="w-full flex flex-col items-start justify-start gap-2">
                   <div className="flex items-center gap-[6px]">
                     <img

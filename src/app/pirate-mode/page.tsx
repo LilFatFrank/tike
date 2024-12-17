@@ -6,15 +6,20 @@ import { SET_PIRATE_MODE } from "@/context/actions";
 import VideoCanvas from "./video-canvas";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Modal from "@/components/modal";
-import { CastInput } from "@/components";
+import { CastInput, /* SignInModal */ } from "@/components";
+import { useNeynarContext } from "@neynar/react";
+import SignInModal from "@/components/signinmodal";
 
 const PirateMode = () => {
   const [, dispatch] = useContext(AppContext);
   const router = useRouter();
   const [toggleSwitch, setToggleSwitch] = useState("image");
   const [openCastModal, setOpenCastModal] = useState(false);
+  const [openSignInModal, setOpenSignInModal] = useState(false);
   const searchParams = useSearchParams();
   const pathname = usePathname();
+
+  const { user } = useNeynarContext();
 
   useEffect(() => {
     dispatch({
@@ -82,7 +87,11 @@ const PirateMode = () => {
           </div>
           <div
             className="py-3 px-2 gap-2 flex flex-col items-center justify-center w-[90px] cursor-pointer"
-            onClick={() => setOpenCastModal(true)}
+            onClick={
+              user
+                ? () => setOpenCastModal(true)
+                : () => setOpenSignInModal(true)
+            }
           >
             <img
               src="/icons/create-icon.svg"
@@ -116,6 +125,10 @@ const PirateMode = () => {
           }}
         />
       </Modal>
+      <SignInModal
+        open={openSignInModal}
+        closeModal={() => setOpenSignInModal(false)}
+      />
     </>
   );
 };

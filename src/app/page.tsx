@@ -109,20 +109,25 @@ export default function Home() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteQuery(["casts", { fid: user?.fid || 3, filter }], ({ pageParam, queryKey, signal }) => fetchCasts({ pageParam, queryKey, signal }), {
-    getNextPageParam: (lastPage) => {
-      return lastPage.next?.cursor ?? false;
-    },
-    refetchOnWindowFocus: false,
-    staleTime: 60000,
-    cacheTime: 3600000,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    onError: (error) => {
-      console.error("Error fetching casts:", error);
-      toast.error("Error fetching casts!");
-    },
-  });
+  } = useInfiniteQuery(
+    ["casts", { fid: user?.fid || 3, filter }],
+    ({ pageParam, queryKey, signal }) =>
+      fetchCasts({ pageParam, queryKey, signal }),
+    {
+      getNextPageParam: (lastPage) => {
+        return lastPage.next?.cursor ?? false;
+      },
+      refetchOnWindowFocus: false,
+      staleTime: 60000,
+      cacheTime: 3600000,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      onError: (error) => {
+        console.error("Error fetching casts:", error);
+        toast.error("Error fetching casts!");
+      },
+    }
+  );
 
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -185,7 +190,8 @@ export default function Home() {
           ) : (
             <MemoizedCast cast={cast} key={`cast-${cast.hash}`} />
           )}
-          {index === allCasts.length - 1 ? null : (
+          {index === allCasts.length - 1 ||
+          (cast.embedType === "frame" && !cast.frames) ? null : (
             <hr className="border border-t-divider" />
           )}
         </span>

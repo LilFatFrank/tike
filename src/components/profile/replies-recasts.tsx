@@ -24,7 +24,7 @@ export default function RepliesRecasts({ fid }: { fid: string }) {
     }: {
       pageParam?: string;
       queryKey: any;
-      signal?: AbortSignal
+      signal?: AbortSignal;
     }): Promise<ApiResponse> => {
       const [_key, { fid, viewerFid }] = queryKey;
       const response = await fetch(`/api/replies-recasts`, {
@@ -49,7 +49,8 @@ export default function RepliesRecasts({ fid }: { fid: string }) {
     error,
   } = useInfiniteQuery(
     ["replies-recasts", { fid: fid, viewerFid: user?.fid || 3 }],
-    ({ pageParam, queryKey, signal }) => fetchRepliesRecasts({ pageParam, queryKey, signal }),
+    ({ pageParam, queryKey, signal }) =>
+      fetchRepliesRecasts({ pageParam, queryKey, signal }),
     {
       getNextPageParam: (lastPage) => {
         return lastPage.next?.cursor ?? false;
@@ -115,11 +116,20 @@ export default function RepliesRecasts({ fid }: { fid: string }) {
           className="cursor-pointer"
         >
           {cast.embedType === "frame" ? (
-            <MemoizedFrame frame={cast} key={`cast-${cast.hash}`} style={{ paddingLeft: "0px", paddingRight: "0px" }} />
+            <MemoizedFrame
+              frame={cast}
+              key={`cast-${cast.hash}`}
+              style={{ paddingLeft: "0px", paddingRight: "0px" }}
+            />
           ) : (
-            <MemoizedCast cast={cast} key={`cast-${cast.hash}`} style={{ paddingLeft: "0px", paddingRight: "0px" }} />
+            <MemoizedCast
+              cast={cast}
+              key={`cast-${cast.hash}`}
+              style={{ paddingLeft: "0px", paddingRight: "0px" }}
+            />
           )}
-          {index === allCasts.length - 1 ? null : (
+          {index === allCasts.length - 1 ||
+          (cast.embedType === "frame" && !cast.frames) ? null : (
             <hr className="border border-t-divider" />
           )}
         </span>

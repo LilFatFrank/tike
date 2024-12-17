@@ -10,6 +10,7 @@ import { useInfiniteQuery } from "react-query";
 import { Virtuoso } from "react-virtuoso";
 import ChannelCasts from "./channel-casts";
 import { toast } from "sonner";
+import SignInModal from "@/components/signinmodal";
 
 const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
   const { user } = useNeynarContext();
@@ -17,6 +18,7 @@ const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
   const isMobile = useIsMobile();
   const [openMembersListModal, setOpenMembersListModal] = useState(false);
   const [openFollowersListModal, setOpenFollowersListModal] = useState(false);
+  const [openSignInModal, setOpenSignInModal] = useState(false);
   const [relevantFollowers, setRelevantFollowers] = useState<
     | {
         hydrated: {
@@ -35,7 +37,7 @@ const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
         method: "POST",
         body: JSON.stringify({
           channelId: params.channelId,
-          fid: user?.fid,
+          fid: user?.fid || 3,
         }),
       });
       const data = await response.json();
@@ -89,9 +91,10 @@ const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
   } = useInfiniteQuery(
     [
       "channel-followers",
-      { channelId: params.channelId, viewerFid: user?.fid },
+      { channelId: params.channelId, viewerFid: user?.fid || 3 },
     ],
-    ({ pageParam, queryKey, signal }) => fetchChannelFollowers({ pageParam, queryKey, signal }),
+    ({ pageParam, queryKey, signal }) =>
+      fetchChannelFollowers({ pageParam, queryKey, signal }),
     {
       getNextPageParam: (lastPage) => lastPage.next?.cursor ?? false,
       refetchOnWindowFocus: false,
@@ -102,7 +105,7 @@ const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
       onError: (error) => {
         console.log("Error fetching followers:", error);
         toast.error("Error fetching followers!");
-      }
+      },
     }
   );
 
@@ -151,7 +154,8 @@ const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
     isFetchingNextPage: isFetchingNextMembers,
   } = useInfiniteQuery(
     ["channel-members", { channelId: params.channelId }],
-    ({ pageParam, queryKey, signal }) => fetchChannelMembers({ pageParam, queryKey, signal }),
+    ({ pageParam, queryKey, signal }) =>
+      fetchChannelMembers({ pageParam, queryKey, signal }),
     {
       getNextPageParam: (lastPage) => lastPage.next?.cursor ?? false,
       refetchOnWindowFocus: false,
@@ -162,7 +166,7 @@ const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
       onError: (error) => {
         console.log("Error fetching members:", error);
         toast.error("Error fetching members!");
-      }
+      },
     }
   );
 
@@ -316,7 +320,7 @@ const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
         method: "POST",
         body: JSON.stringify({
           channelId: params.channelId,
-          viewerFid: user?.fid,
+          viewerFid: user?.fid || 3,
         }),
       });
       const data = await res.json();
@@ -416,15 +420,41 @@ const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
                 loading="lazy"
               />
               <div className="flex justify-end gap-2 items-center">
-                {channelPro?.viewer_context?.following ? (
-                  <ProfileButton onClick={unfollowChannel}>
-                    Unfollow
-                  </ProfileButton>
-                ) : !channelPro?.viewer_context?.following ? (
-                  <ProfileButton buttonType="alternate" onClick={followChannel}>
+                {user ? (
+                  channelPro?.viewer_context?.following ? (
+                    <ProfileButton
+                      onClick={
+                        !user
+                          ? () => setOpenSignInModal(true)
+                          : () => unfollowChannel()
+                      }
+                    >
+                      Unfollow
+                    </ProfileButton>
+                  ) : !channelPro?.viewer_context?.following ? (
+                    <ProfileButton
+                      buttonType="alternate"
+                      onClick={
+                        !user
+                          ? () => setOpenSignInModal(true)
+                          : () => followChannel()
+                      }
+                    >
+                      Follow
+                    </ProfileButton>
+                  ) : null
+                ) : (
+                  <ProfileButton
+                    buttonType="alternate"
+                    onClick={
+                      !user
+                        ? () => setOpenSignInModal(true)
+                        : () => followChannel()
+                    }
+                  >
                     Follow
                   </ProfileButton>
-                ) : null}
+                )}
               </div>
               <div className="flex flex-col items-start justify-start gap-3 py-[12px]">
                 <div className="flex flex-col items-start gap-[2px]">
@@ -535,6 +565,10 @@ const Channel: FC<{ params: { channelId: string } }> = memo(({ params }) => {
           />
         </div>
       </Modal>
+      <SignInModal
+        open={openSignInModal}
+        closeModal={() => setOpenSignInModal(false)}
+      />
     </>
   );
 });

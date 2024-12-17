@@ -129,7 +129,8 @@ export default function ProfileCasts({ fid }: { fid: string }) {
               style={{ paddingLeft: "0px", paddingRight: "0px" }}
             />
           )}
-          {index === allCasts.length - 1 ? null : (
+          {index === allCasts.length - 1 ||
+          (cast.embedType === "frame" && !cast.frames) ? null : (
             <hr className="border border-t-divider" />
           )}
         </span>

@@ -112,7 +112,7 @@ const Page: FC<{ params: { hash: string } }> = memo(({ params }) => {
         method: "POST",
         body: JSON.stringify({
           hash: params.hash,
-          fid: user?.fid,
+          fid: user?.fid || 3,
         }),
       });
       const data = await resp.json();

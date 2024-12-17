@@ -9,22 +9,22 @@ export default async function handler(
     try {
       const cursor = JSON.parse(req.body).cursor as string;
       const fid = JSON.parse(req.body).fid as string;
+      const limit = JSON.parse(req.body).limit as string;
 
       const resp = await axios.get(
-        `https://api.neynar.com/v2/farcaster/feed/frames?limit=25&viewer_fid=${fid}${
-          cursor ? `&cursor=${cursor}` : ""
-        }`,
+        `https://api.neynar.com/v2/farcaster/feed?feed_type=filter&filter_type=embed_types&fid=${fid}&embed_types=audio&with_recasts=true&limit=${limit}&cursor=${cursor}`,
         {
           headers: {
             accept: "application/json",
-            'api_key': process.env.NEYNAR_API_KEY,
+            api_key: process.env.NEYNAR_API_KEY,
           },
         }
       );
+      const processedObjects = resp.data.casts.map((c: any) => ({url: c.embeds[0].url, hash: c.parent_hash || c.hash }));
 
       res.status(200).json({
-        casts: resp.data.casts,
-        next: { cursor: resp.data.next.cursor },
+        data: processedObjects,
+        nextCursor: resp.data.next.cursor,
       });
     } catch (error: any) {
       console.error("Error processing request:", error);

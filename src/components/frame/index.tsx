@@ -26,6 +26,7 @@ import {
   useSwitchChain,
 } from "wagmi";
 import { coinbaseWallet } from "wagmi/connectors";
+import SignInModal from "../signinmodal";
 
 interface Frame {
   frame: any;
@@ -73,9 +74,14 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
   const [frameDet, setFrameDet] = useState<any>();
   const [inputText, setInputText] = useState("");
   const [loadingFrameInteraction, setLoadingFrameInteraction] = useState(false);
+  const [openSignInModal, setOpenSignInModal] = useState(false);
 
   const frameInteraction = useCallback(
     async (value: any) => {
+      if (!user) {
+        setOpenSignInModal(true);
+        return;
+      }
       setLoadingFrameInteraction(true);
       try {
         switch (value.action_type) {
@@ -155,9 +161,10 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
               });
             } else {
               if (
-                address && isConnected &&
+                address &&
+                isConnected &&
                 chain !==
-                Number(data.transaction_calldata.chainId.split(":")[1])
+                  Number(data.transaction_calldata.chainId.split(":")[1])
               ) {
                 await switchChainAsync({
                   chainId: Number(
@@ -391,7 +398,6 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
 
   const handlePost = useCallback(async () => {
     setIsUploading(true);
-
     try {
       let fileUrl: string | null = null;
       if (media) fileUrl = await handleUploadToPinata(media.file);
@@ -479,7 +485,7 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
         </div>
       </div>
     </>
-  ) : (
+  ) : frameDet?.frames ? (
     <>
       <div className="w-full px-[16px] py-[20px]" style={{ ...style }}>
         <div className="flex items-center justify-between w-full">
@@ -683,9 +689,11 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                likeOperation(
-                  frameDet?.viewer_context?.liked ? "delete" : "post"
-                );
+                user
+                  ? likeOperation(
+                      frameDet?.viewer_context?.liked ? "delete" : "post"
+                    )
+                  : setOpenSignInModal(true);
               }}
             >
               <img
@@ -709,7 +717,7 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                setOpenCommentModal(true);
+                user ? setOpenCommentModal(true) : setOpenSignInModal(true);
               }}
             >
               <img
@@ -729,9 +737,11 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                recastOperation(
-                  frameDet?.viewer_context?.recasted ? "delete" : "post"
-                );
+                user
+                  ? recastOperation(
+                      frameDet?.viewer_context?.recasted ? "delete" : "post"
+                    )
+                  : setOpenSignInModal(true);
               }}
             >
               <img
@@ -815,8 +825,12 @@ const Frame: FC<Frame> = memo(({ frame, style, type }) => {
         isAudioPlaying={isAudioPlaying}
         togglePlayPause={togglePlayPause}
       />
+      <SignInModal
+        open={openSignInModal}
+        closeModal={() => setOpenSignInModal(false)}
+      />
     </>
-  );
+  ) : null;
 });
 
 export default Frame;
