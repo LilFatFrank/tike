@@ -1,5 +1,14 @@
 "use client";
-import { useCallback, useContext, useEffect, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import ImageCanvas from "./image-canvas";
 import { AppContext } from "@/context";
 import { SET_PIRATE_MODE } from "@/context/actions";
@@ -7,14 +16,68 @@ import VideoCanvas from "./video-canvas";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Modal from "@/components/modal";
 import { CastInput } from "@/components";
+import { useNeynarContext } from "@neynar/react";
+import SignInModal from "@/components/signinmodal";
+
+interface SearchParamsHandlers {
+  handleToggleClick: () => void;
+  handleToggleSwitch: (newValue: string) => void;
+}
+
+const SearchParamsWrapper = forwardRef<
+  SearchParamsHandlers,
+  { onToggleSwitch: (newValue: string) => void }
+>(({ onToggleSwitch }, ref) => {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const handleToggleSwitch = useCallback(
+    (newValue: string) => {
+      const params = new URLSearchParams(window.location.search);
+      params.set("target", newValue);
+      onToggleSwitch(newValue);
+      router.push(`${pathname}?${params.toString()}`);
+    },
+    [router, pathname, onToggleSwitch]
+  );
+
+  const handleToggleClick = useCallback(() => {
+    const currentTarget = searchParams?.get("target") ?? "image";
+    handleToggleSwitch(currentTarget === "image" ? "video" : "image");
+  }, [searchParams, handleToggleSwitch]);
+
+  useEffect(() => {
+    if (searchParams?.has("target")) {
+      handleToggleSwitch(searchParams?.get("target") ?? "image");
+    } else {
+      handleToggleSwitch("image");
+    }
+  }, [searchParams, handleToggleSwitch]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      handleToggleClick,
+      handleToggleSwitch,
+    }),
+    [handleToggleClick, handleToggleSwitch]
+  );
+
+  return null; // Return null since we don't need to render anything
+});
+
+SearchParamsWrapper.displayName = "SearchParamsWrapper";
 
 const PirateMode = () => {
   const [, dispatch] = useContext(AppContext);
   const router = useRouter();
   const [toggleSwitch, setToggleSwitch] = useState("image");
   const [openCastModal, setOpenCastModal] = useState(false);
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
+  const [openSignInModal, setOpenSignInModal] = useState(false);
+  const { user } = useNeynarContext();
+
+  const handlersRef = useRef<SearchParamsHandlers | null>(null);
 
   useEffect(() => {
     dispatch({
@@ -29,32 +92,21 @@ const PirateMode = () => {
     };
   }, [dispatch]);
 
-  const handleToggleClick = useCallback(() => {
-    handleToggleSwitch(
-      searchParams?.has("target") && searchParams?.get("target") === "image"
-        ? "video"
-        : "image"
-    );
-  }, [searchParams]);
-
-  const handleToggleSwitch = (newValue: string) => {
-    const params = new URLSearchParams(window.location.search);
-    params.set("target", newValue);
+  const handleToggleSwitch = useCallback((newValue: string) => {
     setToggleSwitch(newValue);
-    router.push(`${pathname}?${params.toString()}`);
-  };
-
-  useEffect(() => {
-    if (searchParams?.has("target")) {
-      handleToggleSwitch(searchParams?.get("target") ?? "image");
-    } else {
-      handleToggleSwitch("image");
-    }
-  }, [searchParams]);
+  }, []);
 
   return (
     <>
+      <Suspense fallback={null}>
+        <SearchParamsWrapper
+          onToggleSwitch={handleToggleSwitch}
+          ref={handlersRef}
+        />
+      </Suspense>
+
       {toggleSwitch === "image" ? <ImageCanvas /> : <VideoCanvas />}
+
       <div className="fixed bottom-0 left-0 z-[1] flex items-center justify-center bg-white/40 backdrop-blur-md w-full">
         <div className="flex items-center justify-center gap-2 overflow-auto">
           <div
@@ -66,9 +118,10 @@ const PirateMode = () => {
               Back
             </p>
           </div>
+
           <div
             className="py-3 px-2 gap-2 flex flex-col items-center justify-center w-[90px] cursor-pointer"
-            onClick={() => handleToggleClick()}
+            onClick={() => handlersRef.current?.handleToggleClick()}
           >
             <img
               src="/icons/switch-icon.svg"
@@ -80,9 +133,14 @@ const PirateMode = () => {
               Switch
             </p>
           </div>
+
           <div
             className="py-3 px-2 gap-2 flex flex-col items-center justify-center w-[90px] cursor-pointer"
-            onClick={() => setOpenCastModal(true)}
+            onClick={
+              user
+                ? () => setOpenCastModal(true)
+                : () => setOpenSignInModal(true)
+            }
           >
             <img
               src="/icons/create-icon.svg"
@@ -94,14 +152,9 @@ const PirateMode = () => {
               Create
             </p>
           </div>
-          {/* <div className="py-3 px-2 gap-2 flex flex-col items-center justify-center w-[90px] cursor-pointer">
-            <img src="/icons/chat-icon.svg" alt="chat" width={24} height={24} />
-            <p className="font-bold text-[14px] leading-[18px] text-black">
-              Chat
-            </p>
-          </div> */}
         </div>
       </div>
+
       <Modal
         isOpen={openCastModal}
         closeModal={() => setOpenCastModal(false)}
@@ -116,6 +169,11 @@ const PirateMode = () => {
           }}
         />
       </Modal>
+
+      <SignInModal
+        open={openSignInModal}
+        closeModal={() => setOpenSignInModal(false)}
+      />
     </>
   );
 };

@@ -66,7 +66,7 @@ const Frames: FC = memo(() => {
       onError: (error) => {
         console.log("Error fetching channels:", error);
         toast.error("Error fetching channels!");
-      }
+      },
     }
   );
 
@@ -123,7 +123,7 @@ const Frames: FC = memo(() => {
       onError: (error) => {
         console.log("Error fetching frames:", error);
         toast.error("Error fetching frames!");
-      }
+      },
     }
   );
 
@@ -150,7 +150,8 @@ const Frames: FC = memo(() => {
           className="cursor-pointer"
         >
           {<MemoizedFrame frame={cast} key={`cast-${cast.hash}`} />}
-          {index === allFrames.length - 1 ? null : (
+          {index === allFrames.length - 1 ||
+          (!cast.frames) ? null : (
             <hr className="border border-t-divider" />
           )}
         </span>

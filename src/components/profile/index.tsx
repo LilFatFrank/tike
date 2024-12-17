@@ -11,6 +11,8 @@ import ProfileCasts from "./profile-casts";
 import RepliesRecasts from "./replies-recasts";
 import MediaCasts from "./media-casts";
 import Created from "./created-art";
+import { useRouter } from "next/navigation";
+import SignInModal from "../signinmodal";
 
 const tabs = [
   {
@@ -48,6 +50,8 @@ const Profile: FC<Profile> = memo(({ fid }) => {
   const [userPro, setUserPro] = useState<IUser>();
   const [errorPro, setErrorPro] = useState(false);
   const [loadingPro, setLoadingPro] = useState(false);
+  const [openSignInModal, setOpenSignInModal] = useState(false);
+  const router = useRouter();
 
   const handleTabChange = useCallback((tab: typeof selectedTab) => {
     setSelectedTab(tab);
@@ -71,7 +75,7 @@ const Profile: FC<Profile> = memo(({ fid }) => {
         method: "POST",
         body: JSON.stringify({
           fid,
-          viewerFid: user?.fid,
+          viewerFid: user?.fid || 3,
         }),
       });
       const data = await res.json();
@@ -119,8 +123,10 @@ const Profile: FC<Profile> = memo(({ fid }) => {
   };
 
   useEffect(() => {
-    if (user) fetchUserProfile();
-  }, [user]);
+    if (user || fid) fetchUserProfile();
+  }, [user, fid]);
+
+  // if (!user) return <></>;
 
   return (
     <>
@@ -159,20 +165,50 @@ const Profile: FC<Profile> = memo(({ fid }) => {
                 style={{ aspectRatio: "1/1" }}
               />
               <div className="flex justify-end gap-2 items-center">
-                {user?.fid === Number(fid) ? (
+                {user ? (
+                  user?.fid === Number(fid) ? (
+                    <ProfileButton
+                      onClick={
+                        user
+                          ? () => setOpenEditProfile(true)
+                          : () => setOpenSignInModal(true)
+                      }
+                      buttonType="edit"
+                    >
+                      Edit Profile
+                    </ProfileButton>
+                  ) : userPro?.viewer_context?.following ? (
+                    <ProfileButton
+                      onClick={
+                        user
+                          ? () => unfollowUser()
+                          : () => setOpenSignInModal(true)
+                      }
+                    >
+                      Unfollow
+                    </ProfileButton>
+                  ) : !userPro?.viewer_context?.following ? (
+                    <ProfileButton
+                      buttonType="alternate"
+                      onClick={
+                        user
+                          ? () => followUser()
+                          : () => setOpenSignInModal(true)
+                      }
+                    >
+                      Follow
+                    </ProfileButton>
+                  ) : null
+                ) : (
                   <ProfileButton
-                    onClick={() => setOpenEditProfile(true)}
-                    buttonType="edit"
+                    buttonType="alternate"
+                    onClick={
+                      user ? () => followUser() : () => setOpenSignInModal(true)
+                    }
                   >
-                    Edit Profile
-                  </ProfileButton>
-                ) : userPro?.viewer_context?.following ? (
-                  <ProfileButton onClick={unfollowUser}>Unfollow</ProfileButton>
-                ) : !userPro?.viewer_context?.following ? (
-                  <ProfileButton buttonType="alternate" onClick={followUser}>
                     Follow
                   </ProfileButton>
-                ) : null}
+                )}
                 {user?.fid === Number(fid) ? (
                   <>
                     <div className="relative">
@@ -234,6 +270,7 @@ const Profile: FC<Profile> = memo(({ fid }) => {
                               e.stopPropagation();
                               e.preventDefault();
                               setProfileOptionType("log-out");
+                              router.replace("/");
                               logoutUser();
                             }}
                           >
@@ -260,7 +297,7 @@ const Profile: FC<Profile> = memo(({ fid }) => {
                   </p>
                   <p className="font-medium text-[15px] leading-[auto] text-black-50 flex items-center gap-1">
                     @{userPro?.username}
-                    {userPro?.viewer_context?.followed_by ? (
+                    {user && userPro?.viewer_context?.followed_by ? (
                       <>
                         <div className="py-[2px] px-1 rounded-md bg-frame-btn-bg">
                           <p className="text-black-60 text-[10px]">
@@ -310,14 +347,14 @@ const Profile: FC<Profile> = memo(({ fid }) => {
                   </p>
                 ))}
               </div>
-              {selectedTab === "casts" ? (
+              {fid && selectedTab === "casts" ? (
                 <ProfileCasts fid={fid.toString()} />
               ) : selectedTab === "media" ? (
                 <MediaCasts fid={fid.toString()} />
               ) : selectedTab === "recasts_replies" ? (
                 <RepliesRecasts fid={fid.toString()} />
               ) : selectedTab === "created" ? (
-                <Created fid={fid.toString()}  />
+                <Created fid={fid.toString()} />
               ) : null}
             </>
           )}
@@ -331,6 +368,10 @@ const Profile: FC<Profile> = memo(({ fid }) => {
         refetch={() => {
           fetchUserProfile();
         }}
+      />
+      <SignInModal
+        open={openSignInModal}
+        closeModal={() => setOpenSignInModal(false)}
       />
     </>
   );

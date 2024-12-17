@@ -19,6 +19,7 @@ import EmbedRenderer from "../embedrenderer";
 import { useRouter } from "next/navigation";
 import MusicUploadModal from "./musicuploadmodal";
 import CommentModal from "./commentmodal";
+import SignInModal from "../signinmodal";
 
 interface Cast {
   cast: any;
@@ -49,6 +50,7 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
     "video" | "image" | "music"
   >("video");
   const [openMusicUploadModal, setOpenMusicUploadModal] = useState(false);
+  const [openSignInModal, setOpenSignInModal] = useState(false);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [currentAudioTime, setCurrentAudioTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
@@ -62,6 +64,10 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
 
   const postReaction = useCallback(
     async (type: "like" | "recast") => {
+      if (!user) {
+        setOpenSignInModal(true);
+        return;
+      }
       const res = await fetch(`/api/post-reaction`, {
         method: "POST",
         body: JSON.stringify({
@@ -461,9 +467,11 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                likeOperation(
-                  castDet?.viewer_context?.liked ? "delete" : "post"
-                );
+                user
+                  ? likeOperation(
+                      castDet?.viewer_context?.liked ? "delete" : "post"
+                    )
+                  : setOpenSignInModal(true);
               }}
             >
               <img
@@ -487,7 +495,7 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                setOpenCommentModal(true);
+                user ? setOpenCommentModal(true) : setOpenSignInModal(true);
               }}
             >
               <img
@@ -507,9 +515,11 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                recastOperation(
-                  castDet?.viewer_context?.recasted ? "delete" : "post"
-                );
+                user
+                  ? recastOperation(
+                      castDet?.viewer_context?.recasted ? "delete" : "post"
+                    )
+                  : setOpenSignInModal(true);
               }}
             >
               <img
@@ -592,6 +602,10 @@ const Cast: FC<Cast> = memo(({ cast, style, type }) => {
         audioProgressWidth={audioProgressWidth}
         isAudioPlaying={isAudioPlaying}
         togglePlayPause={togglePlayPause}
+      />
+      <SignInModal
+        open={openSignInModal}
+        closeModal={() => setOpenSignInModal(false)}
       />
     </>
   );

@@ -35,7 +35,7 @@ export default async function handler(
 
       res.status(200).json({ imageUrl: response.data.data[0].url });
     } catch (error: any) {
-      console.error("Error processing request:", error);
+      console.error("Error processing request:", error, error.data);
       res.status(500).json({ error: error.message });
     }
   } else {

@@ -1,7 +1,6 @@
 "use client";
 import { useNeynarContext } from "@neynar/react";
 import { FC, memo, ReactNode } from "react";
-import SignIn from "../signin";
 import RadioPlayer from "../radio-player";
 import BackgroundImage from "../backgroundimage";
 
@@ -15,7 +14,7 @@ const Platform: FC<Platform> = memo(({ children }) => {
   return (
     <>
       <BackgroundImage />
-      {!user ? <SignIn /> : children}
+      {children}
       <div className="hidden xl:block">
         <RadioPlayer />
       </div>

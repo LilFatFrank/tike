@@ -50,7 +50,8 @@ export default function ChannelCasts({ channelId }: { channelId: string }) {
     error,
   } = useInfiniteQuery(
     ["channel-casts", { channelId, viewerFid: user?.fid || 3 }],
-    ({ pageParam, queryKey, signal }) => fetchChannelCasts({ pageParam, queryKey, signal }),
+    ({ pageParam, queryKey, signal }) =>
+      fetchChannelCasts({ pageParam, queryKey, signal }),
     {
       getNextPageParam: (lastPage) => {
         return lastPage.next?.cursor ?? false;
@@ -116,11 +117,20 @@ export default function ChannelCasts({ channelId }: { channelId: string }) {
           className="cursor-pointer"
         >
           {cast.embedType === "frame" ? (
-            <MemoizedFrame frame={cast} key={`cast-${cast.hash}`} style={{ paddingLeft: "0px", paddingRight: "0px" }} />
+            <MemoizedFrame
+              frame={cast}
+              key={`cast-${cast.hash}`}
+              style={{ paddingLeft: "0px", paddingRight: "0px" }}
+            />
           ) : (
-            <MemoizedCast cast={cast} key={`cast-${cast.hash}`} style={{ paddingLeft: "0px", paddingRight: "0px" }} />
+            <MemoizedCast
+              cast={cast}
+              key={`cast-${cast.hash}`}
+              style={{ paddingLeft: "0px", paddingRight: "0px" }}
+            />
           )}
-          {index === allCasts.length - 1 ? null : (
+          {index === allCasts.length - 1 ||
+          (cast.embedType === "frame" && !cast.frames) ? null : (
             <hr className="border border-t-divider" />
           )}
         </span>

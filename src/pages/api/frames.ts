@@ -11,11 +11,13 @@ export default async function handler(
       const fid = JSON.parse(req.body).fid as string;
 
       const resp = await axios.get(
-        `https://api.neynar.com/v2/farcaster/feed/frames?limit=25&viewer_fid=${fid}&cursor=${cursor}`,
+        `https://api.neynar.com/v2/farcaster/feed/frames?limit=25&viewer_fid=${fid}${
+          cursor ? `&cursor=${cursor}` : ""
+        }`,
         {
           headers: {
             accept: "application/json",
-            api_key: process.env.NEYNAR_API_KEY,
+            'api_key': process.env.NEYNAR_API_KEY,
           },
         }
       );

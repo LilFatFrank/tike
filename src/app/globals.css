@@ -28,13 +28,13 @@ body {
 
 @layer components {
   .login-btn {
-    @apply flex items-center justify-center gap-2 text-[20px] leading-[24px] py-4 px-[30px] w-full rounded-[100px];
+    @apply flex items-center justify-center gap-2 text-[20px] leading-[24px] py-4 px-[30px] w-full rounded-[100px] bg-[#0865FE33] border border-[#0865FE];
   }
   .login-btn svg {
     @apply w-6 h-6 text-white;
   }
   .login-btn span {
-    @apply text-white;
+    @apply text-[#0865FE];
   }
 
   .frame-btn {

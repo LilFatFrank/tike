@@ -7,11 +7,15 @@ import {
   useMemo,
   useRef,
   useState,
+  forwardRef,
+  useImperativeHandle,
+  Suspense,
 } from "react";
 import Sidebar from "../sidebar";
 import Link from "next/link";
 import { useNeynarContext } from "@neynar/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import SignInModal from "../signinmodal";
 
 const filterItems = [
   { name: "Image", param: "image", path: "?filter=image" },
@@ -57,6 +61,35 @@ const FilterItem = memo(
   )
 );
 
+interface SearchParamsHandlers {
+  setFilterFromParams: (filter: "video" | "image" | "audio" | "frame" | null) => void;
+}
+
+const SearchParamsWrapper = forwardRef<
+  SearchParamsHandlers,
+  { onFilterChange: (filter: "video" | "image" | "audio" | "frame" | null) => void }
+>(({ onFilterChange }, ref) => {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (pathname === "/") {
+      onFilterChange(searchParams?.get("filter") as "video" | "image" | "audio" | null);
+    }
+    if (pathname === "/frames") {
+      onFilterChange("frame");
+    }
+  }, [searchParams, pathname, onFilterChange]);
+
+  useImperativeHandle(ref, () => ({
+    setFilterFromParams: onFilterChange
+  }), [onFilterChange]);
+
+  return null;
+});
+
+SearchParamsWrapper.displayName = 'SearchParamsWrapper';
+
 const ActivityBar: FC = memo(() => {
   const { user } = useNeynarContext();
 
@@ -64,6 +97,7 @@ const ActivityBar: FC = memo(() => {
   const [loadingChannels, setLoadingChannels] = useState(false);
   const [channels, setChannels] = useState<any[]>([]);
   const [errorChannels, setErrorChannels] = useState(false);
+  const [openSignInModal, setOpenSignInModal] = useState(false);
   const [filter, setFilter] = useState<
     null | "video" | "image" | "audio" | "frame"
   >(null);
@@ -71,8 +105,7 @@ const ActivityBar: FC = memo(() => {
   const called = useRef<boolean>(false);
 
   const { push } = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParamsRef = useRef<SearchParamsHandlers>(null);
 
   const fetchAllChannels = useCallback(async () => {
     try {
@@ -96,6 +129,10 @@ const ActivityBar: FC = memo(() => {
 
   const handleSidebarOpen = useCallback(() => setOpenSidebar(true), []);
   const handleSidebarClose = useCallback(() => setOpenSidebar(false), []);
+
+  const handleFilterChange = useCallback((newFilter: typeof filter) => {
+    setFilter(newFilter);
+  }, []);
 
   const renderedChannels = useMemo(
     () =>
@@ -129,17 +166,15 @@ const ActivityBar: FC = memo(() => {
     if (!called.current && user?.fid) fetchAllChannels();
   }, [called.current, user?.fid]);
 
-  useEffect(() => {
-    if (pathname === "/") {
-      setFilter(searchParams?.get("filter") as typeof filter);
-    }
-    if (pathname === "/frames") {
-      setFilter("frame");
-    }
-  }, [searchParams, pathname]);
-
   return (
     <>
+      <Suspense fallback={null}>
+        <SearchParamsWrapper 
+          ref={searchParamsRef}
+          onFilterChange={handleFilterChange}
+        />
+      </Suspense>
+
       <div
         className={`w-full py-3 px-4 flex items-center justify-between ${
           openSidebar ? "invisible" : ""
@@ -156,17 +191,34 @@ const ActivityBar: FC = memo(() => {
           style={{ aspectRatio: "1 / 1" }}
         />
         <div className="flex items-center gap-2">
-          <Link href={"/updates"}>
-            <img
-              src="/icons/bell-icon.svg"
-              alt="bell"
-              width={32}
-              height={32}
+          {user ? (
+            <Link href={"/updates"}>
+              <img
+                src="/icons/bell-icon.svg"
+                alt="bell"
+                width={32}
+                height={32}
+                className="cursor-pointer"
+                loading="lazy"
+                style={{ aspectRatio: "1 / 1" }}
+              />
+            </Link>
+          ) : (
+            <span
               className="cursor-pointer"
-              loading="lazy"
-              style={{ aspectRatio: "1 / 1" }}
-            />
-          </Link>
+              onClick={() => setOpenSignInModal(true)}
+            >
+              <img
+                src="/icons/bell-icon.svg"
+                alt="bell"
+                width={32}
+                height={32}
+                className="cursor-pointer"
+                loading="lazy"
+                style={{ aspectRatio: "1 / 1" }}
+              />
+            </span>
+          )}
           <Link href={"/pirate-mode"}>
             <img
               src="/icons/pirate-mode-icon.svg"
@@ -234,7 +286,9 @@ const ActivityBar: FC = memo(() => {
               />
             ))}
           </div>
-          {loadingChannels || errorChannels ? null : (
+          {loadingChannels ||
+          errorChannels ||
+          renderedChannels.length === 0 ? null : (
             <div className="py-[10px] px-4">
               <p className="text-black/50 text-[14px] font-medium leading-[22px] mb-1">
                 Channel
@@ -244,6 +298,10 @@ const ActivityBar: FC = memo(() => {
           )}
         </div>
       </Sidebar>
+      <SignInModal
+        open={openSignInModal}
+        closeModal={() => setOpenSignInModal(false)}
+      />
     </>
   );
 });
