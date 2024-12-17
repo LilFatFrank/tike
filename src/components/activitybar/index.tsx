@@ -7,6 +7,9 @@ import {
   useMemo,
   useRef,
   useState,
+  forwardRef,
+  useImperativeHandle,
+  Suspense,
 } from "react";
 import Sidebar from "../sidebar";
 import Link from "next/link";
@@ -58,6 +61,35 @@ const FilterItem = memo(
   )
 );
 
+interface SearchParamsHandlers {
+  setFilterFromParams: (filter: "video" | "image" | "audio" | "frame" | null) => void;
+}
+
+const SearchParamsWrapper = forwardRef<
+  SearchParamsHandlers,
+  { onFilterChange: (filter: "video" | "image" | "audio" | "frame" | null) => void }
+>(({ onFilterChange }, ref) => {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (pathname === "/") {
+      onFilterChange(searchParams?.get("filter") as "video" | "image" | "audio" | null);
+    }
+    if (pathname === "/frames") {
+      onFilterChange("frame");
+    }
+  }, [searchParams, pathname, onFilterChange]);
+
+  useImperativeHandle(ref, () => ({
+    setFilterFromParams: onFilterChange
+  }), [onFilterChange]);
+
+  return null;
+});
+
+SearchParamsWrapper.displayName = 'SearchParamsWrapper';
+
 const ActivityBar: FC = memo(() => {
   const { user } = useNeynarContext();
 
@@ -73,8 +105,7 @@ const ActivityBar: FC = memo(() => {
   const called = useRef<boolean>(false);
 
   const { push } = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParamsRef = useRef<SearchParamsHandlers>(null);
 
   const fetchAllChannels = useCallback(async () => {
     try {
@@ -98,6 +129,10 @@ const ActivityBar: FC = memo(() => {
 
   const handleSidebarOpen = useCallback(() => setOpenSidebar(true), []);
   const handleSidebarClose = useCallback(() => setOpenSidebar(false), []);
+
+  const handleFilterChange = useCallback((newFilter: typeof filter) => {
+    setFilter(newFilter);
+  }, []);
 
   const renderedChannels = useMemo(
     () =>
@@ -131,17 +166,15 @@ const ActivityBar: FC = memo(() => {
     if (!called.current && user?.fid) fetchAllChannels();
   }, [called.current, user?.fid]);
 
-  useEffect(() => {
-    if (pathname === "/") {
-      setFilter(searchParams?.get("filter") as typeof filter);
-    }
-    if (pathname === "/frames") {
-      setFilter("frame");
-    }
-  }, [searchParams, pathname]);
-
   return (
     <>
+      <Suspense fallback={null}>
+        <SearchParamsWrapper 
+          ref={searchParamsRef}
+          onFilterChange={handleFilterChange}
+        />
+      </Suspense>
+
       <div
         className={`w-full py-3 px-4 flex items-center justify-between ${
           openSidebar ? "invisible" : ""

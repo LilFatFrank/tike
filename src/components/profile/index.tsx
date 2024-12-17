@@ -347,7 +347,7 @@ const Profile: FC<Profile> = memo(({ fid }) => {
                   </p>
                 ))}
               </div>
-              {selectedTab === "casts" ? (
+              {fid && selectedTab === "casts" ? (
                 <ProfileCasts fid={fid.toString()} />
               ) : selectedTab === "media" ? (
                 <MediaCasts fid={fid.toString()} />

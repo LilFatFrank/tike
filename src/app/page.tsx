@@ -4,10 +4,55 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import { useNeynarContext } from "@neynar/react";
 import { useRouter } from "next/navigation";
 import { usePathname, useSearchParams } from "next/navigation";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Suspense,
+  forwardRef,
+  memo,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useMemo,
+  useState,
+} from "react";
 import { useInfiniteQuery } from "react-query";
 import { Virtuoso } from "react-virtuoso";
 import { toast } from "sonner";
+
+interface SearchParamsHandlers {
+  setFilterFromParams: (filter: "video" | "image" | "audio" | null) => void;
+}
+
+const SearchParamsWrapper = forwardRef<
+  SearchParamsHandlers,
+  { onFilterChange: (filter: "video" | "image" | "audio" | null) => void }
+>(({ onFilterChange }, ref) => {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (pathname === "/") {
+      const filterValue = searchParams?.get("filter") as
+        | "video"
+        | "image"
+        | "audio"
+        | null;
+      onFilterChange(filterValue);
+    }
+  }, [searchParams, pathname, onFilterChange]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      setFilterFromParams: onFilterChange,
+    }),
+    [onFilterChange]
+  );
+
+  return null;
+});
+
+SearchParamsWrapper.displayName = "SearchParamsWrapper";
 
 interface ApiResponse {
   casts: any;
@@ -24,6 +69,12 @@ export default function Home() {
   const [filter, setFilter] = useState<null | "video" | "image" | "audio">(
     null
   );
+  const searchParamsRef = useRef<SearchParamsHandlers>(null);
+  const router = useRouter();
+
+  const handleFilterChange = useCallback((newFilter: typeof filter) => {
+    setFilter(newFilter);
+  }, []);
 
   const fetchUserChannels = useCallback(
     async ({
@@ -129,21 +180,11 @@ export default function Home() {
     }
   );
 
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
   const handleFetchNextPage = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
   }, [hasNextPage, fetchNextPage, isFetchingNextPage]);
-
-  useEffect(() => {
-    if (pathname === "/") {
-      setFilter(searchParams?.get("filter") as typeof filter);
-    }
-  }, [searchParams, pathname]);
 
   const allCasts = useMemo(
     () => data?.pages.flatMap((page) => page.casts) ?? [],
@@ -223,33 +264,42 @@ export default function Home() {
 
   const isMobile = useIsMobile();
 
-  if (isLoading) return renderLoadingState();
-
   if (error) return renderError();
 
   return (
     <>
       <div className="flex-1 bg-white min-h-full">
+        <Suspense fallback={null}>
+          <SearchParamsWrapper
+            ref={searchParamsRef}
+            onFilterChange={handleFilterChange}
+          />
+        </Suspense>
+
         <ActivityBar />
 
-        <Virtuoso
-          data={allCasts}
-          endReached={handleFetchNextPage}
-          itemContent={renderItem}
-          useWindowScroll={isMobile}
-          components={{
-            Footer,
-            Header: () => (
-              <UserChannels
-                channels={allUserChannels}
-                onLoadMore={fetchNextUserChannels}
-                hasNextPage={!!hasNextUserChannels}
-                isFetchingNextPage={isFetchingNextUserChannels}
-              />
-            ),
-          }}
-          style={{ height: "100dvh", scrollbarWidth: "none" }}
-        />
+        {isLoading ? (
+          renderLoadingState()
+        ) : (
+          <Virtuoso
+            data={allCasts}
+            endReached={handleFetchNextPage}
+            itemContent={renderItem}
+            useWindowScroll={isMobile}
+            components={{
+              Footer,
+              Header: () => (
+                <UserChannels
+                  channels={allUserChannels}
+                  onLoadMore={fetchNextUserChannels}
+                  hasNextPage={!!hasNextUserChannels}
+                  isFetchingNextPage={isFetchingNextUserChannels}
+                />
+              ),
+            }}
+            style={{ height: "100dvh", scrollbarWidth: "none" }}
+          />
+        )}
       </div>
     </>
   );

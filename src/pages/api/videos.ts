@@ -12,7 +12,7 @@ export default async function handler(
       const limit = JSON.parse(req.body).limit as string;
 
       const resp = await axios.get(
-        `https://api.neynar.com/v2/farcaster/feed?feed_type=filter&filter_type=embed_types&fid=${fid}&embed_types=video&with_recasts=true&limit=${limit}&cursor=${cursor}`,
+        `https://api.neynar.com/v2/farcaster/feed?feed_type=filter&filter_type=embed_types&embed_types=video&with_recasts=true&limit=${limit}&cursor=${cursor}`,
         {
           headers: {
             accept: "application/json",
